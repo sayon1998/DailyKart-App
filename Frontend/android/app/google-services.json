@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "609237155387",
+    "project_id": "dailykart-57abc",
+    "storage_bucket": "dailykart-57abc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:609237155387:android:b59b0aa5f690930a45661e",
+        "android_client_info": {
+          "package_name": "io.ionic.DailyKart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "609237155387-qkcjimaktcocoudos7b90np3d0ue4j5s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.ionic.DailyKart",
+            "certificate_hash": "6eda8d08ec1f2355def4b32a7a4ad8d41a295438"
+          }
+        },
+        {
+          "client_id": "609237155387-8m1dceo0mq0a5a7kbrj3c44fsu5h893e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-Is67bWJdaUiz8I3Kz1P5zxIkfwH78sA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "609237155387-8m1dceo0mq0a5a7kbrj3c44fsu5h893e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

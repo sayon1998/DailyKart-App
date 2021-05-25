@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable max-len */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable space-before-function-paren */
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
@@ -12,9 +14,9 @@ import { FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavController, PopoverController, Platform } from '@ionic/angular';
 import { GlobalService } from '../service/global.service';
-import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-declare var SMS: any;
-declare var document: any;
+import { FirebaseAuthentication } from '@ionic-native/firebase-authentication/ngx';
+import { Keyboard } from '@ionic-native/keyboard/ngx';
+declare var SMSReceive: any;
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -28,11 +30,9 @@ export class LoginComponent implements OnInit {
   public loginOrRegisterFlag = false; // Default false means login
   public emailOrPhn = new FormControl('', [Validators.required]);
   public password = new FormControl('', [Validators.required]);
-  public vOTP = '';
-  public getOTP: any;
   public config = {
     allowNumbersOnly: true,
-    length: 5,
+    length: 6,
     isPasswordInput: false,
     disableAutoFocus: false,
     placeholder: '0',
@@ -41,75 +41,40 @@ export class LoginComponent implements OnInit {
       height: '40px',
     },
   };
+  public verificationId = '';
   @ViewChild('ngOtpInput', { static: false }) ngOtpInputRef: any;
+  setInterval: any;
+  otpSec = 60;
   constructor(
     public nav: NavController,
     public popOverController: PopoverController,
     public _global: GlobalService,
     private _router: Router,
     public platform: Platform,
-    public androidPermissions: AndroidPermissions
-  ) {
-    document.addEventListener('onSMSArrive', function (e: any) {
-      var sms = e.data;
-      console.log('received sms ' + JSON.stringify(sms));
-      if (sms.address === 'HP-611773') {
-        //look for your message address
-        this.ngOtpInputRef.setValue(sms.body.substr(0, 4));
-        if (SMS) {
-          SMS.stopWatch(
-            function () {
-              console.log('watching stopped');
-            },
-            function () {
-              console.log('failed to stop watching');
-            }
-          );
-        }
-        this.verifyOTP();
-      }
-    });
-  }
+    private firebaseAuthentication: FirebaseAuthentication,
+    private keyboard: Keyboard
+  ) {}
 
   ngOnInit(): void {
-    // if (this.platform.is('cordova')) {
-    // }
+    if (this.platform.is('cordova')) {
+      this.start();
+    }
   }
-  checkPermission() {
-    // if (this.platform.is('cordova')) {
-    this.androidPermissions
-      .checkPermission(this.androidPermissions.PERMISSION.READ_SMS)
-      .then(
-        (result) => {
-          console.log('Has permission?', result.hasPermission);
-          if (SMS) {
-            SMS.startWatch(
-              function () {
-                console.log('watching started');
-              },
-              function () {
-                console.log('failed to start watching');
-              }
-            );
-          }
-        },
-        (err) =>
-          this.androidPermissions
-            .requestPermission(this.androidPermissions.PERMISSION.READ_SMS)
-            .then((result) => {
-              if (SMS) {
-                SMS.startWatch(
-                  function () {
-                    console.log('watching started');
-                  },
-                  function () {
-                    console.log('failed to start watching');
-                  }
-                );
-              }
-            })
-      );
-    // }
+  start() {
+    SMSReceive.startWatch(
+      () => {
+        console.log('watch started');
+        document.addEventListener('onSMSArrive', (e: any) => {
+          console.log('onSMSArrive()');
+          var IncomingSMS = e.data.body.toString().substring(0, 6);
+          this.ngOtpInputRef.setValue(IncomingSMS);
+          console.log(JSON.stringify(IncomingSMS));
+        });
+      },
+      () => {
+        console.log('watch start failed');
+      }
+    );
   }
   onLogin() {
     console.log(this.emailOrPhn.value, this.password.value);
@@ -146,6 +111,14 @@ export class LoginComponent implements OnInit {
     console.log(param);
     if (param.ph === '7980674685' && param.password === '12345') {
       localStorage.setItem('isLogin', 'true');
+      SMSReceive.stopWatch(
+        () => {
+          console.log('watch stopped');
+        },
+        () => {
+          console.log('watch stop failed');
+        }
+      );
       // this._router.navigate(['/tabs/tab2']);
       this.nav.navigateRoot(['/tabs/tab2']);
     } else {
@@ -162,22 +135,86 @@ export class LoginComponent implements OnInit {
       this.phoneNumber !== '' &&
       String(this.phoneNumber).length === 10
     ) {
-      // this.spin = true;
-      this.otpSent = true;
-      this.getOTP = '12345';
-      localStorage.setItem('ph', this.phoneNumber);
-      this.checkPermission();
+      this.spin = true;
+      this.firebaseAuthentication
+        .verifyPhoneNumber(String('+91' + this.phoneNumber), 60)
+        .then((res) => {
+          this.spin = false;
+          this.otpSent = true;
+          this.verificationId = res;
+          console.log(res);
+          this.setInterval = setInterval(() => {
+            if (this.otpSec > 0) {
+              this.otpSec -= 1;
+            } else {
+              clearInterval(this.setInterval);
+            }
+          }, 1000);
+        })
+        .catch((err) => {
+          this.spin = false;
+          console.log(err);
+          alert(err);
+        });
     }
   }
-
+  retryOTP() {
+    this.spin = true;
+    this.firebaseAuthentication
+      .verifyPhoneNumber(String('+91' + this.phoneNumber), 60)
+      .then((res) => {
+        this.spin = false;
+        this.verificationId = res;
+        console.log(res);
+        this.otpSec = 60;
+        this.setInterval = setInterval(() => {
+          if (this.otpSec > 0) {
+            this.otpSec -= 1;
+          } else {
+            clearInterval(this.setInterval);
+          }
+        }, 1000);
+      })
+      .catch((err) => {
+        this.spin = false;
+        console.log(err);
+        alert('Error: ' + err);
+      });
+  }
   verifyOTP(event: any) {
     console.log(event);
-    if (event && event.length === 5 && event === this.getOTP) {
-      // this._router.navigate(['/login/register-details']);
-      this.nav.navigateRoot(['/login/register-details']);
-    } else if (event && event.length === 5 && event !== this.getOTP) {
-      this._global.toasterValue('Incorrect OTP');
-      this.ngOtpInputRef.setValue('');
+    if (event && event.length === 6) {
+      this.firebaseAuthentication
+        .signInWithVerificationId(this.verificationId, event)
+        .then((res) => {
+          console.log(res);
+          localStorage.setItem('ph', this.phoneNumber);
+          SMSReceive.stopWatch(
+            () => {
+              console.log('watch stopped');
+            },
+            () => {
+              console.log('watch stop failed');
+            }
+          );
+          this.keyboard.hide();
+          // this._router.navigate(['/login/register-details']);
+          this.nav.navigateRoot(['/login/register-details']);
+        })
+        .catch((err) => {
+          console.log(err);
+          if (
+            err.includes(
+              'The sms verification code used to create the phone auth credential is invalid.'
+            )
+          ) {
+            this._global.toasterValue('OTP is not valid', 'Error');
+          } else {
+            this._global.toasterValue(err, 'Error');
+          }
+
+          this.ngOtpInputRef.setValue('');
+        });
     }
   }
 }

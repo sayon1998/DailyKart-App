@@ -1,5 +1,5 @@
 {
-  "appId": "io.ionic.starter",
+  "appId": "io.ionic.DailyKart",
   "appName": "DailyKart",
   "bundledWebRuntime": false,
   "npmClient": "npm",
