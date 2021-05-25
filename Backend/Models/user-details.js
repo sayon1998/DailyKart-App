@@ -1,38 +1,52 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  username: {
+  fName: {
     type: String,
     required: true,
   },
-  displayname: {
+  mName: {
+    type: String,
+  },
+  lName: {
     type: String,
     required: true,
   },
-  role: {
+  password: {
     type: String,
     required: true,
   },
-  token: {
+  gender: {
     type: String,
     required: true,
   },
-  encyptduser: {
+  email: {
     type: String,
     required: true,
   },
-  userpin: {
+  ph: {
+    type: String,
+    required: true,
+    maxlength: 10,
+    minlength: 10,
+  },
+  address: {
     type: String,
     required: true,
   },
-  link: {
+  pin: {
     type: String,
     required: true,
   },
-  longitude: {
+  state: {
     type: String,
+    required: true,
   },
-  latitude: {
+  city: {
+    type: String,
+    required: true,
+  },
+  landmark: {
     type: String,
   },
   date: {
@@ -41,4 +55,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("userDetails", userSchema);
+module.exports = mongoose.model("UserDetails", userSchema);

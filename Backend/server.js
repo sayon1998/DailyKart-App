@@ -9,10 +9,10 @@ var cors = require("cors");
 const bodyParser = require("body-parser");
 
 // Routes
-const allPostRoute = require("./Routers/post");
-const allGetRoute = require("./Routers/get");
-const allDeleteRoute = require("./Routers/delete");
-const scheduler = require("./Scheduler/push-notification");
+const route = require("./Router/router");
+
+// Route Middleware
+app.use("/api", route);
 
 //Environment Setup
 dotEnv.config();
@@ -54,12 +54,6 @@ app.use(function (req, res, next) {
   );
   next();
 });
-
-// Router Middleware
-app.use("/api", allPostRoute);
-app.use("/api", allGetRoute);
-app.use("/api", allDeleteRoute);
-app.use("/scheduler", scheduler);
 
 app.listen(port, function () {
   console.log("Server is running on port " + port);
