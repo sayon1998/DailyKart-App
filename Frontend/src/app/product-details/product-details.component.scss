@@ -1,0 +1,73 @@
+ion-slides {
+  height: 300px;
+  ion-icon {
+    font-size: xx-large;
+  }
+}
+.footer-button {
+  height: 50px;
+  text-align: center;
+  ion-text {
+    position: relative;
+    top: 10px;
+  }
+}
+
+.productDetails {
+  #mainPrice {
+    margin-left: 0px;
+    font-size: x-large;
+    span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    #offer {
+      font-weight: bold;
+      color: rgb(15, 170, 15);
+      font-size: 15px;
+    }
+  }
+  .rating {
+    color: white;
+    width: 40px;
+    background-color: rgb(11, 160, 11);
+    text-align: center;
+    border-radius: 2px;
+    font-size: smaller;
+    float: left;
+    margin-right: 2px;
+  }
+  .rating-decimal {
+    color: white;
+    margin-right: 2px;
+    float: left;
+    font-size: smaller;
+    width: 55px;
+    background-color: rgb(11, 160, 11);
+    text-align: center;
+    border-radius: 2px;
+  }
+}
+.quantity {
+  text-align: center;
+  width: 25px;
+  background-color: #d4d0d0;
+  border-radius: 3px;
+  position: relative;
+  top: 4px;
+}
+.increase-decrease {
+  font-size: 25px;
+}
+.searchBar {
+  ion-item {
+    padding: 5px;
+    --border-width: 2px;
+    --border-color: #403e39;
+    --border-radius: 8px;
+  }
+  ion-button {
+    position: relative;
+    top: 7px;
+  }
+}

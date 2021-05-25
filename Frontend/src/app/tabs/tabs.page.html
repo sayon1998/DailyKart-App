@@ -1,0 +1,46 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5"
+          ><ion-title style="padding-left: 0px">
+            {{headerTitle}}
+          </ion-title></ion-col
+        >
+        <ion-col>
+          <ion-icon name="search" style="font-size: 25px"></ion-icon>
+          &nbsp;
+          <ion-icon
+            (click)="_router.navigate(['/cart'])"
+            name="cart"
+            style="font-size: 25px"
+          ></ion-icon>
+          <ion-badge
+            *ngIf="_user.cartArray && _user.cartArray.length > 0"
+            [ngClass]="[
+            _user.cartArray &&
+            _user.cartArray.length !== 0 &&
+            _user.cartArray.length > 9
+              ? 'cart-quantity-max'
+              : 'cart-quantity'
+          ]"
+            color="danger"
+            ><span>{{ _user.cartArray.length }}</span></ion-badge
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+<ion-tabs>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button
+      *ngFor="let item of tabArray;let i = index"
+      (click)="onClickRoute(i)"
+      [tab]="item.link"
+    >
+      <ion-icon [name]="item.icon"></ion-icon>
+      <ion-label>{{item.fotter}}</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

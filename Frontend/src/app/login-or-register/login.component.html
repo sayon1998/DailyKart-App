@@ -1,0 +1,127 @@
+<ion-content class="ion-padding ion-text-center">
+  <img src="assets/logo/dailykart.jpg" alt="" class="logo" />
+  <h2>DailyKart</h2>
+  <p>Shoping your daily required vegitables and grocaries</p>
+  <ion-title color="primary">{{
+    loginOrRegisterFlag ? "Signup" : "Login"
+  }}</ion-title>
+  <div *ngIf="loginOrRegisterFlag">
+    <!-- Phone Number Content -->
+    <div *ngIf="!otpSent">
+      <ion-item>
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <img id="countryCode" src="assets/logo/ind-flag.png" />
+            </ion-col>
+            <ion-col
+              ><ion-text id="countryCodeText" color="primary">
+                +91
+              </ion-text></ion-col
+            >
+            <ion-col size="8"
+              ><ion-label position="floating">Phone Number</ion-label>
+              <ion-input
+                id="phoneNumber"
+                type="number"
+                [(ngModel)]="phoneNumber"
+              ></ion-input>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>
+          <ion-note>An OTP will be sent to given phone number</ion-note>
+        </ion-label>
+      </ion-item>
+
+      <ion-button (click)="sendOTP()" expand="block" *ngIf="!spin"
+        >Send OTP</ion-button
+      >
+
+      <!-- Spinner -->
+      <div class="ion-text-center" *ngIf="spin">
+        <ion-spinner color="primary"></ion-spinner>
+      </div>
+    </div>
+
+    <!-- OTP Content -->
+    <div *ngIf="otpSent">
+      <ion-grid>
+        <ion-row>
+          <ion-col
+            ><ng-otp-input
+              #ngOtpInput
+              (onInputChange)="verifyOTP($event)"
+              [config]="config"
+            ></ng-otp-input
+          ></ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-item lines="none">
+        <ion-label>
+          <ion-note>An OTP sent to {{ "+91" + " - " + phoneNumber }}</ion-note>
+        </ion-label>
+      </ion-item>
+      <!-- Spinner -->
+      <div class="ion-text-center" *ngIf="spin">
+        <ion-spinner color="primary"></ion-spinner>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!loginOrRegisterFlag">
+    <ion-item>
+      <ion-label position="floating">Email or Phone number</ion-label>
+      <ion-input [formControl]="emailOrPhn"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Password</ion-label>
+      <ion-input
+        [type]="_global.passwordType"
+        clearOnEdit="false"
+        [formControl]="password"
+      ></ion-input>
+      <ion-icon
+        item-end
+        [name]="_global.passwordIcon"
+        slot="end"
+        (click)="_global.hideShowPassword()"
+      ></ion-icon>
+    </ion-item>
+
+    <br />
+    <ion-button expand="block" (click)="onLogin()">Login</ion-button>
+    <!-- Spinner -->
+    <div class="ion-text-center" *ngIf="spin">
+      <ion-spinner color="primary"></ion-spinner>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <ion-footer class="ion-text-center">
+    <ion-toolbar *ngIf="loginOrRegisterFlag">
+      <ion-note>
+        Before Continue, Please read our
+        <ion-text color="primary"> Privacy Policy & Terms </ion-text>
+      </ion-note>
+    </ion-toolbar>
+    <ion-toolbar>
+      <ion-note>
+        {{
+          loginOrRegisterFlag
+            ? "Do you have an account ? "
+            : "Don't have an account ? "
+        }}
+
+        <ion-text
+          color="primary"
+          (click)="loginOrRegisterFlag = !loginOrRegisterFlag"
+        >
+          {{ loginOrRegisterFlag ? "login" : "signup" }}
+        </ion-text>
+      </ion-note>
+    </ion-toolbar>
+  </ion-footer>
+</ion-content>

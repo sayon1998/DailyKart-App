@@ -1,0 +1,24 @@
+.footer-button {
+  height: 50px;
+  text-align: center;
+  ion-text {
+    position: relative;
+    top: 10px;
+  }
+}
+.order-details {
+  ion-text {
+    font-size: medium;
+  }
+  ion-note {
+    font-size: large;
+  }
+}
+
+// .order-placed {
+ion-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+// }

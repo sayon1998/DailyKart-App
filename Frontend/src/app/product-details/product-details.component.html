@@ -1,0 +1,390 @@
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="_router.navigate(['/tabs/tab2'])"
+            style="font-size: 25px"
+            name="arrow-back-outline"
+          ></ion-icon>
+        </ion-col>
+        <ion-col>
+          <ion-icon name="search" style="font-size: 25px"></ion-icon>
+          &nbsp;
+          <ion-icon
+            (click)="_router.navigate(['/cart'])"
+            name="cart"
+            style="font-size: 25px"
+          ></ion-icon>
+          <ion-badge
+            *ngIf="_user.cartArray && _user.cartArray.length > 0"
+            [ngClass]="[
+              _user.cartArray &&
+              _user.cartArray.length !== 0 &&
+              _user.cartArray.length > 9
+                ? 'cart-quantity-max'
+                : 'cart-quantity'
+            ]"
+            color="danger"
+            ><span>{{ _user.cartArray.length }}</span></ion-badge
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [scrollEvents]="true" (ionScroll)="getScrollPos($event)">
+  <!-- Image Content -->
+  <ion-slides
+    *ngIf="
+      _product.products &&
+      _product.products[index] &&
+      _product.products[index]['imagelist']
+    "
+    pager="true"
+    mode="md"
+    [options]="slideOpts"
+  >
+    <ion-slide
+      *ngFor="let item of _product.products[index]['imagelist']; let i = index"
+    >
+      <img src="{{ item }}" />
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button color="light">
+          <ion-icon
+            [ngStyle]="{
+              color: _product.products[index].icon === 'heart' ? 'red' : ''
+            }"
+            [name]="_product.products[index].icon"
+            (click)="_product.onClickWishList(index)"
+          ></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </ion-slide>
+  </ion-slides>
+  <br />
+  <!-- Product name, price -->
+  <ion-item *ngIf="_product.products && _product.products[index]">
+    <div class="productDetails">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12">
+            <ion-title style="padding: 0px; padding-bottom: 5px">{{
+              _product.products[index].name
+            }}</ion-title>
+            <div>
+              <div
+                *ngIf="_product.products[index].rating"
+                [ngClass]="[
+                  _product.products[index].rating &&
+                  !_product.products[index].rating.includes('.')
+                    ? 'rating'
+                    : 'rating-decimal'
+                ]"
+              >
+                {{ _product.products[index].rating }}
+                <ion-icon name="star"></ion-icon>
+              </div>
+              <ion-note
+                style="position: relative; bottom: 2px"
+                *ngIf="_product.products[index].rating"
+                >({{ _product.products[index].totalrating }})</ion-note
+              >
+            </div>
+            <ion-text id="mainPrice">
+              {{ _product.products[index].price }}
+              <span>{{ _product.products[index].originalprice }}</span
+              >&nbsp;&nbsp;<ion-text id="offer">{{
+                _product.products[index].offerpercentage
+              }}</ion-text>
+            </ion-text>
+            <br />
+            <ng-container
+              *ngIf="
+                _product.products[index].deliverycharge &&
+                  _product.products[index].deliverycharge !== '';
+                else elseTemplate
+              "
+            >
+              {{
+                "+ " +
+                  _product.products[index].deliverycharge +
+                  " delivery charge is required"
+              }}
+            </ng-container>
+            <ng-template #elseTemplate> Free Delivery Applicable </ng-template>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </ion-item>
+  <!-- Delivery -->
+  <ion-item>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="8"
+          ><ion-text>
+            <ng-container
+              *ngIf="
+                _address.addressArray && _address.addressArray.length > 0;
+                else elseTemplate1
+              "
+            >
+              <span style="font-weight: bold"
+                ><span style="font-weight: normal; color: rgb(85, 83, 83)"
+                  >Delivery to</span
+                >
+                {{
+                  _address.addressArray[0].address &&
+                  _address.addressArray[0].address.length > 40
+                    ? _address.addressArray[0].address.slice(0, 40) + ".."
+                    : _address.addressArray[0].address
+                }}</span
+              >
+            </ng-container>
+            <ng-template #elseTemplate1>
+              <span style="position: relative; top: 10px"
+                >Enter Your Address or Pin</span
+              >
+            </ng-template>
+          </ion-text></ion-col
+        >
+        <ion-col>
+          <ion-button
+            (click)="
+              onClickAddress(
+                _address.addressArray && _address.addressArray.length > 0
+                  ? 'change'
+                  : 'add'
+              )
+            "
+            >{{
+              _address.addressArray && _address.addressArray.length > 0
+                ? "change"
+                : "add"
+            }}</ion-button
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-item>
+  <!-- Product Highlights & Qty -->
+  <ion-item>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <h3 style="margin-top: 0px; margin-bottom: 0px">Highlights</h3>
+        </ion-col>
+        <!-- <ion-col>
+          <ion-icon
+            class="increase-decrease"
+            name="remove-circle-outline"
+            (click)="_product.onClickQuantity(_product.products[index],index, 'decrease')"
+          ></ion-icon
+        ></ion-col>
+        <ion-col>
+          <div class="quantity">
+            {{ _product.products[index].quantity }}
+          </div>
+        </ion-col>
+        <ion-col
+          ><ion-icon
+            class="increase-decrease"
+            name="add-circle-outline"
+            (click)="_product.onClickQuantity(_product.products[index],index, 'increase')"
+          ></ion-icon
+        ></ion-col> -->
+      </ion-row>
+
+      <ion-col>
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Item:</span>
+            {{ _product.products[index].name }}
+          </ion-text>
+        </ion-row>
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Description:</span>
+            {{ _product.products[index].description }}
+          </ion-text>
+        </ion-row>
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Type:</span>
+            {{ _product.products[index].type }}
+          </ion-text>
+        </ion-row>
+
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Quantity:</span>
+            {{ _product.products[index].unit }}
+          </ion-text>
+        </ion-row>
+
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Shop:</span>
+            {{ _product.products[index].company }}
+          </ion-text>
+        </ion-row>
+
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Return Policy:</span>
+            {{ _product.products[index].returnpolicy }}
+          </ion-text>
+        </ion-row>
+
+        <ion-row>
+          <ion-text>
+            <span style="font-weight: bold">Payment Mode:</span>
+            {{ _product.products[index].paymentmode }}
+          </ion-text>
+        </ion-row>
+      </ion-col>
+    </ion-grid>
+  </ion-item>
+  <!-- Product Rating -->
+  <ion-item>
+    <ion-grid>
+      <h3 style="margin-top: 0px; margin-bottom: 0px">Customer Rating</h3>
+      <ion-col>
+        <ion-row>
+          <ion-col>
+            <span style="font-size: xx-large">1.5/5</span>&nbsp;
+            <ion-icon name="star" style="font-size: x-large"></ion-icon
+          ></ion-col>
+          <ion-col>
+            <ion-row>
+              <span style="font-size: medium">Out of 47</span>
+            </ion-row>
+            <ion-row>
+              <span style="font-size: larger">5</span>
+              <ion-icon
+                name="star"
+                style="position: relative; top: 2px; color: green"
+              ></ion-icon>
+              &nbsp;- &nbsp;<span style="position: relative; top: 1px">12</span>
+            </ion-row>
+            <ion-row>
+              <span style="font-size: larger">4</span>
+              <ion-icon
+                name="star"
+                style="position: relative; top: 2px; color: greenyellow"
+              ></ion-icon>
+              &nbsp;- &nbsp;<span style="position: relative; top: 1px">9</span>
+            </ion-row>
+            <ion-row>
+              <span style="font-size: larger">3</span>
+              <ion-icon
+                name="star"
+                style="position: relative; top: 2px; color: yellow"
+              ></ion-icon>
+              &nbsp;- &nbsp;<span style="position: relative; top: 1px">2</span>
+            </ion-row>
+            <ion-row>
+              <span style="font-size: larger">2</span>
+              <ion-icon
+                name="star"
+                style="position: relative; top: 2px; color: orange"
+              ></ion-icon>
+              &nbsp;- &nbsp;<span style="position: relative; top: 1px">19</span>
+            </ion-row>
+            <ion-row>
+              <span style="font-size: larger">1</span>
+              <ion-icon
+                name="star"
+                style="position: relative; top: 2px; color: red"
+              ></ion-icon>
+              &nbsp;- &nbsp;<span style="position: relative; top: 1px">5</span>
+            </ion-row>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-grid>
+  </ion-item>
+  <app-recommended-products (click)="gotToTop()"></app-recommended-products>
+</ion-content>
+<!-- Footer -->
+<ion-footer>
+  <ion-grid>
+    <ion-row>
+      <ion-col
+        style="background-color: #ccc; font-weight: bold"
+        class="footer-button ion-activatable ripple-parent"
+        (click)="onClickCart()"
+      >
+        <ion-ripple-effect></ion-ripple-effect>
+        <ion-text>{{
+          inCartFlag ? "Go to My Cart" : "Add to My Cart"
+        }}</ion-text>
+      </ion-col>
+      <ion-col
+        style="background-color: orangered; font-weight: bold; color: white"
+        class="footer-button ion-activatable ripple-parent"
+        (click)="onClickBuyNow()"
+      >
+        <ion-ripple-effect></ion-ripple-effect>
+        <ion-text>Buy Now</ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-footer>
+<!-- Address Drawer -->
+<ion-bottom-sheet
+  [(state)]="sheetState"
+  [minHeight]="minHeight"
+  [dockedHeight]="dockedHeight"
+  [topDistance]="topDistance"
+  [roundBorderOnTop]="roundBorderOnTop"
+  [shadowBorder]="shadowBorder"
+  [transition]="transition"
+  [title]="title"
+  [disableDrag]="disableDrag"
+  [hideDragIcon]="hideDragIcon"
+  [enableScrollContent]="enableScrollContent"
+>
+  <ion-content>
+    <div class="searchBar">
+      <ion-item lines="none">
+        <ion-label position="floating"
+          >Enter pincode to check delivery info</ion-label
+        >
+        <ion-input type="number"></ion-input>
+        <ion-button shape="round" slot="end">Check</ion-button>
+      </ion-item>
+    </div>
+
+    <ion-item (click)="onClickLocation()" class="ion-activatable ripple-parent">
+      <ion-ripple-effect></ion-ripple-effect>
+      <ion-label>Use your current location</ion-label>
+      <ion-icon name="locate" slot="end"></ion-icon>
+    </ion-item>
+    <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
+      <ion-list-header>
+        <ion-label style="font-size: larger"
+          >Your Preffered
+          {{
+            _address.addressArray && _address.addressArray.length > 1
+              ? "Addressess"
+              : "Address"
+          }}</ion-label
+        >
+      </ion-list-header>
+      <ion-radio-group [value]="_address.addressArray[0]._id">
+        <ion-item *ngFor="let item of _address.addressArray; let i = index">
+          <ion-label>{{ item.address }}</ion-label>
+          <ion-radio
+            slot="start"
+            [value]="_address.addressArray[i]._id"
+          ></ion-radio>
+        </ion-item>
+      </ion-radio-group>
+    </ion-list>
+  </ion-content>
+</ion-bottom-sheet>

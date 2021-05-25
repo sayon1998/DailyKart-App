@@ -1,0 +1,282 @@
+<ng-container *ngIf="!paymentFlag; else elseTemplate">
+  <!-- Header -->
+  <ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="9.5">
+            <ion-icon
+              (click)="_router.navigate(['/cart'])"
+              style="font-size: 25px"
+              name="arrow-back-outline"
+            ></ion-icon>
+            <ion-text
+              style="
+                position: relative;
+                bottom: 5px;
+                font-size: large;
+                left: 2px;
+              "
+              >Checkout</ion-text
+            >
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Content -->
+  <ion-content>
+    <!-- Delivery -->
+
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <h3>Delivery Address</h3>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <ng-container
+              *ngIf="
+                _user.checkOutArray.deliveryaddress &&
+                _user.checkOutArray.deliveryaddress != ''
+              "
+            >
+              <span>
+                {{
+                  _user.checkOutArray.deliveryaddress &&
+                  _user.checkOutArray.deliveryaddress.address
+                    ? _user.checkOutArray.deliveryaddress.address
+                    : "No Address Available"
+                }}</span
+              >
+            </ng-container></ion-col
+          >
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+    <!-- Order Amount -->
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <h3>Order Summary</h3>
+        </ion-row>
+        <ion-row
+          *ngFor="let item of _user.checkOutArray.productDetails; let i = index"
+          class="order-details"
+        >
+          <ion-col>
+            <ion-row>
+              <ion-col>
+                <ion-note>Order No. {{ i + 1 }}</ion-note>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <ion-note>Order Name</ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-text>{{ item.name }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <ion-note>Quantity</ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-text>{{ item.quantity }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <ion-note>Original Price</ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-text style="color: grey">{{
+                  item.originalprice
+                }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <ion-note>Offer Percentage</ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-text style="color: green">{{
+                  item.offerpercentage
+                }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <ion-note>Offer Price</ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-text>{{ item.price }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-item-divider></ion-item-divider>
+            <ion-row
+              *ngIf="i === _user.checkOutArray.productDetails.length - 1"
+            >
+              <ion-col>
+                <h5>Total Price</h5>
+              </ion-col>
+              <ion-col>
+                <ion-row>
+                  <ion-col size="5">
+                    <h5 style="font-size: larger">
+                      {{ "₹" + _user.checkOutArray.totalOfferPrice }}
+                    </h5>
+                  </ion-col>
+                  <ion-col size="5">
+                    <h6
+                      [ngStyle]="{
+                        right:
+                          _user.checkOutArray.totalOfferPrice < 100
+                            ? '30px'
+                            : _user.checkOutArray.totalOfferPrice < 1000
+                            ? '20px'
+                            : '10px'
+                      }"
+                      style="
+                        font-size: large;
+                        text-decoration: line-through;
+                        color: grey;
+                        position: relative;
+                      "
+                    >
+                      {{ "₹" + _user.checkOutArray.totalOriginalPrice }}
+                    </h6>
+                  </ion-col>
+                  <ion-col>
+                    <h6
+                      style="
+                        font-size: small;
+                        color: green;
+                        position: relative;
+                        bottom: 30px;
+                      "
+                    >
+                      {{ _user.checkOutArray.totalOfferPercentage }}
+                    </h6>
+                  </ion-col>
+                </ion-row>
+              </ion-col>
+            </ion-row>
+            <ion-row
+              style="position: relative; bottom: 60px"
+              *ngIf="i === _user.checkOutArray.productDetails.length - 1"
+            >
+              <ion-col>
+                <h5>You Save</h5>
+              </ion-col>
+              <ion-col>
+                <ion-row>
+                  <ion-col>
+                    <h5 style="font-size: larger; color: orangered">
+                      {{
+                        "₹" +
+                          (_user.checkOutArray.totalOriginalPrice -
+                            _user.checkOutArray.totalOfferPrice)
+                      }}
+                    </h5>
+                  </ion-col>
+                </ion-row>
+              </ion-col>
+              <ion-item-divider></ion-item-divider>
+            </ion-row>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+    <!-- Billing Address -->
+    <ion-item style="position: relative; bottom: 70px">
+      <ion-grid>
+        <ion-row>
+          <h3>Billing Address</h3>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <ng-container
+              *ngIf="
+                _user.checkOutArray.deliveryaddress &&
+                _user.checkOutArray.deliveryaddress != ''
+              "
+            >
+              <span>
+                {{
+                  _user.checkOutArray.deliveryaddress &&
+                  _user.checkOutArray.deliveryaddress.address
+                    ? _user.checkOutArray.deliveryaddress.address
+                    : "No Address Available"
+                }}</span
+              >
+            </ng-container></ion-col
+          >
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+    <!-- Payment Method -->
+    <ion-item style="position: relative; bottom: 70px">
+      <ion-grid>
+        <ion-row>
+          <h3>Payment Method</h3>
+        </ion-row>
+        <ion-radio-group [(ngModel)]="paymentMode">
+          <ion-row>
+            <div *ngFor="let item of paymentArray">
+              <ion-item *ngIf="item.isAvailable" lines="none">
+                <ion-label>{{ item.paymentname }}</ion-label>
+                <ion-radio slot="start" [value]="item.paymentname"></ion-radio>
+              </ion-item>
+            </div>
+          </ion-row>
+        </ion-radio-group>
+      </ion-grid>
+    </ion-item>
+  </ion-content>
+
+  <!-- Footer -->
+  <ion-footer>
+    <ion-grid>
+      <ion-row>
+        <ion-col
+          (click)="onClickPayment()"
+          style="background-color: orangered; font-weight: bold; color: white"
+          class="footer-button ion-activatable ripple-parent"
+        >
+          <ion-ripple-effect></ion-ripple-effect>
+          <ion-text>Place Order</ion-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-footer>
+</ng-container>
+<ng-template #elseTemplate>
+  <ion-grid [ngStyle]="{ 'margin-top': platform.height() / 4 + 'px' }">
+    <ion-row>
+      <ion-col style="text-align: center">
+        <img src="assets/images/place_an_order.png" />
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-button expand="block" (click)="goToNavigate('/my-order')"
+          >View Order
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-button
+          (click)="goToNavigate('/tabs/tab2')"
+          expand="block"
+          color="medium"
+          ><ion-icon name="arrow-back-outline"></ion-icon>Go to Home</ion-button
+        >
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ng-template>

@@ -1,0 +1,142 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Register Your Account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="detailsForm">
+    <ion-item>
+      <ion-label>First Name</ion-label>
+      <ion-input formControlName="fName"></ion-input>
+      <span
+        class="ion-error"
+        *ngIf="
+          detailsForm.get('fName').hasError('required') &&
+          (detailsForm.get('fName').dirty || detailsForm.get('fName').touched)
+        "
+      >
+        First Name is required
+      </span>
+    </ion-item>
+    <ion-item>
+      <ion-label>Middle Name</ion-label>
+      <ion-input formControlName="mName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Last Name</ion-label>
+      <ion-input formControlName="lName"></ion-input>
+      <span
+        class="ion-error"
+        *ngIf="
+          detailsForm.get('lName').hasError('required') &&
+          (detailsForm.get('lName').dirty || detailsForm.get('lName').touched)
+        "
+      >
+        Last Name is required
+      </span>
+    </ion-item>
+    <ion-radio-group formControlName="gender">
+      <ion-list-header>
+        <ion-label>Gender</ion-label>
+      </ion-list-header>
+
+      <ion-item>
+        <ion-label>Male</ion-label>
+        <ion-radio slot="start" value="M"></ion-radio>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Female</ion-label>
+        <ion-radio slot="start" value="F"></ion-radio>
+      </ion-item>
+      <ion-item>
+        <ion-label>Other</ion-label>
+        <ion-radio slot="start" value="o"></ion-radio>
+      </ion-item>
+    </ion-radio-group>
+    <ion-item>
+      <ion-label>Email</ion-label>
+      <ion-input formControlName="email"></ion-input>
+      <span
+        class="ion-error"
+        *ngIf="
+          detailsForm.get('email').hasError('required') &&
+          (detailsForm.get('email').dirty || detailsForm.get('email').touched)
+        "
+      >
+        Email is required
+      </span>
+      <span
+        class="ion-error"
+        *ngIf="
+          detailsForm.get('email').hasError('pattern') &&
+          (detailsForm.get('email').dirty || detailsForm.get('email').touched)
+        "
+      >
+        Email is not valided
+      </span>
+    </ion-item>
+    <ion-item>
+      <ion-label>Address</ion-label>
+      <ion-textarea formControlName="address"></ion-textarea>
+      <span
+        class="ion-address-error"
+        *ngIf="
+          detailsForm.get('address').hasError('required') &&
+          (detailsForm.get('address').dirty ||
+            detailsForm.get('address').touched)
+        "
+      >
+        Address is required
+      </span>
+    </ion-item>
+    <ion-item>
+      <ion-label>Landmark</ion-label>
+      <ion-input formControlName="landmark"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Pin Code</ion-label>
+      <ion-input formControlName="pin" type="number"></ion-input>
+      <span
+        class="ion-error"
+        *ngIf="
+          detailsForm.get('pin').hasError('required') &&
+          (detailsForm.get('pin').dirty || detailsForm.get('pin').touched)
+        "
+      >
+        Pin is required
+      </span>
+    </ion-item>
+    <ion-item>
+      <ion-label>Password</ion-label>
+      <ion-input
+        formControlName="password"
+        [type]="_global.passwordType"
+        clearOnEdit="false"
+      ></ion-input>
+      <ion-icon
+        item-end
+        [name]="_global.passwordIcon"
+        class="passwordIcon"
+        (click)="_global.hideShowPassword()"
+      ></ion-icon>
+    </ion-item>
+    <ion-item>
+      <ion-label>Confirm Password</ion-label>
+      <ion-input
+        formControlName="cpassword"
+        [type]="_global.passwordType2"
+        clearOnEdit="false"
+      ></ion-input>
+      <ion-icon
+        item-end
+        [name]="_global.passwordIcon2"
+        class="passwordIcon"
+        (click)="_global.hideShowPassword('second')"
+      ></ion-icon>
+    </ion-item>
+    <br />
+    <ion-button expand="block" (click)="saveDetails()">Register</ion-button>
+  </form>
+</ion-content>

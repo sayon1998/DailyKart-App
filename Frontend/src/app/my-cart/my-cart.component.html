@@ -1,0 +1,240 @@
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="nav.navigateBack('/tabs/tab2')"
+            style="font-size: 25px"
+            name="arrow-back-outline"
+          ></ion-icon>
+          <ion-text
+            style="position: relative; bottom: 5px; font-size: large; left: 2px"
+            >My Cart</ion-text
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+<ng-container *ngIf="!cartFlag; else elseTemplate">
+  <ion-content>
+    <!-- Delivery -->
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="8"
+            ><ion-text>
+              <ng-container
+                *ngIf="
+                  _address.addressArray && _address.addressArray.length > 0;
+                  else elseTemplate1
+                "
+              >
+                <span style="font-weight: bold"
+                  ><span style="font-weight: normal; color: rgb(85, 83, 83)"
+                    >Delivery to</span
+                  >
+                  {{
+                    _address.addressArray[0].address &&
+                    _address.addressArray[0].address.length > 40
+                      ? _address.addressArray[0].address.slice(0, 40) + ".."
+                      : _address.addressArray[0].address
+                  }}</span
+                >
+              </ng-container>
+              <ng-template #elseTemplate1>
+                <span style="position: relative; top: 10px"
+                  >Enter Your Address or Pin</span
+                >
+              </ng-template>
+            </ion-text></ion-col
+          >
+          <ion-col>
+            <ion-button
+              (click)="
+                onClickAddress(
+                  _address.addressArray && _address.addressArray.length > 0
+                    ? 'change'
+                    : 'add'
+                )
+              "
+              >{{
+                _address.addressArray && _address.addressArray.length > 0
+                  ? "change"
+                  : "add"
+              }}</ion-button
+            >
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+    <!-- Select All Items -->
+    <ion-row style="position: relative; top: 2px">
+      <ion-col>
+        <ion-checkbox
+          [(ngModel)]="selectAllFlag"
+          (click)="selectAll(selectAllFlag, 'selectAll')"
+          style="position: relative; left: 10px"
+          color="primary"
+        ></ion-checkbox>
+      </ion-col>
+      <ion-col size="11">
+        <ion-text style="font-size: larger; position: relative; bottom: 2px"
+          >Select All</ion-text
+        >
+      </ion-col>
+    </ion-row>
+    <!-- Cart Items -->
+    <ion-item *ngFor="let item of _user.cartArray; let index = index">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="8">
+            <ion-row>
+              <ion-col>
+                <ion-checkbox
+                  [(ngModel)]="item.isCheckout"
+                  (click)="selectAll(!item.isCheckout, 'select', index)"
+                  style="position: relative; bottom: 18px"
+                  color="primary"
+                ></ion-checkbox>
+              </ion-col>
+              <ion-col size="10">
+                <ion-text style="position: relative; left: -15px">{{
+                  item.name && item.name.length > 20
+                    ? item.name.slice(0, 20) + "..."
+                    : item.name
+                }}</ion-text>
+              </ion-col>
+            </ion-row>
+            <ion-col>
+              <ion-row style="position: relative; bottom: 50px">
+                <div>
+                  <div
+                    *ngIf="item.rating"
+                    [ngClass]="[
+                      item.rating && !item.rating.includes('.')
+                        ? 'rating'
+                        : 'rating-decimal'
+                    ]"
+                  >
+                    {{ item.rating }}
+                    <ion-icon name="star"></ion-icon>
+                  </div>
+                  <ion-note
+                    style="position: relative; bottom: 2px"
+                    *ngIf="item.rating"
+                    >({{ item.totalrating }})</ion-note
+                  >
+                </div>
+              </ion-row>
+            </ion-col>
+          </ion-col>
+          <ion-col>
+            <img src="{{ item.img }}" style="width: 100px; float: right" />
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="8.5">
+            <ion-text id="mainPrice" style="position: relative; bottom: 70px">
+              {{ item.price }}
+              <span>{{ item.originalprice }}</span
+              >&nbsp;&nbsp;<ion-text id="offer">{{
+                item.offerpercentage
+              }}</ion-text>
+            </ion-text>
+          </ion-col>
+          <ion-col>
+            <ion-icon
+              class="increase-decrease"
+              name="remove-circle-outline"
+              (click)="
+                _product.onClickQuantity(item, index, 'decrease'); getPrice()
+              "
+            ></ion-icon>
+          </ion-col>
+          <ion-col>
+            <div class="quantity">
+              {{ item.quantity }}
+            </div>
+          </ion-col>
+          <ion-col
+            ><ion-icon
+              class="increase-decrease"
+              name="add-circle-outline"
+              (click)="
+                _product.onClickQuantity(item, index, 'increase'); getPrice()
+              "
+            ></ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+  </ion-content>
+</ng-container>
+<ng-template #elseTemplate> no cart content </ng-template>
+<!-- Footer -->
+<ion-footer>
+  <ion-grid>
+    <ion-row>
+      <ion-col style="text-align: center">
+        <ion-text style="font-size: larger; margin-right: 10px"
+          >Total:</ion-text
+        >
+        <ion-text style="font-size: x-large">{{
+          "₹" + totalOfferPrice
+        }}</ion-text>
+        <ion-text
+          style="
+            color: gray;
+            margin-left: 5px;
+            text-decoration: line-through;
+            font-size: large;
+          "
+          >{{ "₹" + totalPrice }}</ion-text
+        >
+      </ion-col>
+      <ion-col
+        style="background-color: orangered; font-weight: bold; color: white"
+        class="footer-button ion-activatable ripple-parent"
+        (click)="onClickBuyNow()"
+      >
+        <ion-ripple-effect></ion-ripple-effect>
+        <ion-text>Checkout Order</ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-footer>
+
+<!-- Address Drawer -->
+<ion-bottom-sheet
+  [(state)]="sheetState"
+  [minHeight]="minHeight"
+  [dockedHeight]="dockedHeight"
+  [topDistance]="topDistance"
+  [roundBorderOnTop]="roundBorderOnTop"
+  [shadowBorder]="shadowBorder"
+  [transition]="transition"
+  [title]="title"
+  [disableDrag]="disableDrag"
+  [hideDragIcon]="hideDragIcon"
+  [enableScrollContent]="enableScrollContent"
+>
+  <ion-content>
+    <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
+      <ion-radio-group [value]="_address.addressArray[0]._id">
+        <ion-item
+          *ngFor="let item of _address.addressArray; let i = index"
+          (click)="onClickAddressChange(i)"
+        >
+          <ion-label>{{ item.address }}</ion-label>
+          <ion-radio
+            slot="start"
+            [value]="_address.addressArray[i]._id"
+          ></ion-radio>
+        </ion-item>
+      </ion-radio-group>
+    </ion-list>
+  </ion-content>
+</ion-bottom-sheet>

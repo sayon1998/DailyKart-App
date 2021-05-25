@@ -1,0 +1,51 @@
+<br /><br /><br />
+<ion-content [fullscreen]="true">
+  <!-- Profile Info -->
+  <ion-item>
+    <ion-thumbnail slot="start">
+      <ion-avatar>
+        <img src="assets/images/avater.jpg" />
+      </ion-avatar>
+    </ion-thumbnail>
+    <ion-label>
+      <h2 *ngIf="name && name !== '' && _auth.isLogin()">Name: {{name}}</h2>
+      <p *ngIf="phoneNumber && phoneNumber !== '' && _auth.isLogin()">
+        Phone Number: +91-{{phoneNumber}}
+      </p>
+
+      <ion-grid *ngIf="!_auth.isLogin()">
+        <ion-row>
+          <ion-col
+            ><h2 style="text-align: center; top: 5px; position: relative">
+              Login Your Account
+            </h2></ion-col
+          >
+          <ion-col></ion-col>
+          <ion-col>
+            <ion-button
+              size="small"
+              shape="round"
+              (click)="this._router.navigate(['/login'])"
+              >Login</ion-button
+            >
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-label>
+  </ion-item>
+
+  <!-- Menu Bar -->
+  <ion-item
+    class="ion-activatable ripple-parent"
+    *ngFor="let item of menuBar"
+    (click)="this._router.navigate([item.link])"
+  >
+    <ion-ripple-effect></ion-ripple-effect>
+    <ion-icon [name]="item.icon"></ion-icon>&nbsp;&nbsp;
+    <ion-label>{{item.name}}</ion-label>
+  </ion-item>
+  <br />
+  <ion-button *ngIf="_auth.isLogin()" expand="full" (click)="onlogOut()"
+    >Logout</ion-button
+  >
+</ion-content>

@@ -1,0 +1,82 @@
+<br /><br /><br />
+<!-- <div class="searchBar">
+  <ion-item lines="none">
+    <ion-label position="floating">Search for Items and More</ion-label>
+    <ion-input></ion-input>
+    <ion-icon name="search" slot="end"></ion-icon>
+  </ion-item>
+</div> -->
+
+<ion-content [fullscreen]="true">
+  <ion-slides #ionSlider pager="true" mode="md" [options]="slideOpts">
+    <ion-slide>
+      <h1>Slide 1</h1>
+    </ion-slide>
+    <ion-slide>
+      <h1>Slide 2</h1>
+    </ion-slide>
+    <ion-slide>
+      <h1>Slide 3</h1>
+    </ion-slide>
+  </ion-slides>
+  <!-- Skeleton text before loading -->
+  <!-- Avoid Scrolling -->
+  <ion-grid
+    style="overflow: hidden; position: fixed; width: 100%"
+    *ngIf="_product.products && _product.products.length === 0"
+  >
+    <ion-row>
+      <ion-col>
+        <ion-skeleton-text
+          animated
+          style="width: 100%; height: 110px"
+        ></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="6" *ngFor="let item of [0,1,2,3,4,5,6,7,8,9]">
+        <ion-skeleton-text
+          animated
+          style="width: 100%; height: 200px"
+        ></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Display product in grid view -->
+  <ion-grid *ngIf="_product.products && _product.products.length > 0">
+    <ion-row>
+      <ion-col size="6" *ngFor="let item of _product.products;let i=index;">
+        <div class="product ion-activatable ripple-parent">
+          <ion-ripple-effect></ion-ripple-effect>
+          <ion-icon
+            [ngStyle]="{'color': _product.products[i].icon === 'heart' ? 'red' : ''}"
+            [name]="item.icon"
+            class="wishList"
+            (click)="_product.onClickWishList(i)"
+          ></ion-icon>
+          <img src="{{item.img}}" (click)="onClickProductDetails(i)" />
+          <ion-item lines="none" (click)="onClickProductDetails(i)">
+            <ion-label>
+              <h2>{{item.name}}</h2>
+              <p>Rs: {{item.price}}</p>
+              <div
+                *ngIf="item.rating"
+                [ngClass]="[item.rating && !item.rating.includes('.') ? 'rating' : 'rating-decimal']"
+              >
+                {{item.rating}}
+                <ion-icon name="star"></ion-icon>
+              </div>
+              <ion-note *ngIf="item.rating">({{item.totalrating}})</ion-note>
+            </ion-label>
+          </ion-item>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Infinite Scrolling -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content> </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
