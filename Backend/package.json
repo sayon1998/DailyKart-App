@@ -1,0 +1,45 @@
+{
+  "name": "backend_node",
+  "version": "1.0.0",
+  "description": "BackEnd_Node",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "BackEnd_Node"
+  },
+  "author": "sayon chakraborty",
+  "license": "ISC",
+  "dependencies": {
+    "autocannon": "^7.0.1",
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "btoa": "^1.2.1",
+    "cloudinary": "^1.23.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.0",
+    "express-handlebars": "^5.2.0",
+    "facebook-login": "^1.4.1",
+    "fbgraph": "^1.4.4",
+    "fs": "0.0.1-security",
+    "googleapis": "^39.2.0",
+    "heroku": "^7.47.6",
+    "jsonwebtoken": "^8.5.1",
+    "loadtest": "^5.1.2",
+    "mongoose": "^5.11.8",
+    "node-cron": "^2.0.3",
+    "nodemon": "^2.0.6",
+    "passport": "^0.4.1",
+    "passport-facebook": "^3.0.0",
+    "request": "^2.88.2",
+    "rxjs": "^6.6.3",
+    "wait.for": "^0.6.6"
+  },
+  "engines": {
+    "node": "12.x"
+  }
+}
