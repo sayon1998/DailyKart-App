@@ -11,6 +11,7 @@ import { AuthService } from '../service/auth.service';
 export class Tab3Page {
   name = '';
   phoneNumber = '';
+  gender = '';
   menuBar: any[] = [
     {
       _id: '1',
@@ -61,6 +62,22 @@ export class Tab3Page {
     public nav: NavController
   ) {
     console.log('tab3');
+    this.name =
+      typeof localStorage.getItem('user-details') !== 'object'
+        ? JSON.parse(localStorage.getItem('user-details')).fName +
+          ' ' +
+          JSON.parse(localStorage.getItem('user-details')).mName +
+          ' ' +
+          JSON.parse(localStorage.getItem('user-details')).lName
+        : '';
+    this.phoneNumber =
+      typeof localStorage.getItem('user-details') !== 'object'
+        ? JSON.parse(localStorage.getItem('user-details')).ph
+        : '';
+    this.gender =
+      typeof localStorage.getItem('user-details') !== 'object'
+        ? JSON.parse(localStorage.getItem('user-details')).gender
+        : '';
   }
   onlogOut() {
     localStorage.clear();

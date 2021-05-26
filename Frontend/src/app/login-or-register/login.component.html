@@ -25,6 +25,7 @@
                 id="phoneNumber"
                 type="number"
                 [(ngModel)]="phoneNumber"
+                [readonly]="spin"
               ></ion-input>
             </ion-col>
           </ion-row>
@@ -106,7 +107,9 @@
     </ion-item>
 
     <br />
-    <ion-button expand="block" (click)="onLogin()">Login</ion-button>
+    <ion-button *ngIf="!spin" expand="block" (click)="onLogin()"
+      >Login</ion-button
+    >
     <!-- Spinner -->
     <div class="ion-text-center" *ngIf="spin">
       <ion-spinner color="primary"></ion-spinner>

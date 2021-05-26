@@ -4,7 +4,22 @@
   <ion-item>
     <ion-thumbnail slot="start">
       <ion-avatar>
-        <img src="assets/images/avater.jpg" />
+        <ng-container
+          *ngIf="gender === 'M' || !_auth.isLogin(); else elseTemplate"
+        >
+          <img src="assets/images/avater.jpg" />
+        </ng-container>
+        <ng-template #elseTemplate>
+          <ng-container
+            *ngIf="gender === 'F' && _auth.isLogin(); else elseTemplate1"
+          >
+            <img src="assets/images/avater-f.png" />
+          </ng-container>
+          <ng-template #elseTemplate1>
+            <!-- <img src="assets/images/avater-f.png" /> -->
+            <ion-text>Other</ion-text>
+          </ng-template>
+        </ng-template>
       </ion-avatar>
     </ion-thumbnail>
     <ion-label>

@@ -12,7 +12,6 @@ dependencies {
 
     implementation "com.google.firebase:firebase-auth:20.0.+"
     implementation "com.google.android.gms:play-services-location:16.+"
-    implementation "com.google.android.gms:play-services-auth-api-phone:15.0.1"
 }
 
 

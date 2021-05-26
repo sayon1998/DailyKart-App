@@ -4,8 +4,9 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { GlobalService } from 'src/app/service/global.service';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthService } from 'src/app/service/auth.service';
+import { HttpConfigInterceptor } from 'src/app/service/http-interceptor';
 
 @NgModule({
   imports: [
@@ -22,6 +23,16 @@ import { AuthService } from 'src/app/service/auth.service';
     ReactiveFormsModule,
     HttpClientModule,
   ],
-  providers: [GlobalService, AndroidPermissions, AuthService],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpConfigInterceptor,
+      multi: true,
+    },
+    ,
+    GlobalService,
+    AndroidPermissions,
+    AuthService,
+  ],
 })
 export class SharedModule {}

@@ -12,6 +12,7 @@ import { GlobalService } from 'src/app/service/global.service';
 })
 export class RegisterDetailsComponent implements OnInit {
   detailsForm: any;
+  public isSpin = false;
   public isRoute = false;
   constructor(
     public _global: GlobalService,
@@ -32,9 +33,9 @@ export class RegisterDetailsComponent implements OnInit {
           Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$'),
         ])
       ),
-      address: new FormControl('', [Validators.required]),
-      landmark: new FormControl(''),
-      pin: new FormControl('', [Validators.required]),
+      // address: new FormControl('', [Validators.required]),
+      // landmark: new FormControl(''),
+      // pin: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required]),
       cpassword: new FormControl('', [Validators.required]),
     });
@@ -44,19 +45,19 @@ export class RegisterDetailsComponent implements OnInit {
     console.log(this.detailsForm.value);
     if (!this.detailsForm.valid) {
       this.detailsForm.controls.email.touched = true;
-      this.detailsForm.controls.address.touched = true;
+      // this.detailsForm.controls.address.touched = true;
       this.detailsForm.controls.lName.touched = true;
       this.detailsForm.controls.gender.touched = true;
       this.detailsForm.controls.fName.touched = true;
-      this.detailsForm.controls.pin.touched = true;
+      // this.detailsForm.controls.pin.touched = true;
       this.detailsForm.controls.password.touched = true;
       this.detailsForm.controls.cpassword.touched = true;
       if (
         this.detailsForm.controls.email.value !== '' &&
-        this.detailsForm.controls.address.value !== '' &&
+        // this.detailsForm.controls.address.value !== '' &&
         this.detailsForm.controls.lName.value !== '' &&
         this.detailsForm.controls.fName.value !== '' &&
-        this.detailsForm.controls.pin.value !== '' &&
+        // this.detailsForm.controls.pin.value !== '' &&
         this.detailsForm.controls.password.value === ''
       ) {
         this._global.toasterValue('Enter your password');
@@ -64,10 +65,10 @@ export class RegisterDetailsComponent implements OnInit {
       }
       if (
         this.detailsForm.controls.email.value !== '' &&
-        this.detailsForm.controls.address.value !== '' &&
+        // this.detailsForm.controls.address.value !== '' &&
         this.detailsForm.controls.lName.value !== '' &&
         this.detailsForm.controls.fName.value !== '' &&
-        this.detailsForm.controls.pin.value !== '' &&
+        // this.detailsForm.controls.pin.value !== '' &&
         this.detailsForm.controls.password.value !== '' &&
         this.detailsForm.controls.cpassword.value === ''
       ) {
@@ -77,10 +78,10 @@ export class RegisterDetailsComponent implements OnInit {
       return false;
     }
     if (
-      this.detailsForm.controls.pin.value &&
-      String(this.detailsForm.controls.pin.value).length !== 6
+      this.detailsForm.controls.password.value &&
+      String(this.detailsForm.controls.password.value).length < 4
     ) {
-      this._global.toasterValue('Pin code must be six digit');
+      this._global.toasterValue('Password length must be four letter long');
       return false;
     }
     if (
@@ -90,13 +91,40 @@ export class RegisterDetailsComponent implements OnInit {
       this._global.toasterValue('Password & Confirm Password need to be same');
       return false;
     }
-    this.isRoute = true;
-    localStorage.setItem(
-      'user-details',
-      JSON.stringify(this.detailsForm.value)
+    const params = {
+      reqType: 'signup',
+      fName: this.detailsForm.controls.fName.value,
+      mName: this.detailsForm.controls.mName.value,
+      lName: this.detailsForm.controls.lName.value,
+      gender: this.detailsForm.controls.gender.value,
+      email: this.detailsForm.controls.email.value,
+      ph: localStorage.getItem('ph'),
+      password: this.detailsForm.controls.password.value,
+    };
+    this.isSpin = true;
+    this._global.post('auth/sign-upin', params).subscribe(
+      (resData: any) => {
+        if (resData.status) {
+          if (resData.data) {
+            this.isRoute = true;
+            this.isSpin = false;
+            localStorage.setItem('isLogin', 'true');
+            localStorage.setItem('user-details', JSON.stringify(resData.data));
+            this._global.toasterValue(resData.message, 'Success');
+            // this._router.navigate(['/tabs/tab2']);
+            this.nav.navigateRoot(['/tabs/tab2']);
+          }
+        } else {
+          this.isSpin = false;
+          this._global.toasterValue(resData.message, 'Error');
+        }
+      },
+      (err) => {
+        console.log(err);
+        this.isSpin = false;
+        this._global.toasterValue(err.message, 'Error');
+      }
     );
-    localStorage.setItem('isLogin', 'true');
-    // this._router.navigate(['/tabs/tab2']);
-    this.nav.navigateRoot(['/tabs/tab2']);
+    console.log(params);
   }
 }

@@ -11,9 +11,6 @@ const bodyParser = require("body-parser");
 // Routes
 const route = require("./Router/router");
 
-// Route Middleware
-app.use("/api", route);
-
 //Environment Setup
 dotEnv.config();
 
@@ -41,6 +38,9 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // parse application/json
+app.use(bodyParser.json());
+
+// parse application/json
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -54,6 +54,8 @@ app.use(function (req, res, next) {
   );
   next();
 });
+// Route Middleware
+app.use("/api", route);
 
 app.listen(port, function () {
   console.log("Server is running on port " + port);

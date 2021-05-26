@@ -59,6 +59,7 @@ export class LoginComponent implements OnInit {
     if (this.platform.is('cordova')) {
       this.start();
     }
+    this._global.onClickLocation();
   }
   start() {
     SMSReceive.startWatch(
@@ -79,9 +80,12 @@ export class LoginComponent implements OnInit {
   onLogin() {
     console.log(this.emailOrPhn.value, this.password.value);
     const param = {
+      reqType: 'signin',
       email: '',
       ph: '',
       password: this.password.value,
+      lat: this._global.latitude,
+      lon: this._global.longitude,
     };
     if (!this.emailOrPhn.value) {
       this._global.toasterValue('Please enter email or phone number');
@@ -109,21 +113,39 @@ export class LoginComponent implements OnInit {
       param.email = this.emailOrPhn.value;
     }
     console.log(param);
-    if (param.ph === '7980674685' && param.password === '12345') {
-      localStorage.setItem('isLogin', 'true');
-      SMSReceive.stopWatch(
-        () => {
-          console.log('watch stopped');
-        },
-        () => {
-          console.log('watch stop failed');
+    this.spin = true;
+    this._global.post('auth/sign-upin', param).subscribe(
+      (resData: any) => {
+        console.log(resData);
+        if (resData.status) {
+          if (resData.data) {
+            localStorage.setItem('isLogin', 'true');
+            localStorage.setItem('user-details', JSON.stringify(resData.data));
+            if (this.platform.is('cordova')) {
+              SMSReceive.stopWatch(
+                () => {
+                  console.log('watch stopped');
+                },
+                () => {
+                  console.log('watch stop failed');
+                }
+              );
+            }
+            this.spin = false;
+            // this._router.navigate(['/tabs/tab2']);
+            this.nav.navigateRoot(['/tabs/tab2']);
+          }
+        } else {
+          this.spin = false;
+          this._global.toasterValue(resData.message, 'Error');
         }
-      );
-      // this._router.navigate(['/tabs/tab2']);
-      this.nav.navigateRoot(['/tabs/tab2']);
-    } else {
-      this._global.toasterValue('Invalid Password or Email or Phone number');
-    }
+      },
+      (err) => {
+        this.spin = false;
+        console.log(err);
+        this._global.toasterValue(err.message, 'Error');
+      }
+    );
   }
   sendOTP() {
     if (this.phoneNumber && String(this.phoneNumber).length !== 10) {
@@ -135,27 +157,48 @@ export class LoginComponent implements OnInit {
       this.phoneNumber !== '' &&
       String(this.phoneNumber).length === 10
     ) {
+      const param = {
+        ph: String(this.phoneNumber),
+      };
       this.spin = true;
-      this.firebaseAuthentication
-        .verifyPhoneNumber(String('+91' + this.phoneNumber), 60)
-        .then((res) => {
-          this.spin = false;
-          this.otpSent = true;
-          this.verificationId = res;
-          console.log(res);
-          this.setInterval = setInterval(() => {
-            if (this.otpSec > 0) {
-              this.otpSec -= 1;
+      this._global.post('auth/check-phnumber-availability', param).subscribe(
+        (resData: any) => {
+          console.log(resData);
+          if (resData.status) {
+            if (this.platform.is('cordova')) {
+              this.firebaseAuthentication
+                .verifyPhoneNumber(String('+91' + this.phoneNumber), 60)
+                .then((res) => {
+                  this.spin = false;
+                  this.otpSent = true;
+                  this.verificationId = res;
+                  console.log(res);
+                  this.setInterval = setInterval(() => {
+                    if (this.otpSec > 0) {
+                      this.otpSec -= 1;
+                    } else {
+                      clearInterval(this.setInterval);
+                    }
+                  }, 1000);
+                })
+                .catch((err) => {
+                  this.spin = false;
+                  console.log(err);
+                  alert(err);
+                });
             } else {
-              clearInterval(this.setInterval);
+              this.spin = false;
             }
-          }, 1000);
-        })
-        .catch((err) => {
+          } else {
+            this.spin = false;
+            this._global.toasterValue(resData.message, 'Warning');
+          }
+        },
+        (err) => {
           this.spin = false;
-          console.log(err);
-          alert(err);
-        });
+          this._global.toasterValue(err.message, 'Error');
+        }
+      );
     }
   }
   retryOTP() {

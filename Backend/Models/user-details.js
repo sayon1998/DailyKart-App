@@ -30,25 +30,6 @@ const userSchema = new mongoose.Schema({
     maxlength: 10,
     minlength: 10,
   },
-  address: {
-    type: String,
-    required: true,
-  },
-  pin: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: String,
-    required: true,
-  },
-  city: {
-    type: String,
-    required: true,
-  },
-  landmark: {
-    type: String,
-  },
   date: {
     type: Date,
     default: Date.now,
