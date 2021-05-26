@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 
 // Route to Controller
-const exportRoute = app.use("/auth", require("../Controller/authentication"));
+app.use("/auth", require("../Controller/authentication"));
+app.use("/product", require("../Controller/product"));
 
-module.exports = exportRoute;
+module.exports = app;
