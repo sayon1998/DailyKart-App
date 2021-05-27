@@ -12,7 +12,7 @@
             }"
             [name]="item.icon"
             class="wishList"
-            (click)="_product.onClickWishList(i)"
+            (click)="_product.onClickWishList(item)"
           ></ion-icon>
           <img src="{{ item.img }}" (click)="onClickProductDetails(i)" />
           <ion-item lines="none" (click)="onClickProductDetails(i)">

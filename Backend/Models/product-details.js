@@ -19,7 +19,7 @@ const productSchema = new mongoose.Schema({
   },
   quantity: {
     type: Number,
-    required: true, // for the 1st time quantity and minqty will be same, this param is required for only frontend purpose
+    required: true, // Total Quantity for this product Available in our Database
   },
   minqty: {
     type: Number,

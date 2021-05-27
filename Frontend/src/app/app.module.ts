@@ -24,6 +24,11 @@ import { HttpConfigInterceptor } from './service/http-interceptor';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpConfigInterceptor,
+      multi: true,
+    },
     CanDeactivateTab,
   ],
   bootstrap: [AppComponent],

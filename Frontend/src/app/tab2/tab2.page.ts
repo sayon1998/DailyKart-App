@@ -1,3 +1,4 @@
+/* eslint-disable radix */
 /* eslint-disable @angular-eslint/use-lifecycle-interface */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -12,10 +13,9 @@ import { ProductService } from '../service/product-details.service';
   selector: 'app-tab2',
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
-  providers: [ProductService],
 })
 export class Tab2Page implements AfterViewInit {
-  public lastKey = ''; // Keep track of last product key
+  public lastKey = '0'; // Keep track of last product key
   @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
   @ViewChild(IonSlides) ionSliderRef: IonSlides;
   wishListFlag = false;
@@ -35,6 +35,8 @@ export class Tab2Page implements AfterViewInit {
     ['zomato', 122],
     ['siwggy', 181],
   ];
+  totalLimit = 0;
+  public productDetails: any[] = [];
   constructor(
     public nav: NavController,
     private _auth: AuthService,
@@ -99,6 +101,7 @@ export class Tab2Page implements AfterViewInit {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
     console.log('ngOnInit');
+    this.getProductDetails();
   }
   ngAfterViewInit() {
     // this._product.checkLocalWishlist();
@@ -108,18 +111,56 @@ export class Tab2Page implements AfterViewInit {
     //Add 'implements OnDestroy' to the class.
     console.log('Destroy Tab2');
   }
+  //Get Products
+  getProductDetails() {
+    const param = {
+      startIndex: this.lastKey,
+      limit: '5',
+    };
+    console.log(param);
+    this._global.post('product/products', param).subscribe(
+      (resData: any) => {
+        console.log(resData);
+        if (resData.status) {
+          if (resData.data) {
+            this.lastKey = resData.data.startIndex;
+            this.totalLimit = resData.data.totalLimit;
+            this.productDetails = this.productDetails.concat(
+              resData.data.productDetails
+            );
+            console.log(this.productDetails);
+          }
+        } else {
+          this._global.toasterValue(resData.message, 'Error');
+        }
+      },
+      (err) => {
+        this._global.toasterValue(err.message, 'Error');
+      }
+    );
+  }
   // Infinite Scroll
   loadData(event: any) {
-    event.target.complete(); // For Hide Infinite Scroll Spinner
-    this.infiniteScroll.disabled = true; // For Disable Infinte Scroll when last data load
+    console.log('##### Infinite Scroll #####');
+    setTimeout(() => {
+      event.target.complete();
+      // App logic to determine if all data is loaded
+      // and disable the infinite scroll
+      if (parseInt(this.lastKey) > this.totalLimit) {
+        this.infiniteScroll.disabled = true; // For Disable Infinte Scroll when last data load
+      } else {
+        this.getProductDetails();
+      }
+    }, 500);
   }
   // Navigate to Product Details page
   onClickProductDetails(index: number) {
+    console.log(this.productDetails[index]._id);
     this._router.navigate(['/product-details'], {
-      queryParams: { _id: this._product.products[index]._id, index },
+      queryParams: { _id: this.productDetails[index]._id },
     });
     // this.nav.navigateRoot('/product-details', {
-    //   queryParams: { _id: this._product.products[index]._id, index },
+    //   queryParams: { _id: this.productDetails[index]._id, index },
     // });
   }
 }

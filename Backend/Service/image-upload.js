@@ -18,4 +18,16 @@ module.exports = {
     });
     return imageUrl;
   },
+  imageDelete: async (param) => {
+    let imageUrl;
+    await cloudinary.uploader.destroy(param, (err, imageRes) => {
+      if (err) {
+        imageUrl = err.message;
+        console.log(err.message);
+      }
+      console.log(imageRes);
+      imageUrl = imageRes;
+    });
+    return imageUrl;
+  },
 };

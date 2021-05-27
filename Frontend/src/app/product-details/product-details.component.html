@@ -35,31 +35,64 @@
     </ion-grid>
   </ion-toolbar>
 </ion-header>
+<!-- Content Skeleton Loader -->
+<ion-content *ngIf="!productDetails">
+  <ion-grid style="overflow: hidden; position: fixed; width: 100%">
+    <ion-row>
+      <ion-col>
+        <ion-skeleton-text
+          animated
+          style="width: 100%; height: 200px"
+        ></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngFor="let item of [0, 1]">
+      <ion-col>
+        <ion-skeleton-text
+          animated
+          style="width: 100%; height: 500px"
+        ></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+<!-- Footer Skeleton Loader -->
+<!-- Footer -->
+<ion-footer *ngIf="!productDetails">
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-skeleton-text animated style="height: 50px"></ion-skeleton-text>
+      </ion-col>
+      <ion-col>
+        <ion-skeleton-text animated style="height: 50px"></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-footer>
 
-<ion-content [scrollEvents]="true" (ionScroll)="getScrollPos($event)">
+<ion-content
+  *ngIf="productDetails"
+  [scrollEvents]="true"
+  (ionScroll)="getScrollPos($event)"
+>
   <!-- Image Content -->
   <ion-slides
-    *ngIf="
-      _product.products &&
-      _product.products[index] &&
-      _product.products[index]['imagelist']
-    "
+    *ngIf="productDetails && productDetails && productDetails['imagelist']"
     pager="true"
     mode="md"
     [options]="slideOpts"
   >
-    <ion-slide
-      *ngFor="let item of _product.products[index]['imagelist']; let i = index"
-    >
+    <ion-slide *ngFor="let item of productDetails['imagelist']; let i = index">
       <img src="{{ item }}" />
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button color="light">
           <ion-icon
             [ngStyle]="{
-              color: _product.products[index].icon === 'heart' ? 'red' : ''
+              color: productDetails.icon === 'heart' ? 'red' : ''
             }"
-            [name]="_product.products[index].icon"
-            (click)="_product.onClickWishList(index)"
+            [name]="productDetails.icon"
+            (click)="_product.onClickWishList(productDetails)"
           ></ion-icon>
         </ion-fab-button>
       </ion-fab>
@@ -67,51 +100,51 @@
   </ion-slides>
   <br />
   <!-- Product name, price -->
-  <ion-item *ngIf="_product.products && _product.products[index]">
+  <ion-item *ngIf="productDetails && productDetails">
     <div class="productDetails">
       <ion-grid>
         <ion-row>
           <ion-col size="12">
             <ion-title style="padding: 0px; padding-bottom: 5px">{{
-              _product.products[index].name
+              productDetails.name
             }}</ion-title>
             <div>
               <div
-                *ngIf="_product.products[index].rating"
+                *ngIf="productDetails.rating"
                 [ngClass]="[
-                  _product.products[index].rating &&
-                  !_product.products[index].rating.includes('.')
+                  productDetails.rating && !productDetails.rating.includes('.')
                     ? 'rating'
                     : 'rating-decimal'
                 ]"
               >
-                {{ _product.products[index].rating }}
+                {{ productDetails.rating }}
                 <ion-icon name="star"></ion-icon>
               </div>
               <ion-note
                 style="position: relative; bottom: 2px"
-                *ngIf="_product.products[index].rating"
-                >({{ _product.products[index].totalrating }})</ion-note
+                *ngIf="productDetails.rating"
+                >({{ productDetails.totalrating }})</ion-note
               >
             </div>
             <ion-text id="mainPrice">
-              {{ _product.products[index].price }}
-              <span>{{ _product.products[index].originalprice }}</span
+              {{ "₹" + productDetails.price }}
+              <span>{{ "₹" + productDetails.originalprice }}</span
               >&nbsp;&nbsp;<ion-text id="offer">{{
-                _product.products[index].offerpercentage
+                productDetails.offerpercentage + "% off"
               }}</ion-text>
             </ion-text>
             <br />
             <ng-container
               *ngIf="
-                _product.products[index].deliverycharge &&
-                  _product.products[index].deliverycharge !== '';
+                productDetails.deliverycharge &&
+                  productDetails.deliverycharge !== '';
                 else elseTemplate
               "
             >
               {{
                 "+ " +
-                  _product.products[index].deliverycharge +
+                  "₹" +
+                  productDetails.deliverycharge +
                   " delivery charge is required"
               }}
             </ng-container>
@@ -182,75 +215,75 @@
           <ion-icon
             class="increase-decrease"
             name="remove-circle-outline"
-            (click)="_product.onClickQuantity(_product.products[index],index, 'decrease')"
+            (click)="_product.onClickQuantity(productDetails,index, 'decrease')"
           ></ion-icon
         ></ion-col>
         <ion-col>
           <div class="quantity">
-            {{ _product.products[index].quantity }}
+            {{ productDetails.quantity }}
           </div>
         </ion-col>
         <ion-col
           ><ion-icon
             class="increase-decrease"
             name="add-circle-outline"
-            (click)="_product.onClickQuantity(_product.products[index],index, 'increase')"
+            (click)="_product.onClickQuantity(productDetails,index, 'increase')"
           ></ion-icon
         ></ion-col> -->
       </ion-row>
 
-      <ion-col>
+      <ion-col *ngIf="productDetails">
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Item:</span>
-            {{ _product.products[index].name }}
+            {{ productDetails.name }}
           </ion-text>
         </ion-row>
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Description:</span>
-            {{ _product.products[index].description }}
+            {{ productDetails.description }}
           </ion-text>
         </ion-row>
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Type:</span>
-            {{ _product.products[index].type }}
+            {{ productDetails.type }}
           </ion-text>
         </ion-row>
 
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Quantity:</span>
-            {{ _product.products[index].unit }}
+            {{ productDetails.unit }}
           </ion-text>
         </ion-row>
 
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Shop:</span>
-            {{ _product.products[index].company }}
+            {{ productDetails.company }}
           </ion-text>
         </ion-row>
 
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Return Policy:</span>
-            {{ _product.products[index].returnpolicy }}
+            {{ productDetails.returnpolicy }}
           </ion-text>
         </ion-row>
 
         <ion-row>
           <ion-text>
             <span style="font-weight: bold">Payment Mode:</span>
-            {{ _product.products[index].paymentmode }}
+            {{ productDetails.paymentmode }}
           </ion-text>
         </ion-row>
       </ion-col>
     </ion-grid>
   </ion-item>
   <!-- Product Rating -->
-  <ion-item>
+  <ion-item *ngIf="productDetails.totalrating">
     <ion-grid>
       <h3 style="margin-top: 0px; margin-bottom: 0px">Customer Rating</h3>
       <ion-col>
@@ -311,7 +344,7 @@
   <app-recommended-products (click)="gotToTop()"></app-recommended-products>
 </ion-content>
 <!-- Footer -->
-<ion-footer>
+<ion-footer *ngIf="productDetails">
   <ion-grid>
     <ion-row>
       <ion-col
@@ -337,6 +370,7 @@
 </ion-footer>
 <!-- Address Drawer -->
 <ion-bottom-sheet
+  *ngIf="productDetails"
   [(state)]="sheetState"
   [minHeight]="minHeight"
   [dockedHeight]="dockedHeight"

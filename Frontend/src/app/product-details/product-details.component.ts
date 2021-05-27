@@ -19,7 +19,7 @@ import { UserDetailService } from '../service/user-details.service';
   selector: 'app-product-details',
   templateUrl: './product-details.component.html',
   styleUrls: ['./product-details.component.scss'],
-  providers: [ProductService, AddressService],
+  providers: [AddressService],
 })
 export class ProductDetailsComponent implements OnInit {
   slideOpts = {
@@ -42,6 +42,7 @@ export class ProductDetailsComponent implements OnInit {
   @ViewChild(IonContent) content: IonContent;
   backToTop = false;
   public inCartFlag = false;
+  public productDetails: any;
   constructor(
     public _router: Router,
     public nav: NavController,
@@ -55,17 +56,32 @@ export class ProductDetailsComponent implements OnInit {
   ) {
     console.log('product-detail');
     this.route.queryParams.subscribe((params) => {
-      console.log(_product.products[params.index].icon);
-      this.index = params.index;
+      console.log(_product.products);
+      this.getDetailsById(params._id);
       this._product.checkLocalWishlist();
       _address.getUserAddress();
-      this.ngOnInit();
     });
   }
 
   ngOnInit(): void {
     console.log('product-detail ngOnInit');
-    this.inCart();
+  }
+  getDetailsById(_id: any) {
+    this._global.get('product/productbyid/', _id).subscribe(
+      (resData: any) => {
+        if (resData.status) {
+          if (resData.data) {
+            this.productDetails = resData.data;
+            this.inCart();
+          }
+        } else {
+          this._global.toasterValue(resData.message, 'Error');
+        }
+      },
+      (err) => {
+        this._global.toasterValue(err.message, 'Error');
+      }
+    );
   }
   // Is this Available in Cart
   inCart() {
@@ -73,7 +89,7 @@ export class ProductDetailsComponent implements OnInit {
     if (
       this._user.cartArray &&
       this._user.cartArray.findIndex(
-        (x) => x._id === this._product.products[this.index]._id
+        (x) => x._id === this.productDetails._id
       ) === -1
     ) {
       this.inCartFlag = false;
@@ -97,7 +113,7 @@ export class ProductDetailsComponent implements OnInit {
   onClickAddress(type: any) {
     // this.nav.navigateRoot(['/product-details/address'], {
     //   queryParams: {
-    //     _id: this._product.products[this.index]._id,
+    //     _id: this.productDetails._id,
     //     index: this.index,
     //   },
     // });
@@ -130,10 +146,10 @@ export class ProductDetailsComponent implements OnInit {
     if (!this.inCartFlag) {
       if (
         this._user.cartArray.findIndex(
-          (x) => x._id === this._product.products[this.index]._id
+          (x) => x._id === this.productDetails._id
         ) === -1
       ) {
-        this._user.onClickCart(this._product.products[this.index]);
+        this._user.onClickCart(this.productDetails);
       } else {
         // Navigate to Cart page
         this._router.navigate(['/cart']);

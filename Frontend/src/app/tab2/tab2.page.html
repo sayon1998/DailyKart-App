@@ -23,16 +23,16 @@
   <!-- Avoid Scrolling -->
   <ion-grid
     style="overflow: hidden; position: fixed; width: 100%"
-    *ngIf="_product.products && _product.products.length === 0"
+    *ngIf="productDetails && productDetails.length === 0"
   >
-    <ion-row>
+    <!-- <ion-row>
       <ion-col>
         <ion-skeleton-text
           animated
           style="width: 100%; height: 110px"
         ></ion-skeleton-text>
       </ion-col>
-    </ion-row>
+    </ion-row> -->
     <ion-row>
       <ion-col size="6" *ngFor="let item of [0,1,2,3,4,5,6,7,8,9]">
         <ion-skeleton-text
@@ -44,19 +44,28 @@
   </ion-grid>
 
   <!-- Display product in grid view -->
-  <ion-grid *ngIf="_product.products && _product.products.length > 0">
+  <ion-grid *ngIf="productDetails && productDetails.length > 0">
     <ion-row>
-      <ion-col size="6" *ngFor="let item of _product.products;let i=index;">
+      <ion-col size="6" *ngFor="let item of productDetails;let i=index;">
         <div class="product ion-activatable ripple-parent">
           <ion-ripple-effect></ion-ripple-effect>
-          <ion-icon
-            [ngStyle]="{'color': _product.products[i].icon === 'heart' ? 'red' : ''}"
-            [name]="item.icon"
-            class="wishList"
-            (click)="_product.onClickWishList(i)"
-          ></ion-icon>
+          <ion-fab vertical="top" horizontal="end" slot="fixed">
+            <ion-fab-button color="light" style="width: 40px; height: 40px">
+              <ion-icon
+                [ngStyle]="{'color': productDetails[i].icon === 'heart' ? 'red' : ''}"
+                [name]="item.icon"
+                class="wishList"
+                (click)="_product.onClickWishList(item)"
+              ></ion-icon>
+            </ion-fab-button>
+          </ion-fab>
+
           <img src="{{item.img}}" (click)="onClickProductDetails(i)" />
-          <ion-item lines="none" (click)="onClickProductDetails(i)">
+          <ion-item
+            style="border-top: 1px solid rgb(170, 167, 167)"
+            lines="none"
+            (click)="onClickProductDetails(i)"
+          >
             <ion-label>
               <h2>{{item.name}}</h2>
               <p>Rs: {{item.price}}</p>
@@ -77,6 +86,10 @@
 
   <!-- Infinite Scrolling -->
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
-    <ion-infinite-scroll-content> </ion-infinite-scroll-content>
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more data..."
+    >
+    </ion-infinite-scroll-content>
   </ion-infinite-scroll>
 </ion-content>

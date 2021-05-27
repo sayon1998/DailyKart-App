@@ -2,6 +2,7 @@ const router = require("express").Router();
 const validate = require("validator");
 const axios = require("axios");
 const userDetails = require("../Models/user-details");
+const cartWishlist = require("../Models/cart-wishlist");
 const emailTemp = require("../Service/email-template");
 
 // Signup and Signin
@@ -70,6 +71,8 @@ router.post("/sign-upin", async (req, res) => {
               gender: saveData.gender,
               email: saveData.email,
               ph: saveData.ph,
+              cart: [],
+              wishlist: [],
             };
             const emailParam = {
               fName: saveData.fName,
@@ -110,76 +113,12 @@ router.post("/sign-upin", async (req, res) => {
           }
           if (params.password === req.body.password) {
             // Get Location Information
-            axios
-              .get(
-                `http://api.geonames.org/findNearbyPostalCodesJSON?lat=${req.body.lat}&lng=${req.body.lon}&username=sayon`
-              )
-              .then(function (response) {
-                // handle success
-                try {
-                  console.log(
-                    response.data.postalCodes[0].placeName +
-                      "," +
-                      response.data.postalCodes[0].adminName2 +
-                      "," +
-                      response.data.postalCodes[0].adminName1 +
-                      "," +
-                      response.data.postalCodes[0].postalCode
-                  );
-                  let emailParam = {
-                    fName: params.fName,
-                    mName: params.mName,
-                    lName: params.lName,
-                    senderMail: params.email,
-                    address:
-                      response.data.postalCodes[0].placeName +
-                      "," +
-                      response.data.postalCodes[0].adminName2 +
-                      "," +
-                      response.data.postalCodes[0].adminName1 +
-                      "," +
-                      response.data.postalCodes[0].postalCode,
-                    type: "login-alert",
-                    subject: "DailyKart Login Alert",
-                  };
-                  emailTemp.emailTemplate(emailParam);
-                  resType.status = true;
-                  resType.message = "Login Successful";
-                  resType.data = params;
-                  return res.status(200).send(resType);
-                } catch (err) {
-                  resType.message = err.message;
-                  return res.status(404).send(resType);
-                }
-              })
-              .catch(function (error) {
-                // handle error
-                console.log(error);
-              });
-          } else {
-            resType.message = "Please Enter Correct Password";
-            return res.status(400).send(resType);
-          }
-        });
-      } else if (req.body.email) {
-        await userDetails.findOne(
-          { email: req.body.email },
-          async (err, params) => {
-            if (err) {
-              resType.message = err.message;
-              return res.status(404).send(resType);
-            }
-            if (params === null) {
-              resType.message = "Email is not registered in Dailykart";
-              return res.status(404).send(resType);
-            }
-            if (params.password === req.body.password) {
-              // Get Location Information
+            if (req.body.lat && req.body.lon) {
               axios
                 .get(
                   `http://api.geonames.org/findNearbyPostalCodesJSON?lat=${req.body.lat}&lng=${req.body.lon}&username=sayon`
                 )
-                .then(function (response) {
+                .then(async function (response) {
                   // handle success
                   try {
                     console.log(
@@ -207,11 +146,42 @@ router.post("/sign-upin", async (req, res) => {
                       type: "login-alert",
                       subject: "DailyKart Login Alert",
                     };
-                    emailTemp.emailTemplate(emailParam);
-                    resType.status = true;
-                    resType.message = "Login Successful";
-                    resType.data = params;
-                    return res.status(200).send(resType);
+                    await cartWishlist.findOne(
+                      { userId: params._id },
+                      async (err, cartWishParams) => {
+                        if (err) {
+                          resType.message = err.message;
+                          return res.status(404).send(resType);
+                        }
+                        if (cartWishParams === null) {
+                          resType.data = {
+                            fName: params.fName,
+                            mName: params.mName,
+                            lName: params.lName,
+                            email: params.email,
+                            ph: params.ph,
+                            gender: params.gender,
+                            cart: [],
+                            wishlist: [],
+                          };
+                        } else {
+                          resType.data = {
+                            fName: params.fName,
+                            mName: params.mName,
+                            lName: params.lName,
+                            email: params.email,
+                            ph: params.ph,
+                            gender: params.gender,
+                            cart: cartWishParams.cart,
+                            wishlist: cartWishParams.wishlist,
+                          };
+                        }
+                        emailTemp.emailTemplate(emailParam);
+                        resType.status = true;
+                        resType.message = "Login Successful";
+                        return res.status(200).send(resType);
+                      }
+                    );
                   } catch (err) {
                     resType.message = err.message;
                     return res.status(404).send(resType);
@@ -221,6 +191,187 @@ router.post("/sign-upin", async (req, res) => {
                   // handle error
                   console.log(error);
                 });
+            } else {
+              try {
+                await cartWishlist.findOne(
+                  { userId: params._id },
+                  async (err, cartWishParams) => {
+                    if (err) {
+                      resType.message = err.message;
+                      return res.status(404).send(resType);
+                    }
+                    if (cartWishParams === null) {
+                      resType.data = {
+                        fName: params.fName,
+                        mName: params.mName,
+                        lName: params.lName,
+                        email: params.email,
+                        ph: params.ph,
+                        gender: params.gender,
+                        cart: [],
+                        wishlist: [],
+                      };
+                    } else {
+                      resType.data = {
+                        fName: params.fName,
+                        mName: params.mName,
+                        lName: params.lName,
+                        email: params.email,
+                        ph: params.ph,
+                        gender: params.gender,
+                        cart: cartWishParams.cart,
+                        wishlist: cartWishParams.wishlist,
+                      };
+                    }
+                    resType.status = true;
+                    resType.message = "Login Successful";
+                    return res.status(200).send(resType);
+                  }
+                );
+              } catch (err) {
+                resType.message = err.message;
+                return res.status(404).send(resType);
+              }
+            }
+          } else {
+            resType.message = "Please Enter Correct Password";
+            return res.status(400).send(resType);
+          }
+        });
+      } else if (req.body.email) {
+        await userDetails.findOne(
+          { email: req.body.email },
+          async (err, params) => {
+            if (err) {
+              resType.message = err.message;
+              return res.status(404).send(resType);
+            }
+            if (params === null) {
+              resType.message = "Email is not registered in Dailykart";
+              return res.status(404).send(resType);
+            }
+            if (params.password === req.body.password) {
+              // Get Location Information
+              if (req.body.lat && req.body.lon) {
+                axios
+                  .get(
+                    `http://api.geonames.org/findNearbyPostalCodesJSON?lat=${req.body.lat}&lng=${req.body.lon}&username=sayon`
+                  )
+                  .then(async function (response) {
+                    // handle success
+                    try {
+                      console.log(
+                        response.data.postalCodes[0].placeName +
+                          "," +
+                          response.data.postalCodes[0].adminName2 +
+                          "," +
+                          response.data.postalCodes[0].adminName1 +
+                          "," +
+                          response.data.postalCodes[0].postalCode
+                      );
+                      let emailParam = {
+                        fName: params.fName,
+                        mName: params.mName,
+                        lName: params.lName,
+                        senderMail: params.email,
+                        address:
+                          response.data.postalCodes[0].placeName +
+                          "," +
+                          response.data.postalCodes[0].adminName2 +
+                          "," +
+                          response.data.postalCodes[0].adminName1 +
+                          "," +
+                          response.data.postalCodes[0].postalCode,
+                        type: "login-alert",
+                        subject: "DailyKart Login Alert",
+                      };
+                      await cartWishlist.findOne(
+                        { userId: params._id },
+                        async (err, cartWishParams) => {
+                          if (err) {
+                            resType.message = err.message;
+                            return res.status(404).send(resType);
+                          }
+                          if (cartWishParams === null) {
+                            resType.data = {
+                              fName: params.fName,
+                              mName: params.mName,
+                              lName: params.lName,
+                              email: params.email,
+                              ph: params.ph,
+                              gender: params.gender,
+                              cart: [],
+                              wishlist: [],
+                            };
+                          } else {
+                            resType.data = {
+                              fName: params.fName,
+                              mName: params.mName,
+                              lName: params.lName,
+                              email: params.email,
+                              ph: params.ph,
+                              gender: params.gender,
+                              cart: cartWishParams.cart,
+                              wishlist: cartWishParams.wishlist,
+                            };
+                          }
+                          emailTemp.emailTemplate(emailParam);
+                          resType.status = true;
+                          resType.message = "Login Successful";
+                          return res.status(200).send(resType);
+                        }
+                      );
+                    } catch (err) {
+                      resType.message = err.message;
+                      return res.status(404).send(resType);
+                    }
+                  })
+                  .catch(function (error) {
+                    // handle error
+                    console.log(error);
+                  });
+              } else {
+                try {
+                  await cartWishlist.findOne(
+                    { userId: params._id },
+                    async (err, cartWishParams) => {
+                      if (err) {
+                        resType.message = err.message;
+                        return res.status(404).send(resType);
+                      }
+                      if (cartWishParams === null) {
+                        resType.data = {
+                          fName: params.fName,
+                          mName: params.mName,
+                          lName: params.lName,
+                          email: params.email,
+                          ph: params.ph,
+                          gender: params.gender,
+                          cart: [],
+                          wishlist: [],
+                        };
+                      } else {
+                        resType.data = {
+                          fName: params.fName,
+                          mName: params.mName,
+                          lName: params.lName,
+                          email: params.email,
+                          ph: params.ph,
+                          gender: params.gender,
+                          cart: cartWishParams.cart,
+                          wishlist: cartWishParams.wishlist,
+                        };
+                      }
+                      resType.status = true;
+                      resType.message = "Login Successful";
+                      return res.status(200).send(resType);
+                    }
+                  );
+                } catch (err) {
+                  resType.message = err.message;
+                  return res.status(404).send(resType);
+                }
+              }
             } else {
               resType.message = "Please Enter Correct Password";
               return res.status(400).send(resType);

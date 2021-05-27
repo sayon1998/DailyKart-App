@@ -23,16 +23,6 @@ import { HttpConfigInterceptor } from 'src/app/service/http-interceptor';
     ReactiveFormsModule,
     HttpClientModule,
   ],
-  providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HttpConfigInterceptor,
-      multi: true,
-    },
-    ,
-    GlobalService,
-    AndroidPermissions,
-    AuthService,
-  ],
+  providers: [GlobalService, AndroidPermissions, AuthService],
 })
 export class SharedModule {}
