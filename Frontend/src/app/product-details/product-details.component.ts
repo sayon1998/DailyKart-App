@@ -55,14 +55,15 @@ export class ProductDetailsComponent implements OnInit {
     public platform: Platform
   ) {
     console.log('product-detail');
+  }
+  ionViewWillEnter() {
+    console.log('********ionViewWillEnter_product-details**********');
     this.route.queryParams.subscribe((params) => {
-      console.log(_product.products);
+      // _global.goBackToForoward();
       this.getDetailsById(params._id);
-      this._product.checkLocalWishlist();
-      _address.getUserAddress();
+      this._address.getUserAddress();
     });
   }
-
   ngOnInit(): void {
     console.log('product-detail ngOnInit');
   }
@@ -72,6 +73,7 @@ export class ProductDetailsComponent implements OnInit {
         if (resData.status) {
           if (resData.data) {
             this.productDetails = resData.data;
+            this._product.checkLocalWishlist(this.productDetails);
             this.inCart();
           }
         } else {
@@ -107,8 +109,6 @@ export class ProductDetailsComponent implements OnInit {
       this.backToTop = false;
     }
   }
-
-  ionViewWillEnter() {}
 
   onClickAddress(type: any) {
     // this.nav.navigateRoot(['/product-details/address'], {
@@ -152,12 +152,12 @@ export class ProductDetailsComponent implements OnInit {
         this._user.onClickCart(this.productDetails);
       } else {
         // Navigate to Cart page
-        this._router.navigate(['/cart']);
+        this.nav.navigateForward(['/cart']);
       }
       this.inCart();
     } else {
       // Navigate to Cart Page
-      this._router.navigate(['/cart']);
+      this.nav.navigateForward(['/cart']);
     }
   }
   onClickBuyNow() {}

@@ -29,7 +29,7 @@ export class CheckoutComponent implements OnInit {
       this._user.checkOutArray.productDetails &&
       this._user.checkOutArray.productDetails.length < 1
     ) {
-      // this._router.navigate(['/cart']);
+      this.nav.navigateRoot(['/cart']);
     }
   }
   onClickPayment() {

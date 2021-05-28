@@ -2,10 +2,16 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable object-shorthand */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
+import { Injectable, NgZone } from '@angular/core';
+import {
+  AlertController,
+  NavController,
+  Platform,
+  ToastController,
+} from '@ionic/angular';
 import { Plugins } from '@capacitor/core';
 import { environment } from 'src/environments/environment';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 const { Geolocation } = Plugins;
 
 @Injectable()
@@ -17,11 +23,25 @@ export class GlobalService {
   public apiURL = environment.apiUrl;
   public latitude: number;
   public longitude: number;
+  navigateRoute: any[] = [];
+  public WIDTH = undefined;
+  public HEIGHT = undefined;
   constructor(
     private toaster: ToastController,
     public alertController: AlertController,
-    private _http: HttpClient
-  ) {}
+    private _http: HttpClient,
+    private _route: ActivatedRoute,
+    private _router: Router,
+    private nav: NavController,
+    platform: Platform
+  ) {
+    platform.ready().then(() => {
+      console.log('Width: ' + platform.width());
+      console.log('Height: ' + platform.height());
+      this.WIDTH = platform.width().toString();
+      this.HEIGHT = platform.height().toString();
+    });
+  }
   async onClickLocation() {
     // http://api.geonames.org/findNearbyPostalCodesJSON?lat=23.0057344&lng=88.4865504&username=sayon
 
@@ -89,6 +109,9 @@ export class GlobalService {
       this.passwordIcon2 = this.passwordIcon2 === 'eye-off' ? 'eye' : 'eye-off';
     }
   }
+
+  // Crud Operation Functions
+
   get(url: string, params = '') {
     if (params) {
       return this._http.get(this.apiURL + url + params);
@@ -101,7 +124,6 @@ export class GlobalService {
   }
 
   post(url: string, data: any) {
-    console.log(this.apiURL, url, data);
     return this._http.post(this.apiURL + url, data);
   }
 

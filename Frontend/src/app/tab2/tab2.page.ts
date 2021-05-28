@@ -14,7 +14,7 @@ import { ProductService } from '../service/product-details.service';
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
 })
-export class Tab2Page implements AfterViewInit {
+export class Tab2Page implements OnInit {
   public lastKey = '0'; // Keep track of last product key
   @ViewChild(IonInfiniteScroll) infiniteScroll: IonInfiniteScroll;
   @ViewChild(IonSlides) ionSliderRef: IonSlides;
@@ -25,71 +25,29 @@ export class Tab2Page implements AfterViewInit {
     autoplay: true,
     loop: true,
   };
-  itemsData = ['23'];
-  x = [
-    ['siwggy', 123],
-    ['siwggy', 227],
-    ['zomato', 103],
-    ['zomato', 171],
-    ['dunzo', 131],
-    ['zomato', 122],
-    ['siwggy', 181],
-  ];
   totalLimit = 0;
   public productDetails: any[] = [];
   constructor(
     public nav: NavController,
     private _auth: AuthService,
-    private _global: GlobalService,
+    public _global: GlobalService,
     public _product: ProductService,
     private _router: Router,
     private route: ActivatedRoute
   ) {
-    this.route.queryParams.subscribe((params) => {
-      console.log('Tab2');
-      this.ionViewWillEnter();
-    });
+    // this.route.queryParams.subscribe((params) => {
+    console.log('Tab2');
+    // _global.goBackToForoward();
+    // });
   }
-  // onClick(value: string) {
-  //   const x = value.split(',');
-  //   console.log(x);
-  //   let totalValue = [];
-  //   x.forEach((e, i) => {
-  //     console.log(parseInt(e));
-  //     if (
-  //       isNaN(parseInt(e)) &&
-  //       totalValue.findIndex((f) => f.name === e) === -1
-  //     ) {
-  //       console.log(e);
-  //       console.log(this.countOccurences(value, e));
-  //       let avg = 0;
-  //       let count = this.countOccurences(value, e);
-  //       x.forEach((y, i) => {
-  //         if (y === e) {
-  //           avg = avg + parseInt(x[i + 1]);
-  //         }
-  //       });
-  //       totalValue.push({ name: e, average: avg / count });
-  //     }
-  //   });
-  //   let biggerValueIndex = 0;
-  //   let biggerValue = 0;
-  //   totalValue.forEach((x, i) => {
-  //     if (x.average > biggerValue) {
-  //       console.log(x.average);
-  //       biggerValue = x.average;
-  //       biggerValueIndex = i;
-  //     }
-  //   });
-  //   console.log(totalValue, totalValue[biggerValueIndex].name);
-  // }
-  // countOccurences(string, word) {
-  //   return string.split(word).length - 1;
-  // }
   ionViewWillEnter() {
-    console.log('ionViewWillEnter');
-    this._product.checkLocalWishlist();
-    this.nav.pop();
+    console.log('**********ionViewWillEnter_TAB2**********');
+    // this.infiniteScroll.disabled = false;
+    this.wishListFlag = false;
+    this.productDetails = [];
+    this.lastKey = '0';
+    this.totalLimit = 0;
+    this.getProductDetails();
   }
   ionViewWillLeave() {
     console.log('ionViewWillLeave');
@@ -101,10 +59,6 @@ export class Tab2Page implements AfterViewInit {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
     console.log('ngOnInit');
-    this.getProductDetails();
-  }
-  ngAfterViewInit() {
-    // this._product.checkLocalWishlist();
   }
   ngOnDestroy(): void {
     //Called once, before the instance is destroyed.
@@ -115,12 +69,10 @@ export class Tab2Page implements AfterViewInit {
   getProductDetails() {
     const param = {
       startIndex: this.lastKey,
-      limit: '5',
+      limit: '6',
     };
-    console.log(param);
     this._global.post('product/products', param).subscribe(
       (resData: any) => {
-        console.log(resData);
         if (resData.status) {
           if (resData.data) {
             this.lastKey = resData.data.startIndex;
@@ -128,7 +80,12 @@ export class Tab2Page implements AfterViewInit {
             this.productDetails = this.productDetails.concat(
               resData.data.productDetails
             );
-            console.log(this.productDetails);
+            this._product.checkLocalWishlist(this.productDetails);
+            console.log(
+              this.lastKey,
+              this.totalLimit,
+              this.productDetails.length
+            );
           }
         } else {
           this._global.toasterValue(resData.message, 'Error');
@@ -149,6 +106,7 @@ export class Tab2Page implements AfterViewInit {
       if (parseInt(this.lastKey) > this.totalLimit) {
         this.infiniteScroll.disabled = true; // For Disable Infinte Scroll when last data load
       } else {
+        console.log('calling');
         this.getProductDetails();
       }
     }, 500);
@@ -156,11 +114,11 @@ export class Tab2Page implements AfterViewInit {
   // Navigate to Product Details page
   onClickProductDetails(index: number) {
     console.log(this.productDetails[index]._id);
-    this._router.navigate(['/product-details'], {
+    // this.nav.navigateForward(['/product-details'], {
+    //   queryParams: { _id: this.productDetails[index]._id },
+    // });
+    this.nav.navigateRoot(['/product-details'], {
       queryParams: { _id: this.productDetails[index]._id },
     });
-    // this.nav.navigateRoot('/product-details', {
-    //   queryParams: { _id: this.productDetails[index]._id, index },
-    // });
   }
 }

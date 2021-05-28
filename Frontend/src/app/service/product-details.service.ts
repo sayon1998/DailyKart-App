@@ -15,11 +15,9 @@ export class ProductService {
     public _auth: AuthService,
     public _global: GlobalService,
     public _user: UserDetailService
-  ) {
-    console.log(this.products);
-  }
+  ) {}
   //Check Wish-list
-  checkLocalWishlist() {
+  checkLocalWishlist(item: any) {
     if (
       !this._auth.isLogin() &&
       localStorage.getItem('wishList') !== undefined
@@ -27,28 +25,44 @@ export class ProductService {
       let localArray: any[] = [];
       localArray = JSON.parse(localStorage.getItem('wishList'));
       if (localArray && localArray.length > 0) {
-        this.products.forEach((e) => {
-          if (localArray.findIndex((x) => x._id === e._id) > -1) {
-            e.icon = 'heart';
-            // document.getElementById(
-            //   `${this.products.findIndex((x) => x._id === e._id)}`
-            // ).style.color = 'red';
-          } else if (
-            localArray.findIndex((x) => x._id === e._id) === -1 &&
-            e.icon === 'heart'
-          ) {
-            e.icon = 'heart-outline';
-          }
-        });
-      } else {
-        if (this.products && this.products.length > 0 && !localArray) {
-          this.products.forEach((x) => {
-            if (x.icon === 'heart') {
-              x.icon = 'heart-outline';
+        console.log(item.length);
+        if (item && item.length !== undefined) {
+          item.forEach((e: any) => {
+            if (localArray.findIndex((x) => x._id === e._id) > -1) {
+              e.icon = 'heart';
+              // document.getElementById(
+              //   `${item.findIndex((x) => x._id === e._id)}`
+              // ).style.color = 'red';
+            } else if (
+              localArray.findIndex((x) => x._id === e._id) === -1 &&
+              e.icon === 'heart'
+            ) {
+              e.icon = 'heart-outline';
             }
           });
+        } else {
+          if (localArray.findIndex((x) => x._id === item._id) > -1) {
+            item.icon = 'heart';
+            // document.getElementById(
+            //   `${item.findIndex((x) => x._id === e._id)}`
+            // ).style.color = 'red';
+          } else if (
+            localArray.findIndex((x) => x._id === item._id) === -1 &&
+            item.icon === 'heart'
+          ) {
+            item.icon = 'heart-outline';
+          }
         }
       }
+      // else {
+      //   if (item && item.length > 0 && !localArray) {
+      //     item.forEach((x) => {
+      //       if (x.icon === 'heart') {
+      //         x.icon = 'heart-outline';
+      //       }
+      //     });
+      //   }
+      // }
     }
   }
   // Wish-list
@@ -99,16 +113,16 @@ export class ProductService {
   // Quantity increase decrease
   onClickQuantity(product: any, index: number, type: string) {
     if (type === 'increase') {
-      if (product.highestquentity === product.quantity) {
+      if (product.highestquentity === product.minqty) {
         this._global.toasterValue('Highest Quantity Reached');
       } else {
-        product.quantity += 1;
+        product.minqty += 1;
       }
     } else if (type === 'decrease') {
-      if (product.quantity === product.minqty) {
+      if (product.minqty === product.minqty) {
         this._global.toasterValue(`Minimum Quantity is ${product.minqty}`);
       } else {
-        product.quantity -= 1;
+        product.minqty -= 1;
       }
     }
   }

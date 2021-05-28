@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { GlobalService } from '../service/global.service';
 
 @Component({
   selector: 'app-tab1',
@@ -28,7 +29,7 @@ export class Tab1Page {
       name: 'Bear',
     },
   ];
-  constructor() {
+  constructor(public _global: GlobalService) {
     console.log('tab1');
   }
 }

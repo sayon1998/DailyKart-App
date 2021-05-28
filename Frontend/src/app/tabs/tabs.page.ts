@@ -29,7 +29,7 @@ export class TabsPage implements OnInit {
   ];
   public headerTitle = '';
   constructor(
-    private nav: NavController,
+    public nav: NavController,
     public _router: Router,
     private _activatedRoute: ActivatedRoute,
     public _user: UserDetailService
@@ -51,7 +51,7 @@ export class TabsPage implements OnInit {
   }
   ngOnInit() {}
   onClickRoute(index: any) {
-    // this._router.navigate([`/tabs/${this.tabArray[index].link}`]);
-    this.nav.navigateRoot([`/tabs/${this.tabArray[index].link}`]);
+    // this.nav.navigateRoot([`/tabs/${this.tabArray[index].link}`]);
+    this.nav.navigateForward([`/tabs/${this.tabArray[index].link}`]);
   }
 }

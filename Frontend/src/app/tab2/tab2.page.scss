@@ -6,24 +6,8 @@
     --border-radius: 8px;
   }
 }
-ion-slides {
-  height: 20%;
-}
 .product {
   text-align: center;
-  border: 2px solid #ccc;
-  border-radius: 5px;
-  // Product Image
-  img {
-    width: 200px;
-    height: 200px;
-  }
-  .wishList {
-    font-size: 20px;
-    right: 10px;
-    top: 10px;
-    position: absolute;
-  }
   ion-note {
     position: relative;
     bottom: 2px;
@@ -37,8 +21,10 @@ ion-slides {
     font-size: smaller;
     float: left;
     margin-right: 2px;
+    position: relative;
   }
   .rating-decimal {
+    position: relative;
     color: white;
     margin-right: 2px;
     float: left;
@@ -56,5 +42,20 @@ ion-slides {
   .ripple-parent {
     position: relative;
     overflow: hidden;
+  }
+  #mainPrice {
+    margin-left: 0px;
+    font-size: small;
+    color: black;
+    font-weight: bold;
+    span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    #offer {
+      font-weight: bold;
+      color: rgb(15, 170, 15);
+      font-size: 15px;
+    }
   }
 }

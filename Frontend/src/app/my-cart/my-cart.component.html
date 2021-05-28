@@ -5,12 +5,17 @@
       <ion-row>
         <ion-col size="9.5">
           <ion-icon
-            (click)="nav.navigateBack('/tabs/tab2')"
-            style="font-size: 25px"
+            (click)="nav.back()"
+            style="font-size: x-large"
             name="arrow-back-outline"
           ></ion-icon>
           <ion-text
-            style="position: relative; bottom: 5px; font-size: large; left: 2px"
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
             >My Cart</ion-text
           >
         </ion-col>
@@ -70,22 +75,7 @@
         </ion-row>
       </ion-grid>
     </ion-item>
-    <!-- Select All Items -->
-    <ion-row style="position: relative; top: 2px">
-      <ion-col>
-        <ion-checkbox
-          [(ngModel)]="selectAllFlag"
-          (click)="selectAll(selectAllFlag, 'selectAll')"
-          style="position: relative; left: 10px"
-          color="primary"
-        ></ion-checkbox>
-      </ion-col>
-      <ion-col size="11">
-        <ion-text style="font-size: larger; position: relative; bottom: 2px"
-          >Select All</ion-text
-        >
-      </ion-col>
-    </ion-row>
+
     <!-- Cart Items -->
     <ion-item *ngFor="let item of _user.cartArray; let index = index">
       <ion-grid>
@@ -101,11 +91,14 @@
                 ></ion-checkbox>
               </ion-col>
               <ion-col size="10">
-                <ion-text style="position: relative; left: -15px">{{
-                  item.name && item.name.length > 20
-                    ? item.name.slice(0, 20) + "..."
-                    : item.name
-                }}</ion-text>
+                <ion-text
+                  style="position: relative; left: -15px; font-weight: bold"
+                  >{{
+                    item.name && item.name.length > 20
+                      ? item.name.slice(0, 20) + "..."
+                      : item.name
+                  }}</ion-text
+                >
               </ion-col>
             </ion-row>
             <ion-col>
@@ -132,16 +125,22 @@
             </ion-col>
           </ion-col>
           <ion-col>
-            <img src="{{ item.img }}" style="width: 100px; float: right" />
+            <img
+              src="{{ item.img }}"
+              style="width: 100px; float: right; border: 2px solid black"
+            />
           </ion-col>
         </ion-row>
         <ion-row>
-          <ion-col size="8.5">
-            <ion-text id="mainPrice" style="position: relative; bottom: 70px">
-              {{ item.price }}
-              <span>{{ item.originalprice }}</span
+          <ion-col [size]="_global.WIDTH / 50">
+            <ion-text
+              id="mainPrice"
+              style="position: relative; bottom: 70px; font-weight: 700"
+            >
+              {{ "₹" + item.price }}
+              <span>{{ "₹" + item.originalprice }}</span
               >&nbsp;&nbsp;<ion-text id="offer">{{
-                item.offerpercentage
+                item.offerpercentage + "% off"
               }}</ion-text>
             </ion-text>
           </ion-col>
@@ -155,8 +154,10 @@
             ></ion-icon>
           </ion-col>
           <ion-col>
-            <div class="quantity">
-              {{ item.quantity }}
+            <div [style.width]="_global.WIDTH / 15 + 'px'" class="quantity">
+              <span style="font-size: small; font-weight: 500">{{
+                item.minqty
+              }}</span>
             </div>
           </ion-col>
           <ion-col
@@ -172,41 +173,54 @@
       </ion-grid>
     </ion-item>
   </ion-content>
+  <!-- Footer -->
+  <ion-footer>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="8">
+          <ion-row
+            style="position: relative"
+            [style.top]="_global.HEIGHT / 150 + 'px'"
+          >
+            <ion-col style="text-align: center">
+              <ion-checkbox
+                [(ngModel)]="selectAllFlag"
+                (click)="selectAll(selectAllFlag, 'selectAll')"
+                color="primary"
+              ></ion-checkbox>
+              <ion-text
+                style="position: relative"
+                [style.left]="_global.WIDTH / 70 + 'px'"
+                [style.bottom]="_global.HEIGHT / 300 + 'px'"
+                >All</ion-text
+              >
+            </ion-col>
+            <ion-col
+              [style.bottom]="_global.HEIGHT / 150 + 'px'"
+              style="text-align: left; position: relative"
+              size="9"
+            >
+              <ion-text style="font-size: x-large">Total:</ion-text>
+              &nbsp;
+              <ion-text
+                style="font-size: x-large; color: #3880ff; font-weight: 700"
+                >{{ "₹" + totalOfferPrice }}</ion-text
+              >
+            </ion-col>
+          </ion-row>
+        </ion-col>
+        <ion-col
+          style="background-color: orangered; font-weight: bold; color: white"
+          class="footer-button ion-activatable ripple-parent"
+          (click)="onClickBuyNow()"
+        >
+          <ion-ripple-effect></ion-ripple-effect>
+          <ion-text>Checkout</ion-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-footer>
 </ng-container>
-<ng-template #elseTemplate> no cart content </ng-template>
-<!-- Footer -->
-<ion-footer>
-  <ion-grid>
-    <ion-row>
-      <ion-col style="text-align: center">
-        <ion-text style="font-size: larger; margin-right: 10px"
-          >Total:</ion-text
-        >
-        <ion-text style="font-size: x-large">{{
-          "₹" + totalOfferPrice
-        }}</ion-text>
-        <ion-text
-          style="
-            color: gray;
-            margin-left: 5px;
-            text-decoration: line-through;
-            font-size: large;
-          "
-          >{{ "₹" + totalPrice }}</ion-text
-        >
-      </ion-col>
-      <ion-col
-        style="background-color: orangered; font-weight: bold; color: white"
-        class="footer-button ion-activatable ripple-parent"
-        (click)="onClickBuyNow()"
-      >
-        <ion-ripple-effect></ion-ripple-effect>
-        <ion-text>Checkout Order</ion-text>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-</ion-footer>
-
 <!-- Address Drawer -->
 <ion-bottom-sheet
   [(state)]="sheetState"
@@ -238,3 +252,25 @@
     </ion-list>
   </ion-content>
 </ion-bottom-sheet>
+<ng-template #elseTemplate>
+  <ion-content>
+    <ion-row>
+      <ion-col>
+        <img
+          style="margin-top: 50%; margin-left: 20%"
+          [style.width]="_global.WIDTH / 2 + 'px'"
+          src="assets/images/cart.png"
+          alt="cart"
+        />;
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col style="text-align: center">
+        <ion-title>Your cart is empty</ion-title>
+        <ion-note>
+          It's a good day to buy fresh vegetables and groceries
+        </ion-note>
+      </ion-col>
+    </ion-row>
+  </ion-content>
+</ng-template>

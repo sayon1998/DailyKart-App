@@ -132,7 +132,7 @@ export class LoginComponent implements OnInit {
               );
             }
             this.spin = false;
-            // this._router.navigate(['/tabs/tab2']);
+            // this.nav.navigateRoot(['/tabs/tab2']);
             this.nav.navigateRoot(['/tabs/tab2']);
           }
         } else {
@@ -241,7 +241,7 @@ export class LoginComponent implements OnInit {
             }
           );
           this.keyboard.hide();
-          // this._router.navigate(['/login/register-details']);
+          // this.nav.navigateRoot(['/login/register-details']);
           this.nav.navigateRoot(['/login/register-details']);
         })
         .catch((err) => {

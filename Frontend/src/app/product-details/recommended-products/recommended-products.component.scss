@@ -1,18 +1,5 @@
 .product {
   text-align: center;
-  border: 2px solid #ccc;
-  border-radius: 5px;
-  // Product Image
-  img {
-    width: 200px;
-    height: 200px;
-  }
-  .wishList {
-    font-size: 20px;
-    right: 10px;
-    top: 10px;
-    position: absolute;
-  }
   ion-note {
     position: relative;
     bottom: 2px;
@@ -26,6 +13,7 @@
     font-size: smaller;
     float: left;
     margin-right: 2px;
+    position: relative;
   }
   .rating-decimal {
     color: white;
@@ -36,6 +24,7 @@
     background-color: rgb(11, 160, 11);
     text-align: center;
     border-radius: 2px;
+    position: relative;
   }
   // Product Price
   p {
@@ -45,5 +34,20 @@
   .ripple-parent {
     position: relative;
     overflow: hidden;
+  }
+  #mainPrice {
+    margin-left: 0px;
+    font-size: small;
+    color: black;
+    font-weight: bold;
+    span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    #offer {
+      font-weight: bold;
+      color: rgb(15, 170, 15);
+      font-size: 15px;
+    }
   }
 }

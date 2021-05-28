@@ -40,7 +40,7 @@
             <ion-button
               size="small"
               shape="round"
-              (click)="this._router.navigate(['/login'])"
+              (click)="this.nav.navigateForward(['/login'])"
               >Login</ion-button
             >
           </ion-col>
@@ -53,7 +53,7 @@
   <ion-item
     class="ion-activatable ripple-parent"
     *ngFor="let item of menuBar"
-    (click)="this._router.navigate([item.link])"
+    (click)="this.nav.navigateForward([item.link])"
   >
     <ion-ripple-effect></ion-ripple-effect>
     <ion-icon [name]="item.icon"></ion-icon>&nbsp;&nbsp;

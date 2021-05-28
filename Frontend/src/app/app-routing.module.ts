@@ -7,7 +7,7 @@ const routes: Routes = [
   // canActivate: [AuthGuard],
   {
     path: '',
-    // canDeactivate: [CanDeactivateTab],
+    canDeactivate: [CanDeactivateTab],
     loadChildren: () =>
       import('./tabs/tabs.module').then((m) => m.TabsPageModule),
   },
@@ -37,6 +37,20 @@ const routes: Routes = [
     path: 'checkout',
     loadChildren: () =>
       import('./checkout/checkout.module').then((m) => m.CheckoutModule),
+  },
+  {
+    path: 'wishlist',
+    loadChildren: () =>
+      import('./my-wishlist/my-wishlist.module').then(
+        (m) => m.MyWishlistModule
+      ),
+  },
+  {
+    path: 'search',
+    loadChildren: () =>
+      import('./universal-search/universal-search.module').then(
+        (m) => m.UniversalSearchModule
+      ),
   },
 ];
 @NgModule({

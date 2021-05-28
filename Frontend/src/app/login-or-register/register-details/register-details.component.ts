@@ -111,7 +111,7 @@ export class RegisterDetailsComponent implements OnInit {
             localStorage.setItem('isLogin', 'true');
             localStorage.setItem('user-details', JSON.stringify(resData.data));
             this._global.toasterValue(resData.message, 'Success');
-            // this._router.navigate(['/tabs/tab2']);
+            // this.nav.navigateRoot(['/tabs/tab2']);
             this.nav.navigateRoot(['/tabs/tab2']);
           }
         } else {

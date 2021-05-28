@@ -44,6 +44,7 @@ export class MyCartComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // this._global.goBackToForoward();
     if (this._user.cartArray && this._user.cartArray.length > 0) {
       this.cartFlag = false;
     }
@@ -81,19 +82,19 @@ export class MyCartComponent implements OnInit {
           this.selectAllFlag = true;
         }
         this.totalPrice +=
-          this._user.cartArray[index].quantity *
-          parseFloat(this._user.cartArray[index].originalprice.split('₹')[1]);
+          this._user.cartArray[index].minqty *
+          parseFloat(this._user.cartArray[index].originalprice);
         this.totalOfferPrice +=
-          this._user.cartArray[index].quantity *
-          parseFloat(this._user.cartArray[index].price.split('₹')[1]);
+          this._user.cartArray[index].minqty *
+          parseFloat(this._user.cartArray[index].price);
       } else {
         this.selectAllFlag = false;
         this.totalPrice -=
-          this._user.cartArray[index].quantity *
-          parseFloat(this._user.cartArray[index].originalprice.split('₹')[1]);
+          this._user.cartArray[index].minqty *
+          parseFloat(this._user.cartArray[index].originalprice);
         this.totalOfferPrice -=
-          this._user.cartArray[index].quantity *
-          parseFloat(this._user.cartArray[index].price.split('₹')[1]);
+          this._user.cartArray[index].minqty *
+          parseFloat(this._user.cartArray[index].price);
       }
     }
   }
@@ -103,9 +104,8 @@ export class MyCartComponent implements OnInit {
     this.totalPrice = 0;
     this._user.cartArray.forEach((x) => {
       if (x.isCheckout) {
-        this.totalPrice +=
-          x.quantity * parseFloat(x.originalprice.split('₹')[1]);
-        this.totalOfferPrice += x.quantity * parseFloat(x.price.split('₹')[1]);
+        this.totalPrice += x.minqty * parseFloat(x.originalprice);
+        this.totalOfferPrice += x.minqty * parseFloat(x.price);
       }
     });
   }
@@ -129,10 +129,10 @@ export class MyCartComponent implements OnInit {
         ).toFixed(2) + '% Off';
       this._user.checkOutArray.deliveryaddress = this._address.addressArray[0];
       console.log(this._user.checkOutArray);
-      this._router.navigate(['/checkout']);
+      this.nav.navigateRoot(['/checkout']);
       // if (this._auth.isLogin()) {
       // } else {
-      //   this._router.navigate(['/login']);
+      //   this.nav.navigateRoot(['/login']);
       // }
     } else {
       this._global.toasterValue(

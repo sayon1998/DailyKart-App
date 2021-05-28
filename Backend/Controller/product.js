@@ -4,6 +4,7 @@ const productDetail = require("../Models/product-details");
 const cartWishlist = require("../Models/cart-wishlist");
 const userDetail = require("../Models/user-details");
 const imageUpload = require("../Service/image-upload");
+const e = require("express");
 
 // Get All Products
 router.post("/products", async (req, res) => {
@@ -357,6 +358,8 @@ router.post("/save-cart-wishlist", async (req, res) => {
     data: {},
     message: "",
   };
+  let wishArray = [];
+  let cartArray = [];
   try {
     if (!req.body.userId) {
       resType.message = "userid is Required";
@@ -389,50 +392,75 @@ router.post("/save-cart-wishlist", async (req, res) => {
               resType.message = "User is not present in our database";
               return res.status(404).send(resType);
             }
-            if (req.body.cart && req.body.cart.length > 0) {
-              await productDetail.findById(
-                req.body.cart[0],
-                async (err, cartparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
-                  }
-                  if (cartparam === null) {
-                    resType.message = `${req.body.cart[0]} is not present in our database`;
-                    return res.status(404).send(resType);
-                  }
-                  resType.data = await cartWishlist.create({
-                    userId: req.body.userId,
-                    cart: req.body.cart,
-                    wishlist: req.body.wishlist,
-                  });
-                  resType.status = true;
-                  resType.message = `${req.body.cart[0]} is successfully saved in your cart`;
-                  return res.status(200).send(resType);
+            if (
+              req.body.cart &&
+              req.body.cart.length > 1 &&
+              req.body.wishlist &&
+              req.body.wishlist.length > 1
+            ) {
+              for (const index in req.body.cart) {
+                const cartId = await productDetail.findById(
+                  req.body.cart[index]
+                );
+                if (cartId !== null) {
+                  cartArray.push(req.body.cart[index]);
                 }
-              );
-            } else if (req.body.wishlist && req.body.wishlist.length > 0) {
-              await productDetail.findById(
-                req.body.wishlist[0],
-                async (err, wishlistparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
-                  }
-                  if (wishlistparam === null) {
-                    resType.message = `${req.body.cart[0]} is not present in our database`;
-                    return res.status(404).send(resType);
-                  }
-                  resType.data = await cartWishlist.create({
-                    userId: req.body.userId,
-                    cart: req.body.cart,
-                    wishlist: req.body.wishlist,
-                  });
-                  resType.status = true;
-                  resType.message = `${req.body.wishlist[0]} is successfully saved in your cart`;
-                  return res.status(200).send(resType);
+              }
+              for (const index in req.body.wishlist) {
+                const wishlist = await productDetail.findById(
+                  req.body.wishlist[index]
+                );
+                if (wishlist !== null) {
+                  wishArray.push(req.body.wishlist[index]);
                 }
-              );
+              }
+
+              resType.data = await cartWishlist.create({
+                userId: req.body.userId,
+                cart: cartArray,
+                wishlist: wishArray,
+              });
+              resType.status = true;
+              resType.message = `Your cart is successfully saved in your wishlist and cart`;
+              return res.status(200).send(resType);
+            } else {
+              if (req.body.cart && req.body.cart.length > 0) {
+                let cartArray = [];
+                for (const index in req.body.cart) {
+                  const cartId = await productDetail.findById(
+                    req.body.cart[index]
+                  );
+                  if (cartId !== null) {
+                    cartArray.push(req.body.cart[index]);
+                  }
+                }
+                resType.data = await cartWishlist.create({
+                  userId: req.body.userId,
+                  cart: cartArray,
+                  wishlist: req.body.wishlist,
+                });
+                resType.status = true;
+                resType.message = `Your cart is successfully saved in your cart`;
+                return res.status(200).send(resType);
+              } else if (req.body.wishlist && req.body.wishlist.length > 0) {
+                const wishArray = [];
+                for (const index in req.body.wishlist) {
+                  const wishlist = await productDetail.findById(
+                    req.body.wishlist[index]
+                  );
+                  if (wishlist !== null) {
+                    wishArray.push(req.body.wishlist[index]);
+                  }
+                }
+                resType.data = await cartWishlist.create({
+                  userId: req.body.userId,
+                  cart: wishArray,
+                  wishlist: req.body.wishlist,
+                });
+                resType.status = true;
+                resType.message = `Your item is successfully saved in your cart`;
+                return res.status(200).send(resType);
+              }
             }
           });
         } else {
@@ -446,62 +474,111 @@ router.post("/save-cart-wishlist", async (req, res) => {
               resType.message = "User is not present in our database";
               return res.status(404).send(resType);
             }
-            if (req.body.cart && req.body.cart.length > 0) {
-              await productDetail.findById(
-                req.body.cart[0],
-                async (err, cartparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
+            if (
+              req.body.cart &&
+              req.body.cart.length > 1 &&
+              req.body.wishlist &&
+              req.body.wishlist.length > 1
+            ) {
+              // let flag = false;
+              for (const index in req.body.cart) {
+                const cartData = await productDetail.findById(
+                  req.body.cart[index]
+                );
+                if (cartData !== null) {
+                  if (cartWishParams.cart.indexOf(cartData._id) === -1) {
+                    cartWishParams.cart.push(req.body.cart[index]);
                   }
-                  if (cartparam === null) {
-                    resType.message = `${cartparam.name} is not present in our database`;
-                    return res.status(404).send(resType);
+                  // else {
+                  //   flag = true;
+                  //   resType.message = `${cartData.name} is already saved in your cart`;
+                  //   break;
+                  // }
+                }
+              }
+              // if (flag) {
+              //   return res.status(400).send(resType);
+              // }
+              // let flag = false;
+              for (const index in req.body.wishlist) {
+                const wishData = await productDetail.findById(
+                  req.body.wishlist[index]
+                );
+                if (wishData !== null) {
+                  if (cartWishParams.wishlist.indexOf(wishData._id) === -1) {
+                    cartWishParams.wishlist.push(req.body.wishlist[index]);
                   }
-                  if (
-                    cartWishParams.cart.findIndex(
-                      (x) => x === req.body.cart[0]
-                    ) === -1
-                  ) {
-                    cartWishParams.cart.push(req.body.cart[0]);
-                    resType.data = await cartWishParams.save();
-                    resType.status = true;
-                    resType.message = `${cartparam.name} is successfully saved in your cart`;
-                    return res.status(200).send(resType);
-                  } else {
-                    resType.message = `${cartparam.name} is already saved in your cart`;
-                    return res.status(400).send(resType);
+                  // else {
+                  //   flag = true;
+                  //   resType.message = `${wishData.name} is already saved in your wishlist`;
+                  //   break;
+                  // }
+                }
+                // else {
+                //   resType.message = `${wishData.name} is not present in our database`;
+                //   break;
+                // }
+              }
+              // if (flag) {
+              //   return res.status(400).send(resType);
+              // }
+              resType.data = await cartWishParams.save();
+              resType.status = true;
+              resType.message = `Your Item is successfully saved in your wishlist and cart`;
+              return res.status(200).send(resType);
+            } else {
+              if (req.body.cart && req.body.cart.length > 0) {
+                let flag = false;
+                for (const index in req.body.cart) {
+                  const cartData = await productDetail.findById(
+                    req.body.cart[index]
+                  );
+                  if (cartData !== null) {
+                    if (cartWishParams.cart.indexOf(cartData._id) === -1) {
+                      cartWishParams.cart.push(req.body.cart[index]);
+                    }
+                    // else {
+                    //   flag = true;
+                    //   resType.message = `${cartData.name} is already saved in your cart`;
+                    //   break;
+                    // }
                   }
                 }
-              );
-            } else if (req.body.wishlist && req.body.wishlist.length > 0) {
-              await productDetail.findById(
-                req.body.wishlist[0],
-                async (err, wishlistparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
-                  }
-                  if (wishlistparam === null) {
-                    resType.message = `${req.body.wishlist[0]} is not present in our database`;
-                    return res.status(404).send(resType);
-                  }
-                  if (
-                    cartWishParams.wishlist.findIndex(
-                      (x) => x === req.body.wishlist[0]
-                    ) === -1
-                  ) {
-                    cartWishParams.wishlist.push(req.body.wishlist[0]);
-                    resType.data = await cartWishParams.save();
-                    resType.status = true;
-                    resType.message = `${wishlistparam.name} is successfully saved in your wishlist`;
-                    return res.status(200).send(resType);
+                if (flag) {
+                  return res.status(400).send(resType);
+                }
+                resType.data = await cartWishParams.save();
+                resType.status = true;
+                resType.message = `Your Item is successfully saved in your cart`;
+                return res.status(200).send(resType);
+              } else if (req.body.wishlist && req.body.wishlist.length > 0) {
+                let flag = false;
+                for (const index in req.body.wishlist) {
+                  const wishData = await productDetail.findById(
+                    req.body.wishlist[index]
+                  );
+                  if (wishData !== null) {
+                    if (cartWishParams.wishlist.indexOf(wishData._id) === -1) {
+                      cartWishParams.wishlist.push(req.body.wishlist[index]);
+                    }
+                    // else {
+                    //   flag = true;
+                    //   resType.message = `${wishData.name} is already saved in your wishlist`;
+                    //   break;
+                    // }
                   } else {
-                    resType.message = `${wishlistparam.name} is already saved in your wishlist`;
-                    return res.status(400).send(resType);
+                    resType.message = `${wishData.name} is not present in our database`;
+                    break;
                   }
                 }
-              );
+                if (flag) {
+                  return res.status(400).send(resType);
+                }
+                resType.data = await cartWishParams.save();
+                resType.status = true;
+                resType.message = `Your Item is successfully saved in your wishlist`;
+                return res.status(200).send(resType);
+              }
             }
           });
         }
@@ -555,73 +632,41 @@ router.post("/delete-cart-wishlist", async (req, res) => {
               return res.status(404).send(resType);
             }
             if (req.body.cart && req.body.cart.length > 0) {
-              await productDetail.findById(
-                req.body.cart[0],
-                async (err, cartparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
-                  }
-                  if (cartparam === null) {
-                    resType.message = `${cartparam.name} is not present in our database`;
-                    return res.status(404).send(resType);
-                  }
-                  if (
-                    cartWishParams.cart.findIndex(
-                      (x) => x === req.body.cart[0]
-                    ) === -1
-                  ) {
-                    resType.status = false;
-                    resType.message = `${cartparam.name} is not saved in your cart`;
-                    return res.status(200).send(resType);
-                  } else {
-                    cartWishParams.cart.splice(
-                      cartWishParams.cart.findIndex(
-                        (x) => x === req.body.cart[0]
-                      ),
-                      1
-                    );
-                    resType.status = true;
-                    resType.data = await cartWishParams.save();
-                    resType.message = `${cartparam.name} is deleted from your cart`;
-                    return res.status(200).send(resType);
-                  }
+              for (const index in req.body.cart) {
+                let cartData = await productDetail.findById(
+                  req.body.cart[index]
+                );
+                if (
+                  cartData !== null &&
+                  cartWishParams.cart.indexOf(cartData._id) > -1
+                ) {
+                  cartWishParams.cart.splice(
+                    cartWishParams.cart.indexOf(cartData._id),
+                    1
+                  );
                 }
-              );
-            } else if (req.body.wishlist && req.body.wishlist.length > 0) {
-              await productDetail.findById(
-                req.body.wishlist[0],
-                async (err, wishlistparam) => {
-                  if (err) {
-                    resType.message = err.message;
-                    return res.status(400).send(resType);
-                  }
-                  if (wishlistparam === null) {
-                    resType.message = `${req.body.wishlist[0]} is not present in our database`;
-                    return res.status(404).send(resType);
-                  }
-                  if (
-                    cartWishParams.wishlist.findIndex(
-                      (x) => x === req.body.wishlist[0]
-                    ) === -1
-                  ) {
-                    resType.message = `${wishlistparam.name} is not saved in your wishlist`;
-                    return res.status(200).send(resType);
-                  } else {
-                    cartWishParams.wishlist.splice(
-                      cartWishParams.wishlist.findIndex(
-                        (x) => x === req.body.wishlist[0]
-                      ),
-                      1
-                    );
-                    resType.data = await cartWishParams.save();
-                    resType.status = true;
-                    resType.message = `${wishlistparam.name} is deleted from your wishlist`;
-                    return res.status(200).send(resType);
-                  }
-                }
-              );
+              }
             }
+            if (req.body.wishlist && req.body.wishlist.length > 0) {
+              for (const index in req.body.wishlist) {
+                let wishData = await productDetail.findById(
+                  req.body.wishlist[index]
+                );
+                if (
+                  wishData !== null &&
+                  cartWishParams.wishlist.indexOf(wishData._id) > -1
+                ) {
+                  cartWishParams.wishlist.splice(
+                    cartWishParams.wishlist.indexOf(wishData._id),
+                    1
+                  );
+                }
+              }
+            }
+            resType.status = true;
+            resType.data = await cartWishParams.save();
+            resType.message = "Successfully Deleted";
+            return res.status(200).send(resType);
           });
         }
       }

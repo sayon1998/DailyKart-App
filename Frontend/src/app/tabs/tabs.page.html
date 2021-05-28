@@ -2,16 +2,18 @@
   <ion-toolbar color="primary">
     <ion-grid>
       <ion-row>
-        <ion-col size="9.5"
-          ><ion-title style="padding-left: 0px">
+        <ion-col size="8.5"
+          ><ion-title style="padding-left: 0px; font-size: x-large">
             {{headerTitle}}
           </ion-title></ion-col
         >
         <ion-col>
           <ion-icon name="search" style="font-size: 25px"></ion-icon>
           &nbsp;
+          <ion-icon name="heart" style="font-size: 25px"></ion-icon>
+          &nbsp;
           <ion-icon
-            (click)="_router.navigate(['/cart'])"
+            (click)="nav.navigateForward(['/cart'])"
             name="cart"
             style="font-size: 25px"
           ></ion-icon>
