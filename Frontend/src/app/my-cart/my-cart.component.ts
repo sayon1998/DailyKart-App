@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/member-ordering */
+/* eslint-disable guard-for-in */
 /* eslint-disable @typescript-eslint/prefer-for-of */
 /* eslint-disable no-underscore-dangle */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { SheetState } from 'ion-bottom-sheet';
@@ -32,6 +34,8 @@ export class MyCartComponent implements OnInit {
   totalOfferPrice = 0;
   selectAllFlag = true;
   cartFlag = true;
+  lastKey = 0;
+  public cartArray: any[] = [];
   constructor(
     public _address: AddressService,
     public _user: UserDetailService,
@@ -45,22 +49,46 @@ export class MyCartComponent implements OnInit {
 
   ngOnInit(): void {
     // this._global.goBackToForoward();
+    this.getCartDetails();
+  }
+
+  // get cart details
+  getCartDetails() {
     if (this._user.cartArray && this._user.cartArray.length > 0) {
-      this.cartFlag = false;
+      const param = {
+        product: this._user.cartArray,
+      };
+      this._global.post('/product/productbymultipleid', param).subscribe(
+        (resData: any) => {
+          if (resData.status) {
+            if (resData.data) {
+              for (const index in resData.data) {
+                resData.data[index].isCheckout = true;
+                resData.data[index].isSpin = false;
+              }
+              this.cartArray = this.cartArray.concat(resData.data);
+              console.log(this.cartArray);
+              this.selectAll(false, 'selectAll');
+              this.cartFlag = false;
+            }
+          }
+        },
+        (err) => {
+          this._global.toasterValue(err.message);
+        }
+      );
     }
-    this.getPrice();
-    this.selectAll(false, 'selectAll');
   }
   selectAll(value: boolean, type: string, index: number = null) {
     if (type === 'selectAll') {
       if (!value) {
-        this._user.cartArray.forEach((x) => {
+        this.cartArray.forEach((x) => {
           if (!x.isCheckout) {
             x.isCheckout = true;
           }
         });
       } else {
-        this._user.cartArray.forEach((x) => {
+        this.cartArray.forEach((x) => {
           if (x.isCheckout) {
             x.isCheckout = false;
           }
@@ -70,8 +98,8 @@ export class MyCartComponent implements OnInit {
     } else if (type === 'select') {
       let flag = false;
       if (value) {
-        for (let i = 0; i < this._user.cartArray.length; i++) {
-          if (index !== i && !this._user.cartArray[i].isCheckout) {
+        for (let i = 0; i < this.cartArray.length; i++) {
+          if (index !== i && !this.cartArray[i].isCheckout) {
             flag = true;
             break;
           }
@@ -82,38 +110,166 @@ export class MyCartComponent implements OnInit {
           this.selectAllFlag = true;
         }
         this.totalPrice +=
-          this._user.cartArray[index].minqty *
-          parseFloat(this._user.cartArray[index].originalprice);
+          this.cartArray[index].minqty *
+          parseFloat(this.cartArray[index].originalprice);
         this.totalOfferPrice +=
-          this._user.cartArray[index].minqty *
-          parseFloat(this._user.cartArray[index].price);
+          this.cartArray[index].minqty *
+          parseFloat(this.cartArray[index].price);
       } else {
         this.selectAllFlag = false;
         this.totalPrice -=
-          this._user.cartArray[index].minqty *
-          parseFloat(this._user.cartArray[index].originalprice);
+          this.cartArray[index].minqty *
+          parseFloat(this.cartArray[index].originalprice);
         this.totalOfferPrice -=
-          this._user.cartArray[index].minqty *
-          parseFloat(this._user.cartArray[index].price);
+          this.cartArray[index].minqty *
+          parseFloat(this.cartArray[index].price);
       }
     }
   }
-
   getPrice() {
     this.totalOfferPrice = 0;
     this.totalPrice = 0;
-    this._user.cartArray.forEach((x) => {
+    this.cartArray.forEach((x) => {
       if (x.isCheckout) {
         this.totalPrice += x.minqty * parseFloat(x.originalprice);
         this.totalOfferPrice += x.minqty * parseFloat(x.price);
       }
     });
   }
+  onClickMoveToWishlist(item: any) {
+    if (this._auth.isLogin()) {
+      const param = {
+        userId: localStorage.getItem('userId'),
+        cart: [],
+        wishlist: [],
+      };
+      param.cart.push(item._id);
+      item.isSpin = true;
+      this._global
+        .post('product/move-cart-wishlist-viceversa', param)
+        .subscribe(
+          (resData: any) => {
+            if (resData.status) {
+              if (resData.data) {
+                // localStorage.removeItem('cart');
+                // localStorage.removeItem('wishList');
+                // localStorage.setItem('cart', JSON.stringify(resData.data.cart));
+                // localStorage.setItem(
+                //   'wishList',
+                //   JSON.stringify(resData.wishlist)
+                // );
+                this._user.cartArray = resData.data.cart;
+                this.cartArray = resData.data.cart;
+                this._global.toasterValue(
+                  `${item.name} is successfully move to wishlist`,
+                  'Success'
+                );
+                item.isSpin = false;
+              } else {
+                item.isSpin = false;
+                // localStorage.removeItem('cart');
+                this._user.cartArray = [];
+                this.cartArray = [];
+                this._global.toasterValue(
+                  `${item.name} is successfully move to wishlist`,
+                  'Success'
+                );
+              }
+            }
+          },
+          (err) => {
+            this._global.toasterValue(err.message, 'Error');
+          }
+        );
+    } else {
+      if (typeof localStorage.getItem('wishList') !== 'object') {
+        let wishlist: any[] = [];
+        wishlist = JSON.parse(localStorage.getItem('wishList'));
+        if (wishlist.findIndex((x) => x === item._id) === -1) {
+          this.cartArray.splice(this.cartArray.indexOf(item), 1);
+          this._user.cartArray.splice(
+            this._user.cartArray.indexOf(item._id),
+            1
+          );
+          localStorage.removeItem('cart');
+          localStorage.setItem('cart', JSON.stringify(this._user.cartArray));
+          wishlist.push(item._id);
+          localStorage.removeItem('wishList');
+          localStorage.setItem('wishList', JSON.stringify(wishlist));
+          this._global.toasterValue(
+            `${item.name} is successfully move to wishlist`,
+            'Success'
+          );
+        } else {
+          this._global.toasterValue(
+            `${item.name} is already in your wishlist`,
+            'Warning'
+          );
+        }
+      } else {
+        this.cartArray.splice(this.cartArray.indexOf(item), 1);
+        this._user.cartArray.splice(this._user.cartArray.indexOf(item._id), 1);
+        localStorage.removeItem('cart');
+        localStorage.setItem('cart', JSON.stringify(this._user.cartArray));
+        localStorage.setItem('wishList', JSON.stringify([item._id]));
+      }
+    }
+    this.getPrice();
+  }
+  onClickDelete(item: any) {
+    if (this._auth.isLogin()) {
+      const param = {
+        userId: localStorage.getItem('userId'),
+        cart: [],
+        wishlist: [],
+      };
+      param.cart.push(item._id);
+      item.isSpin = true;
+      this._global.post('product/delete-cart-wishlist', param).subscribe(
+        (resData: any) => {
+          if (resData.status) {
+            if (resData.data) {
+              // localStorage.setItem('cart', JSON.stringify(resData.data.cart));
+              this._user.cartArray = resData.data.cart;
+              this.cartArray = resData.data.cart;
+              this._global.toasterValue(
+                `${item.name} is successfully deleted from your cart`,
+                'Success'
+              );
+              item.isSpin = false;
+            } else {
+              item.isSpin = false;
+              // localStorage.removeItem('cart');
+              this._user.cartArray = [];
+              this.cartArray = [];
+              this._global.toasterValue(
+                `${item.name} is successfully deleted from your cart`,
+                'Success'
+              );
+            }
+          }
+        },
+        (err) => {
+          this._global.toasterValue(err.message, 'Error');
+        }
+      );
+    } else {
+      this.cartArray.splice(this.cartArray.indexOf(item), 1);
+      this._user.cartArray.splice(this._user.cartArray.indexOf(item._id), 1);
+      localStorage.removeItem('cart');
+      localStorage.setItem('cart', JSON.stringify(this._user.cartArray));
+      this._global.toasterValue(
+        `${item.name} is successfully deleted from your cart`,
+        'Success'
+      );
+    }
+    this.getPrice();
+  }
   onClickBuyNow() {
-    console.log(this._user.cartArray);
+    console.log(this.cartArray);
     if (this.totalPrice !== 0 && this.totalOfferPrice !== 0) {
       this._user.checkOutArray.productDetails = [];
-      this._user.cartArray.forEach((x) => {
+      this.cartArray.forEach((x) => {
         if (x.isCheckout) {
           this._user.checkOutArray.productDetails.push(x);
         }

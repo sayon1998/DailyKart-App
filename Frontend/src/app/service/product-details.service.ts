@@ -9,8 +9,6 @@ import { UserDetailService } from './user-details.service';
   providedIn: 'root',
 })
 export class ProductService {
-  public products: any[] = [];
-
   constructor(
     public _auth: AuthService,
     public _global: GlobalService,
@@ -28,26 +26,26 @@ export class ProductService {
         console.log(item.length);
         if (item && item.length !== undefined) {
           item.forEach((e: any) => {
-            if (localArray.findIndex((x) => x._id === e._id) > -1) {
+            if (localArray.findIndex((x) => x === e._id) > -1) {
               e.icon = 'heart';
               // document.getElementById(
               //   `${item.findIndex((x) => x._id === e._id)}`
               // ).style.color = 'red';
             } else if (
-              localArray.findIndex((x) => x._id === e._id) === -1 &&
+              localArray.findIndex((x) => x === e._id) === -1 &&
               e.icon === 'heart'
             ) {
               e.icon = 'heart-outline';
             }
           });
         } else {
-          if (localArray.findIndex((x) => x._id === item._id) > -1) {
+          if (localArray.findIndex((x) => x === item._id) > -1) {
             item.icon = 'heart';
             // document.getElementById(
             //   `${item.findIndex((x) => x._id === e._id)}`
             // ).style.color = 'red';
           } else if (
-            localArray.findIndex((x) => x._id === item._id) === -1 &&
+            localArray.findIndex((x) => x === item._id) === -1 &&
             item.icon === 'heart'
           ) {
             item.icon = 'heart-outline';
@@ -75,7 +73,7 @@ export class ProductService {
         let localArray: any[] = [];
         localArray = JSON.parse(localStorage.getItem('wishList'));
         localArray.splice(
-          localArray.findIndex((x) => x._id === item._id),
+          localArray.findIndex((x) => x === item._id),
           1
         );
         localStorage.removeItem('wishList');
@@ -97,12 +95,12 @@ export class ProductService {
         ) {
           let localArray: any[] = [];
           localArray = JSON.parse(localStorage.getItem('wishList'));
-          localArray = localArray.concat(item);
+          localArray = localArray.concat(item._id);
           localStorage.removeItem('wishList');
           console.log(localArray);
           localStorage.setItem('wishList', JSON.stringify(localArray));
         } else {
-          localStorage.setItem('wishList', JSON.stringify([item]));
+          localStorage.setItem('wishList', JSON.stringify([item._id]));
         }
         this._global.toasterValue('Added to Your local Wishlist');
       } else {

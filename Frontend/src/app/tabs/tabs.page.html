@@ -10,7 +10,11 @@
         <ion-col>
           <ion-icon name="search" style="font-size: 25px"></ion-icon>
           &nbsp;
-          <ion-icon name="heart" style="font-size: 25px"></ion-icon>
+          <ion-icon
+            (click)="nav.navigateForward(['/wishlist'])"
+            name="heart"
+            style="font-size: 25px"
+          ></ion-icon>
           &nbsp;
           <ion-icon
             (click)="nav.navigateForward(['/cart'])"

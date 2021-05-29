@@ -1,1 +1,54 @@
-<p>my-wishlist works!</p>
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="nav.back()"
+            style="font-size: x-large"
+            name="arrow-back-outline"
+          ></ion-icon>
+          <ion-text
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
+            >My Wishlist</ion-text
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-grid *ngIf="_user.wishArray && _user.wishArray.length === 0">
+    <ion-row>
+      <ion-col>
+        <img
+          style="margin-left: 25%; margin-top: 50%"
+          [width]="_global.WIDTH / 2"
+          src="assets/images/wishlist-header.png"
+          alt="wishlist-header"
+        />
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col style="text-align: center">
+        <ion-title style="margin-right: 12%">It's empty in here</ion-title>
+      </ion-col>
+      <ion-note style="margin-left: 20%"
+        >Save your items here for future order</ion-note
+      >
+    </ion-row>
+  </ion-grid>
+  <div *ngIf="_user.wishArray && _user.wishArray.length >= 0">
+    <ion-grid>
+      <ion-row *ngFor="let item of [0, 1, 2, 3, 4]">
+        <ion-col></ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

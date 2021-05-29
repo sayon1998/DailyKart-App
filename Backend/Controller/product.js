@@ -92,6 +92,34 @@ router.get("/productbyid/:_id", async (req, res) => {
   }
 });
 
+// Get Product Details by Multiple Id
+router.post("/productbymultipleid", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (req.body.product && req.body.product.length > 0) {
+      const productArray = [];
+      for (const index in req.body.product) {
+        let productData = await productDetail.findById(req.body.product[index]);
+        if (productData !== null) {
+          productData.isCheckout = true;
+          productArray.push(productData);
+        }
+      }
+      resType.status = true;
+      resType.data = productArray;
+      resType.message = "Successful";
+      return res.status(200).send(resType);
+    }
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
 // Save Product Details
 router.post("/save-product", async (req, res) => {
   const resType = {
@@ -351,7 +379,7 @@ router.post("/update-product-image", async (req, res) => {
   }
 });
 
-// Add Cart & Wishlist Product
+// Add Cart & Wishlist Product (after login or onclick)
 router.post("/save-cart-wishlist", async (req, res) => {
   const resType = {
     status: false,
@@ -668,6 +696,107 @@ router.post("/delete-cart-wishlist", async (req, res) => {
             resType.message = "Successfully Deleted";
             return res.status(200).send(resType);
           });
+        }
+      }
+    );
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+// Move cart item to wishlist or vice versa
+router.post("/move-cart-wishlist-viceversa", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.userId) {
+      resType.message = "User id is required";
+      return res.status(404).send(resType);
+    }
+    if (
+      req.body.cart &&
+      req.body.cart.length === 0 &&
+      req.body.wishlist &&
+      req.body.wishlist.length === 0
+    ) {
+      resType.message = "Wishlist and cart both should not be zero";
+      return res.status(404).send(resType);
+    }
+    await cartWishlist.findOne(
+      { userId: req.body.userId },
+      async (err, cartWishParams) => {
+        if (err) {
+          resType.message = err.message;
+          return res.status(400).send(resType);
+        }
+        if (cartWishParams === null) {
+          resType.message =
+            "User have no cart or wishlist present in our Database";
+          return res.status(404).send(resType);
+        }
+        if (req.body.cart && req.body.cart.length > 0) {
+          await userDetail.findById(req.body.userId, async (err, params) => {
+            if (err) {
+              resType.message = err.message;
+              return res.status(400).send(resType);
+            }
+            if (params === null) {
+              resType.message = "User is not present in our Database";
+              return res.status(404).send(resType);
+            }
+            let cartData;
+            for (const index in req.body.cart) {
+              cartData = await productDetail.findById(req.body.cart[index]);
+              if (
+                cartData !== null &&
+                cartWishParams.wishlist.indexOf(cartData._id) === -1
+              ) {
+                cartWishParams.wishlist.push(cartData._id);
+                cartWishParams.cart.splice(
+                  cartWishParams.cart.indexOf(cartData._id),
+                  1
+                );
+              }
+            }
+          });
+          resType.status = true;
+          resType.data = await cartWishParams.save();
+          resType.message = "Successfully move to your wishlist";
+          return res.status(200).send(resType);
+        } else if (req.body.wishlist && req.body.wishlist.length > 0) {
+          await userDetail.findById(req.body.userId, async (err, params) => {
+            if (err) {
+              resType.message = err.message;
+              return res.status(400).send(resType);
+            }
+            if (params === null) {
+              resType.message = "User is not present in our Database";
+              return res.status(404).send(resType);
+            }
+            let wishlistData;
+            for (const index in req.body.wishlist) {
+              wishlistData = await productDetail.findById(
+                req.body.wishlist[index]
+              );
+              if (
+                wishlistData !== null &&
+                cartWishParams.cart.indexOf(wishlistData._id) === -1
+              ) {
+                cartWishParams.cart.push(wishlistData._id);
+                cartWishParams.wishlist.splice(
+                  cartWishParams.wishlist.indexOf(wishlistData._id),
+                  1
+                );
+              }
+            }
+          });
+          resType.status = true;
+          resType.data = await cartWishParams.save();
+          resType.message = "Successfully move to your cart";
+          return res.status(200).send(resType);
         }
       }
     );

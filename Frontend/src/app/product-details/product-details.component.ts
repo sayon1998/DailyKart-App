@@ -90,9 +90,8 @@ export class ProductDetailsComponent implements OnInit {
     console.log(this._user.cartArray);
     if (
       this._user.cartArray &&
-      this._user.cartArray.findIndex(
-        (x) => x._id === this.productDetails._id
-      ) === -1
+      this._user.cartArray.findIndex((x) => x === this.productDetails._id) ===
+        -1
     ) {
       this.inCartFlag = false;
     } else {
