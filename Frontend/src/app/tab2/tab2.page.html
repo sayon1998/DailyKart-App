@@ -76,7 +76,7 @@
                   [ngStyle]="{'color': productDetails[i].icon === 'heart' ? 'red' : ''}"
                   [name]="item.icon"
                   class="wishList"
-                  (click)="_product.onClickWishList(item)"
+                  (click)="onClickWishList(item)"
                 ></ion-icon>
               </ion-fab-button>
             </ion-fab>

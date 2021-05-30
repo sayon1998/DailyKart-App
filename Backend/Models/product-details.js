@@ -21,13 +21,17 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true, // Total Quantity for this product Available in our Database
   },
+  orderqty: {
+    type: Number,
+    required: true, // User is currently Order
+  },
   minqty: {
     type: Number,
-    required: true, // Minimum quantity
+    required: true, // Minimum quantity user should be order
   },
   highestquentity: {
     type: Number,
-    required: true, // Highest Quantity
+    required: true, // Highest Quantity user should be order
   },
   price: {
     type: String,

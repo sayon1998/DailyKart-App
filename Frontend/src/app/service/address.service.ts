@@ -39,7 +39,7 @@ export class AddressService {
   }
   getUserAddress() {
     if (this._auth.isLogin()) {
-      if (typeof localStorage.getItem('user-details') !== 'undefined') {
+      if (typeof localStorage.getItem('user-details') !== 'object') {
         this.addressArray.push({
           address:
             JSON.parse(localStorage.getItem('user-details')).address +

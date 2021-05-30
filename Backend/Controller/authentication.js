@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const validate = require("validator");
 const axios = require("axios");
+
 const userDetails = require("../Models/user-details");
 const cartWishlist = require("../Models/cart-wishlist");
 const emailTemp = require("../Service/email-template");
@@ -71,8 +72,6 @@ router.post("/sign-upin", async (req, res) => {
               gender: saveData.gender,
               email: saveData.email,
               ph: saveData.ph,
-              cart: [],
-              wishlist: [],
             };
             const emailParam = {
               fName: saveData.fName,
@@ -146,42 +145,18 @@ router.post("/sign-upin", async (req, res) => {
                       type: "login-alert",
                       subject: "DailyKart Login Alert",
                     };
-                    await cartWishlist.findOne(
-                      { userId: params._id },
-                      async (err, cartWishParams) => {
-                        if (err) {
-                          resType.message = err.message;
-                          return res.status(404).send(resType);
-                        }
-                        if (cartWishParams === null) {
-                          resType.data = {
-                            fName: params.fName,
-                            mName: params.mName,
-                            lName: params.lName,
-                            email: params.email,
-                            ph: params.ph,
-                            gender: params.gender,
-                            cart: [],
-                            wishlist: [],
-                          };
-                        } else {
-                          resType.data = {
-                            fName: params.fName,
-                            mName: params.mName,
-                            lName: params.lName,
-                            email: params.email,
-                            ph: params.ph,
-                            gender: params.gender,
-                            cart: cartWishParams.cart,
-                            wishlist: cartWishParams.wishlist,
-                          };
-                        }
-                        emailTemp.emailTemplate(emailParam);
-                        resType.status = true;
-                        resType.message = "Login Successful";
-                        return res.status(200).send(resType);
-                      }
-                    );
+                    resType.data = {
+                      fName: params.fName,
+                      mName: params.mName,
+                      lName: params.lName,
+                      email: params.email,
+                      ph: params.ph,
+                      gender: params.gender,
+                    };
+                    emailTemp.emailTemplate(emailParam);
+                    resType.status = true;
+                    resType.message = "Login Successful";
+                    return res.status(200).send(resType);
                   } catch (err) {
                     resType.message = err.message;
                     return res.status(404).send(resType);

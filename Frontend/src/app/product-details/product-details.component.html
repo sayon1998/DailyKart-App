@@ -98,7 +98,7 @@
               color: productDetails.icon === 'heart' ? 'red' : ''
             }"
             [name]="productDetails.icon"
-            (click)="_product.onClickWishList(productDetails)"
+            (click)="onClickWishList(productDetails)"
           ></ion-icon>
         </ion-fab-button>
       </ion-fab>
@@ -164,7 +164,7 @@
   <ion-item>
     <ion-grid>
       <ion-row>
-        <ion-col size="8"
+        <ion-col size="8.5"
           ><ion-text>
             <ng-container
               *ngIf="
@@ -182,6 +182,10 @@
                     ? _address.addressArray[0].address.slice(0, 40) + ".."
                     : _address.addressArray[0].address
                 }}</span
+              >
+              <ion-note style="color: red"
+                >Currently out of stock for
+                <strong>{{ pincode }}</strong></ion-note
               >
             </ng-container>
             <ng-template #elseTemplate1>
@@ -356,7 +360,7 @@
       <ion-col
         style="background-color: #ccc; font-weight: bold"
         class="footer-button ion-activatable ripple-parent"
-        (click)="onClickCart()"
+        (click)="onClickNavigate()"
       >
         <ion-ripple-effect></ion-ripple-effect>
         <ion-text>{{
@@ -405,7 +409,7 @@
       <ion-label>Use your current location</ion-label>
       <ion-icon name="locate" slot="end"></ion-icon>
     </ion-item>
-    <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
+    <!-- <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
       <ion-list-header>
         <ion-label style="font-size: larger"
           >Your Preffered
@@ -425,6 +429,6 @@
           ></ion-radio>
         </ion-item>
       </ion-radio-group>
-    </ion-list>
+    </ion-list> -->
   </ion-content>
 </ion-bottom-sheet>

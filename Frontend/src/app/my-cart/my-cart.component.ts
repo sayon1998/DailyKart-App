@@ -34,8 +34,8 @@ export class MyCartComponent implements OnInit {
   totalOfferPrice = 0;
   selectAllFlag = true;
   cartFlag = true;
-  lastKey = 0;
   public cartArray: any[] = [];
+  public spin = true;
   constructor(
     public _address: AddressService,
     public _user: UserDetailService,
@@ -49,7 +49,48 @@ export class MyCartComponent implements OnInit {
 
   ngOnInit(): void {
     // this._global.goBackToForoward();
-    this.getCartDetails();
+    this.checkKart();
+  }
+
+  // Check Cart Ids
+  checkKart() {
+    if (this._auth.isLogin()) {
+      this._global
+        .get(
+          'product/get-cart-wishlist/',
+          `${localStorage.getItem('userId')}/cart`
+        )
+        .subscribe(
+          (resData: any) => {
+            if (resData.status) {
+              if (
+                resData.data &&
+                resData.data.cart &&
+                resData.data.cart.length > 0
+              ) {
+                this._user.cartArray = [];
+                this.cartArray = [];
+                this._user.cartArray = resData.data.cart;
+                this.getCartDetails();
+              } else {
+                this._user.cartArray = [];
+                this.cartArray = [];
+                this.spin = false;
+                // this._global.toasterValue(resData.message, 'Success');
+              }
+            } else {
+              this.spin = false;
+              this._global.toasterValue(resData.message, 'Error');
+            }
+          },
+          (err) => {
+            this.spin = false;
+            this._global.toasterValue(err.message, 'Error');
+          }
+        );
+    } else {
+      this.getCartDetails();
+    }
   }
 
   // get cart details
@@ -66,10 +107,11 @@ export class MyCartComponent implements OnInit {
                 resData.data[index].isCheckout = true;
                 resData.data[index].isSpin = false;
               }
-              this.cartArray = this.cartArray.concat(resData.data);
+              this.cartArray = resData.data;
               console.log(this.cartArray);
               this.selectAll(false, 'selectAll');
               this.cartFlag = false;
+              this.spin = false;
             }
           }
         },
@@ -158,22 +200,16 @@ export class MyCartComponent implements OnInit {
                 //   'wishList',
                 //   JSON.stringify(resData.wishlist)
                 // );
-                this._user.cartArray = resData.data.cart;
-                this.cartArray = resData.data.cart;
                 this._global.toasterValue(
                   `${item.name} is successfully move to wishlist`,
                   'Success'
                 );
                 item.isSpin = false;
-              } else {
-                item.isSpin = false;
-                // localStorage.removeItem('cart');
-                this._user.cartArray = [];
-                this.cartArray = [];
-                this._global.toasterValue(
-                  `${item.name} is successfully move to wishlist`,
-                  'Success'
+                this._user.cartArray.splice(
+                  this._user.cartArray.indexOf(item._id),
+                  1
                 );
+                this.cartArray.splice(this.cartArray.indexOf(item), 1);
               }
             }
           },
@@ -230,18 +266,7 @@ export class MyCartComponent implements OnInit {
           if (resData.status) {
             if (resData.data) {
               // localStorage.setItem('cart', JSON.stringify(resData.data.cart));
-              this._user.cartArray = resData.data.cart;
-              this.cartArray = resData.data.cart;
-              this._global.toasterValue(
-                `${item.name} is successfully deleted from your cart`,
-                'Success'
-              );
-              item.isSpin = false;
-            } else {
-              item.isSpin = false;
-              // localStorage.removeItem('cart');
-              this._user.cartArray = [];
-              this.cartArray = [];
+              this.checkKart();
               this._global.toasterValue(
                 `${item.name} is successfully deleted from your cart`,
                 'Success'

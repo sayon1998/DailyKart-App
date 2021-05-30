@@ -4,7 +4,6 @@ const productDetail = require("../Models/product-details");
 const cartWishlist = require("../Models/cart-wishlist");
 const userDetail = require("../Models/user-details");
 const imageUpload = require("../Service/image-upload");
-const e = require("express");
 
 // Get All Products
 router.post("/products", async (req, res) => {
@@ -617,6 +616,44 @@ router.post("/save-cart-wishlist", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
+// Get Cart & Wishlist Product _id
+router.get("/get-cart-wishlist/:_id/:type", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.params._id) {
+      resType.message = "Userid is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.params.type) {
+      resType.message = "Type is Required";
+      return res.status(404).send(resType);
+    }
+    const userId = await userDetail.findById(req.params._id);
+    if (userId === null) {
+      resType.message = "User is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    const cartWishDetails = await cartWishlist.findOne({
+      userId: req.params._id,
+    });
+    if (cartWishDetails === null) {
+      resType.status = true;
+      resType.message = `You have no item in your ${type}`;
+      return res.status(200).send(resType);
+    }
+    resType.status = true;
+    resType.data = cartWishDetails;
+    resType.message = "Successful";
+    return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
 // Delete Cart & Wishlist
 router.post("/delete-cart-wishlist", async (req, res) => {
   const resType = {
@@ -754,16 +791,22 @@ router.post("/move-cart-wishlist-viceversa", async (req, res) => {
                 cartData !== null &&
                 cartWishParams.wishlist.indexOf(cartData._id) === -1
               ) {
-                cartWishParams.wishlist.push(cartData._id);
+                cartWishParams.wishlist.push(String(cartData._id));
                 cartWishParams.cart.splice(
                   cartWishParams.cart.indexOf(cartData._id),
                   1
                 );
+                resType.data = await cartWishParams.save();
+              } else if (cartWishParams.wishlist.indexOf(cartData._id) > -1) {
+                cartWishParams.cart.splice(
+                  cartWishParams.cart.indexOf(cartData._id),
+                  1
+                );
+                resType.data = await cartWishParams.save();
               }
             }
           });
           resType.status = true;
-          resType.data = await cartWishParams.save();
           resType.message = "Successfully move to your wishlist";
           return res.status(200).send(resType);
         } else if (req.body.wishlist && req.body.wishlist.length > 0) {
@@ -787,14 +830,20 @@ router.post("/move-cart-wishlist-viceversa", async (req, res) => {
               ) {
                 cartWishParams.cart.push(wishlistData._id);
                 cartWishParams.wishlist.splice(
+                  cartWishParams.wishlist.indexOf(String(wishlistData._id)),
+                  1
+                );
+                resType.data = await cartWishParams.save();
+              } else if (cartWishParams.cart.indexOf(wishlistData._id) > -1) {
+                cartWishParams.wishlist.splice(
                   cartWishParams.wishlist.indexOf(wishlistData._id),
                   1
                 );
+                resType.data = await cartWishParams.save();
               }
             }
           });
           resType.status = true;
-          resType.data = await cartWishParams.save();
           resType.message = "Successfully move to your cart";
           return res.status(200).send(resType);
         }

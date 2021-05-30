@@ -23,71 +23,68 @@
     </ion-grid>
   </ion-toolbar>
 </ion-header>
+<!-- Skeleton Loader -->
+<ion-content *ngIf="spin">
+  <ion-item>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="8">
+          <ion-skeleton-text animated style="height: 50px"></ion-skeleton-text>
+        </ion-col>
+        <ion-col
+          ><ion-skeleton-text
+            animated
+            style="height: 27px; margin-top: 10%"
+          ></ion-skeleton-text
+        ></ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-item>
+  <ion-item *ngFor="let item of [0, 1, 2, 3, 4]">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="8">
+          <ion-row>
+            <ion-col
+              ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
+            </ion-col>
+            <ion-col size="10"
+              ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
+            </ion-col>
+          </ion-row>
+          <ion-col style="position: relative; bottom: 20px">
+            <ion-row
+              ><ion-skeleton-text
+                style="height: 20px; width: 150px"
+              ></ion-skeleton-text>
+            </ion-row>
+          </ion-col>
+        </ion-col>
+        <ion-col>
+          <ion-skeleton-text style="height: 100px"></ion-skeleton-text
+        ></ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col [size]="_global.WIDTH / 50"> </ion-col>
+        <ion-col
+          ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
+        </ion-col>
+        <ion-col
+          ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
+        </ion-col>
+        <ion-col
+          ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-item>
+</ion-content>
 <ng-container
   *ngIf="
-    this._user.cartArray && this._user.cartArray.length > 0;
+    this._user.cartArray && this._user.cartArray.length > 0 && !spin;
     else elseTemplate
   "
 >
-  <!-- Skeleton Loader -->
-  <ion-content *ngIf="cartArray && cartArray.length === 0">
-    <ion-item>
-      <ion-grid>
-        <ion-row>
-          <ion-col size="8">
-            <ion-skeleton-text
-              animated
-              style="height: 50px"
-            ></ion-skeleton-text>
-          </ion-col>
-          <ion-col
-            ><ion-skeleton-text
-              animated
-              style="height: 27px; margin-top: 10%"
-            ></ion-skeleton-text
-          ></ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-item>
-    <ion-item *ngFor="let item of [0, 1, 2, 3, 4]">
-      <ion-grid>
-        <ion-row>
-          <ion-col size="8">
-            <ion-row>
-              <ion-col
-                ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
-              </ion-col>
-              <ion-col size="10"
-                ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
-              </ion-col>
-            </ion-row>
-            <ion-col style="position: relative; bottom: 20px">
-              <ion-row
-                ><ion-skeleton-text
-                  style="height: 20px; width: 150px"
-                ></ion-skeleton-text>
-              </ion-row>
-            </ion-col>
-          </ion-col>
-          <ion-col>
-            <ion-skeleton-text style="height: 100px"></ion-skeleton-text
-          ></ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col [size]="_global.WIDTH / 50"> </ion-col>
-          <ion-col
-            ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
-          </ion-col>
-          <ion-col
-            ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
-          </ion-col>
-          <ion-col
-            ><ion-skeleton-text style="height: 15px"></ion-skeleton-text>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-item>
-  </ion-content>
   <ion-content *ngIf="cartArray && cartArray.length > 0">
     <!-- Delivery -->
     <ion-item>
@@ -224,7 +221,7 @@
           <ion-col>
             <div [style.width]="_global.WIDTH / 15 + 'px'" class="quantity">
               <span style="font-size: small; font-weight: 500">{{
-                item.minqty
+                item.orderqty
               }}</span>
             </div>
           </ion-col>
@@ -238,8 +235,8 @@
             ></ion-icon>
           </ion-col>
         </ion-row>
-        <ion-row>
-          <ion-col style="text-align: center">
+        <ion-row *ngIf="!item.isSpin">
+          <ion-col>
             <ion-button
               *ngIf="!item.isSpin"
               expand="full"
@@ -249,7 +246,6 @@
               <ion-icon name="heart" slot="start"></ion-icon> Move to
               Wishlist</ion-button
             >
-            <ion-spinner *ngIf="item.isSpin" color="primary"></ion-spinner>
           </ion-col>
           <ion-col
             ><ion-button
@@ -260,7 +256,11 @@
               ><ion-icon name="trash-outline" slot="start"></ion-icon
               >Delete</ion-button
             >
-            <ion-spinner *ngIf="item.isSpin" color="primary"></ion-spinner>
+          </ion-col>
+        </ion-row>
+        <ion-row *ngIf="item.isSpin" style="text-align: center">
+          <ion-col>
+            <ion-spinner color="primary"></ion-spinner>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -346,7 +346,7 @@
   </ion-content>
 </ion-bottom-sheet>
 <ng-template #elseTemplate>
-  <ion-content>
+  <ion-content *ngIf="!spin">
     <ion-row>
       <ion-col>
         <img
