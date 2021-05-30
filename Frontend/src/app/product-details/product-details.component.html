@@ -183,18 +183,18 @@
                     : _address.addressArray[0].address
                 }}</span
               >
-              <ion-note style="color: red"
-                >Currently out of stock for
-                <strong>{{ pincode }}</strong></ion-note
-              >
             </ng-container>
             <ng-template #elseTemplate1>
               <span style="position: relative; top: 10px"
                 >Enter Your Address or Pin</span
               >
             </ng-template>
-          </ion-text></ion-col
-        >
+          </ion-text>
+          <br />
+          <ion-note *ngIf="!addressFlag" style="color: red; font-weight: 700"
+            >Currently out of stock for <strong>{{ pincode }}</strong></ion-note
+          >
+        </ion-col>
         <ion-col>
           <ion-button
             (click)="
@@ -399,15 +399,26 @@
         <ion-label position="floating"
           >Enter pincode to check delivery info</ion-label
         >
-        <ion-input type="number"></ion-input>
-        <ion-button shape="round" slot="end">Check</ion-button>
+        <ion-input #pin type="number" [readonly]="isDisabled"></ion-input>
+        <ion-button shape="round" slot="end">
+          <span
+            *ngIf="!isDisabled"
+            (click)="onClickLocation('pincode', pin.value)"
+            >Check</span
+          >
+          <ion-spinner *ngIf="isDisabled" color="light"></ion-spinner>
+        </ion-button>
       </ion-item>
     </div>
 
-    <ion-item (click)="onClickLocation()" class="ion-activatable ripple-parent">
+    <ion-item
+      (click)="!isDisabled ? onClickLocation() : ''"
+      class="ion-activatable ripple-parent"
+    >
       <ion-ripple-effect></ion-ripple-effect>
       <ion-label>Use your current location</ion-label>
-      <ion-icon name="locate" slot="end"></ion-icon>
+      <ion-icon *ngIf="!cLocationFLag" name="locate" slot="end"></ion-icon>
+      <ion-spinner *ngIf="cLocationFLag" color="primary"></ion-spinner>
     </ion-item>
     <!-- <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
       <ion-list-header>

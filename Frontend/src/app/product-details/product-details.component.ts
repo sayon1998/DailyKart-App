@@ -41,12 +41,14 @@ export class ProductDetailsComponent implements OnInit {
   enableScrollContent = true;
   shadowBorder = true;
   productID = '';
-  addressFlag: boolean;
+  addressFlag = true;
   @ViewChild(IonContent) content: IonContent;
   backToTop = false;
   public inCartFlag = false;
   public productDetails: any;
   public pincode: any;
+  public cLocationFLag = false;
+  public isDisabled = false;
   constructor(
     public _router: Router,
     public nav: NavController,
@@ -218,57 +220,97 @@ export class ProductDetailsComponent implements OnInit {
 
     this.sheetState = SheetState.Docked;
   }
-  async onClickLocation() {
+  async onClickLocation(type: string = '', pin: any = '') {
     // http://api.geonames.org/findNearbyPostalCodesJSON?lat=23.0057344&lng=88.4865504&username=sayon
-
-    await Geolocation.getCurrentPosition({
-      timeout: 1000,
-      enableHighAccuracy: true,
-    })
-      .then((res) => {
-        console.log(
-          'lat: ' + res.coords.latitude + ' long:' + res.coords.longitude
-        );
-        this._global
-          .get(
-            'address/get-current-location/',
-            `${res.coords.latitude}/${res.coords.longitude}`
-          )
-          .subscribe(
-            (resData: any) => {
-              if (resData.status) {
-                if (resData.data) {
-                  this._address.addressArray.push(resData.data);
-                  this.pincode = resData.data.pin;
-                  this._global
-                    .get(
-                      'address/address-deliveriable/',
-                      `${this._address.addressArray[0].pin}/${this.productID}`
-                    )
-                    .subscribe((resAddres: any) => {
-                      if (resAddres.status) {
-                        this.addressFlag = true;
-                      } else {
-                        this.addressFlag = false;
-                      }
-                    });
-                  // this.sheetState = SheetState.Bottom;
-                }
-              } else {
-                this._global.toasterValue(
-                  'Unable to get Current Location',
-                  'Error'
-                );
-              }
-            },
-            (err) => {
-              this._global.toasterValue(err.message, 'Error');
-            }
-          );
+    if (type === '') {
+      this.cLocationFLag = true;
+      await Geolocation.getCurrentPosition({
+        timeout: 1000,
+        enableHighAccuracy: true,
       })
-      .catch((err) => {
-        console.log(err.message);
-      });
+        .then((res) => {
+          console.log(
+            'lat: ' + res.coords.latitude + ' long:' + res.coords.longitude
+          );
+          this._global
+            .get(
+              'address/get-current-location/',
+              `${res.coords.latitude}/${res.coords.longitude}`
+            )
+            .subscribe(
+              (resData: any) => {
+                if (resData.status) {
+                  if (resData.data) {
+                    this._address.addressArray.push(resData.data);
+                    this.pincode = resData.data.pin;
+                    this._global
+                      .get(
+                        'address/address-deliveriable/',
+                        `${this._address.addressArray[0].pin}/${this.productID}`
+                      )
+                      .subscribe((resAddres: any) => {
+                        if (resAddres.status) {
+                          this.addressFlag = true;
+                          this.cLocationFLag = false;
+                          this.sheetState = SheetState.Bottom;
+                        } else {
+                          this.addressFlag = false;
+                          this.cLocationFLag = false;
+                          this.sheetState = SheetState.Bottom;
+                        }
+                      });
+                  }
+                } else {
+                  this.cLocationFLag = false;
+                  this._global.toasterValue(
+                    'Unable to get Current Location',
+                    'Error'
+                  );
+                }
+              },
+              (err) => {
+                this.cLocationFLag = false;
+                this._global.toasterValue(err.message, 'Error');
+              }
+            );
+        })
+        .catch((err) => {
+          this.cLocationFLag = false;
+          console.log(err.message);
+          this._global.toasterValue(err.message, 'Error');
+        });
+    } else if (type === 'pincode') {
+      this.isDisabled = true;
+      this._global
+        .get('address/address-deliveriable/', `${pin}/${this.productID}`)
+        .subscribe(
+          (resAddres: any) => {
+            if (resAddres.status) {
+              this._address.addressArray.push({
+                pin,
+                address: pin,
+              });
+              this.pincode = pin;
+              this.addressFlag = true;
+              this.isDisabled = false;
+              this.sheetState = SheetState.Bottom;
+            } else {
+              this._address.addressArray.push({
+                pin,
+                address: pin,
+              });
+              this.pincode = pin;
+              this.addressFlag = false;
+              this.isDisabled = false;
+              this.sheetState = SheetState.Bottom;
+            }
+          },
+          (err) => {
+            this.isDisabled = false;
+            this._global.toasterValue(err.message, 'Error');
+          }
+        );
+    }
   }
   onClickNavigate() {
     if (!this.inCartFlag) {

@@ -240,7 +240,7 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
         }
         if (params === null) {
           resType.message = "Order is not deliveriable to this pin code";
-          return res.status(400).send(resType);
+          return res.status(200).send(resType);
         }
         if (!params.deliveryEverywhere) {
           let flag = false;
@@ -256,7 +256,7 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
             return res.status(200).send(resType);
           } else {
             resType.message = "Order is not deliveriable to this pin code";
-            return res.status(400).send(resType);
+            return res.status(200).send(resType);
           }
         } else {
           resType.message = "Order is deliveriable";
