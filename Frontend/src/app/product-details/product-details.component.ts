@@ -20,7 +20,6 @@ import { UserDetailService } from '../service/user-details.service';
   selector: 'app-product-details',
   templateUrl: './product-details.component.html',
   styleUrls: ['./product-details.component.scss'],
-  providers: [AddressService],
 })
 export class ProductDetailsComponent implements OnInit {
   slideOpts = {

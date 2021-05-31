@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
 import {
   AlertController,
+  LoadingController,
   NavController,
   Platform,
   ToastController,
@@ -26,6 +27,9 @@ export class GlobalService {
   navigateRoute: any[] = [];
   public WIDTH = undefined;
   public HEIGHT = undefined;
+  previousUrl: any;
+  currentUrl: string;
+  loading: any;
   constructor(
     private toaster: ToastController,
     public alertController: AlertController,
@@ -33,8 +37,15 @@ export class GlobalService {
     private _route: ActivatedRoute,
     private _router: Router,
     private nav: NavController,
-    platform: Platform
+    platform: Platform,
+    public loadingController: LoadingController
   ) {
+    this._router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.previousUrl = this.currentUrl;
+        this.currentUrl = event.url;
+      }
+    });
     platform.ready().then(() => {
       console.log('Width: ' + platform.width());
       console.log('Height: ' + platform.height());
@@ -109,7 +120,19 @@ export class GlobalService {
       this.passwordIcon2 = this.passwordIcon2 === 'eye-off' ? 'eye' : 'eye-off';
     }
   }
-
+  // Loading Controller
+  async startLoading() {
+    this.loading = await this.loadingController.create({
+      cssClass: 'my-custom-class',
+      message: 'Please wait...',
+      duration: 0,
+      spinner: 'bubbles',
+      mode: 'md',
+      keyboardClose: true,
+      translucent: true,
+    });
+    await this.loading.present();
+  }
   // Crud Operation Functions
 
   get(url: string, params = '') {

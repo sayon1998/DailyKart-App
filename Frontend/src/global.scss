@@ -118,3 +118,21 @@
     }
   }
 }
+
+ion-modal.stack-modal {
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --backdrop-opacity: var(--ion-backdrop-opacity, 0.32);
+}
+/* Works - pass "my-custom-class" in cssClass to increase specificity */
+.my-custom-class {
+  background: whitesmoke;
+  padding: 15% 5% !important;
+}
+
+.error-message {
+  color: red;
+  padding-top: 0.2rem;
+  font-size: small;
+  font-weight: bold;
+  margin-left: 5%;
+}

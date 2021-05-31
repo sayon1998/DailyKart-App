@@ -2,7 +2,9 @@
 /* eslint-disable object-shorthand */
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class AddressService {
   public addressArray: any[] = [];
   constructor(private _auth: AuthService) {}

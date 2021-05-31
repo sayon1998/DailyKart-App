@@ -16,7 +16,6 @@ import { UserDetailService } from '../service/user-details.service';
   selector: 'app-my-cart',
   templateUrl: './my-cart.component.html',
   styleUrls: ['./my-cart.component.scss'],
-  providers: [AddressService],
 })
 export class MyCartComponent implements OnInit {
   sheetState = SheetState.Bottom;

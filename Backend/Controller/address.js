@@ -30,6 +30,7 @@ router.post("/save-address", async (req, res) => {
       userId: req.body.userId,
     });
     if (addressData === null) {
+      req.body.address[0].addressId = 1;
       resType.data = await addressDetails.create({
         userId: req.body.userId,
         address: req.body.address,
@@ -38,12 +39,47 @@ router.post("/save-address", async (req, res) => {
       resType.status = true;
       return res.status(200).send(resType);
     } else {
-      addressData.address.push(req.body.address);
+      if (req.body.address[0].addressId === 0) {
+        if (addressData.address && addressData.address.length > 0) {
+          req.body.address[0].addressId = addressData.address.length + 1;
+        }
+      }
+      addressData.address.push(req.body.address[0]);
       resType.data = await addressData.save();
       resType.message = "Another Address is successfully Saved";
       resType.status = true;
       return res.status(200).send(resType);
     }
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Get All Addresses of User
+router.get("/get-all-address/:userId", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.params.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    const addressData = await addressDetails.findOne({
+      userId: req.params.userId,
+    });
+    if (addressData === null) {
+      resType.status = true;
+      resType.message = "No Address is Available";
+      return res.status(404).send(resType);
+    }
+    resType.data = addressData.address;
+    resType.status = true;
+    resType.message = "Successful";
+    return res.status(200).send(resType);
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);
@@ -73,15 +109,15 @@ router.get("/get-current-location/:lat/:lon", async (req, res) => {
       .then(async function (response) {
         // handle success
         try {
-          console.log(
-            response.data.postalCodes[0].placeName +
-              "," +
-              response.data.postalCodes[0].adminName2 +
-              "," +
-              response.data.postalCodes[0].adminName1 +
-              "," +
-              response.data.postalCodes[0].postalCode
-          );
+          // console.log(
+          //   response.data.postalCodes[0].placeName +
+          //     "," +
+          //     response.data.postalCodes[0].adminName2 +
+          //     "," +
+          //     response.data.postalCodes[0].adminName1 +
+          //     "," +
+          //     response.data.postalCodes[0].postalCode
+          // );
           resType.data = {
             city: response.data.postalCodes[0].placeName,
             dist: response.data.postalCodes[0].adminName2,
@@ -265,6 +301,63 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
         }
       }
     );
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Get State City Place using Pincode
+router.get("/get-state-city-place/:pin", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  if (!req.params.pin) {
+    resType.message = "Please enter pin";
+    return res.status(404).send(resType);
+  }
+  try {
+    axios
+      .get(
+        `http://api.geonames.org/postalCodeSearchJSON?formatted=true&postalcode=${req.params.pin}&maxRows=100&username=sayon&style=full`
+      )
+      .then(async function (response) {
+        // handle success
+        try {
+          console.log(
+            response.data.postalCodes[0].placeName +
+              "," +
+              response.data.postalCodes[0].adminName2 +
+              "," +
+              response.data.postalCodes[0].adminName1 +
+              "," +
+              response.data.postalCodes[0].postalCode
+          );
+          let city = [];
+          for (const index in response.data.postalCodes) {
+            city.push(response.data.postalCodes[index].placeName);
+          }
+          resType.data = {
+            city,
+            ps: response.data.postalCodes[0].adminName3,
+            dist: response.data.postalCodes[0].adminName2,
+            state: response.data.postalCodes[0].adminName1,
+            pin: response.data.postalCodes[0].postalCode,
+          };
+          resType.status = true;
+          resType.message = "Successful";
+          return res.status(200).send(resType);
+        } catch (err) {
+          resType.message = err.message;
+          return res.status(404).send(resType);
+        }
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      });
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);

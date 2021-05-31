@@ -12,8 +12,9 @@ import * as firebase from '@angular/fire';
 import { environment } from '../environments/environment';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpConfigInterceptor } from './service/http-interceptor';
+import { DynamicModelComponent } from './Model/dynamic-model/dynamic-model.component';
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, DynamicModelComponent],
   entryComponents: [],
   imports: [
     BrowserModule,

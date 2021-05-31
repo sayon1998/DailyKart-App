@@ -22,13 +22,13 @@ export class Tab3Page {
     {
       _id: '2',
       name: 'My Cart',
-      link: '',
+      link: '/cart',
       icon: 'cart',
     },
     {
       _id: '3',
       name: 'My Wishlist',
-      link: '',
+      link: '/wishlist',
       icon: 'heart',
     },
     {
@@ -40,7 +40,7 @@ export class Tab3Page {
     {
       _id: '5',
       name: 'My Addresses',
-      link: '',
+      link: '/address',
       icon: 'map',
     },
     {

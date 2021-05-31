@@ -1,0 +1,181 @@
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-text
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
+            >{{ type }}</ion-text
+          >
+        </ion-col>
+        <ion-col style="text-align: right">
+          <ion-icon
+            style="font-size: x-large"
+            (click)="modalController.dismiss()"
+            name="close-outline"
+          ></ion-icon>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Content -->
+<ion-content>
+  <ion-item>
+    <ion-label position="floating">Full Name</ion-label>
+    <ion-input
+      [disabled]="startLoading"
+      type="name"
+      [(ngModel)]="addressModal.name"
+    ></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="floating">Phone Number</ion-label>
+    <ion-input
+      [disabled]="startLoading"
+      type="number"
+      [(ngModel)]="addressModal.ph"
+    ></ion-input>
+  </ion-item>
+  <div
+    class="error-message"
+    *ngIf="addressModal.ph && getStringFromInt(addressModal.ph).length !== 10"
+  >
+    Phone Number is not valid
+  </div>
+  <ion-row>
+    <ion-col>
+      <ion-item>
+        <ion-label position="floating">Pincode</ion-label>
+        <ion-input
+          [disabled]="startLoading"
+          [formControl]="pin"
+          type="number"
+          autocomplete="true"
+        ></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="6.5" style="text-align: center">
+      <ion-button
+        *ngIf="!startLoading"
+        expand="block"
+        (click)="onClickLocation()"
+      >
+        Use current location
+      </ion-button>
+      <ion-spinner *ngIf="startLoading" color="primary"></ion-spinner>
+    </ion-col>
+  </ion-row>
+  <div
+    class="error-message"
+    *ngIf="pin.value && getStringFromInt(pin.value).length !== 6"
+  >
+    Pin code is not valid
+  </div>
+  <ion-list>
+    <ion-item>
+      <ion-label>City</ion-label>
+      <ion-select
+        [disabled]="startLoading"
+        placeholder="Select One"
+        [(ngModel)]="city"
+      >
+        <ion-select-option
+          *ngFor="let item of addressModal.city"
+          [value]="item"
+          >{{ item }}</ion-select-option
+        >
+      </ion-select>
+    </ion-item>
+  </ion-list>
+  <ion-item>
+    <ion-label position="floating">District</ion-label>
+    <ion-input
+      [disabled]="startLoading"
+      [(ngModel)]="addressModal.dist"
+      type="text"
+      autocomplete="true"
+    ></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="floating">State</ion-label>
+    <ion-input
+      [disabled]="startLoading"
+      [(ngModel)]="addressModal.state"
+      type="text"
+      autocomplete="true"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="floating">Area, Colony, Street, Village</ion-label>
+    <ion-textarea
+      [disabled]="startLoading"
+      [(ngModel)]="addressModal.area"
+      autofocus="true"
+    ></ion-textarea>
+  </ion-item>
+  <ion-item>
+    <ion-label position="floating">Landmark</ion-label>
+    <ion-input
+      [disabled]="startLoading"
+      [(ngModel)]="addressModal.landmark"
+      type="text"
+      autocomplete="true"
+    ></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label>Address Type</ion-label>
+    <ion-chip
+      [disabled]="startLoading"
+      (click)="onClickChangeType(addressModal.addressType[0].name)"
+      [color]="addressModal.addressType[0].isCheck ? 'primary' : 'dark'"
+    >
+      <ion-icon
+        name="home"
+        [color]="addressModal.addressType[0].isCheck ? 'primary' : 'dark'"
+      ></ion-icon>
+      <ion-label>{{ addressModal.addressType[0].name }}</ion-label>
+    </ion-chip>
+    <ion-chip
+      [disabled]="startLoading"
+      (click)="onClickChangeType(addressModal.addressType[1].name)"
+      [color]="addressModal.addressType[1].isCheck ? 'primary' : 'dark'"
+    >
+      <ion-icon
+        name="code-working-outline"
+        [color]="addressModal.addressType[1].isCheck ? 'primary' : 'dark'"
+      ></ion-icon>
+      <ion-label>{{ addressModal.addressType[1].name }}</ion-label>
+    </ion-chip>
+  </ion-item>
+  <br />
+  <ion-item>
+    <ion-row>
+      <ion-col style="text-align: left">
+        <ion-text style="font-size: large; font-weight: 700"
+          >Add delivery instruction</ion-text
+        ><br />
+        <ion-text>
+          Add delivery instructions Preferences are used to plan your delivery.
+          However, shipments can sometimes arrive early or later than planned.
+        </ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-item>
+  <ion-row>
+    <ion-col style="text-align: center">
+      <ion-button *ngIf="!startLoading" expand="full" (click)="onClickSave()"
+        >Save</ion-button
+      >
+      <ion-spinner *ngIf="startLoading" color="primary"></ion-spinner>
+    </ion-col>
+  </ion-row>
+</ion-content>

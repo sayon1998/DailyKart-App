@@ -1,1 +1,102 @@
-<h2>Address</h2>
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="nav.back()"
+            style="font-size: x-large"
+            name="arrow-back-outline"
+          ></ion-icon>
+          <ion-text
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
+            >My Addresses</ion-text
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item
+    *ngIf="!isLoading"
+    (click)="this.presentModal('Add your address', '')"
+    class="footer-button ion-activatable ripple-parent"
+  >
+    <ion-ripple-effect></ion-ripple-effect>
+    <ion-icon name="add-outline"></ion-icon>
+    <ion-text>Add new address</ion-text>
+  </ion-item>
+
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading">
+    <ion-item lines="none">
+      <ion-skeleton-text style="height: 50px"></ion-skeleton-text>
+    </ion-item>
+    <ion-grid *ngFor="let item of [0, 1, 2, 3, 4]">
+      <ion-skeleton-text style="height: 150px"></ion-skeleton-text>
+    </ion-grid>
+  </div>
+  <!-- Address -->
+  <ng-container
+    *ngIf="address && address.length > 0 && !isLoading; else ElseBlock"
+  >
+    <ion-grid>
+      <ion-row style="text-align: center">
+        <ion-col>
+          <ion-note
+            >You have
+            {{
+              address.length > 1
+                ? address.length + " saved addresses"
+                : address.length + " saved address"
+            }}
+          </ion-note>
+        </ion-col>
+      </ion-row>
+      <ion-card *ngFor="let item of address; let i = index">
+        <ion-card-header>
+          <ion-row>
+            <ion-col size="11">
+              <ion-card-title>{{ item.name }}</ion-card-title>
+            </ion-col>
+            <ion-col style="text-align: right">
+              <ion-icon name="menu" (click)="presentActionSheet(i)"></ion-icon>
+            </ion-col>
+          </ion-row>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-text
+            >{{ item.area }} ,{{ item.city }} ,{{ item.dist }} ,{{
+              item.state
+            }}
+            ,{{ "pin:- " + item.pin }}</ion-text
+          >
+        </ion-card-content>
+      </ion-card>
+    </ion-grid>
+  </ng-container>
+  <ng-template #ElseBlock>
+    <!-- No Address Available -->
+    <ion-grid style="margin-top: 25%">
+      <ion-row style="text-align: center">
+        <ion-col>
+          <img src="assets/images/no-save-address.png" alt="No Save Address" />
+        </ion-col>
+      </ion-row>
+      <ion-row style="text-align: center">
+        <ion-col>
+          <ion-title>You have no saved address</ion-title>
+          <ion-note>Your address will be show here</ion-note>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+</ion-content>
