@@ -9,20 +9,26 @@
 
 #mainPrice {
   margin-left: 0px;
-  font-size: 18px;
+  font-size: large;
+  color: black;
+  font-weight: bold;
   span {
+    font-size: medium;
     text-decoration: line-through;
     color: gray;
   }
   #offer {
-    font-weight: bold;
+    font-weight: bolder;
+    font-size: small;
     color: rgb(15, 170, 15);
-    font-size: 12px;
   }
 }
-.increase-decrease {
-  font-size: 25px;
+#stock-out {
+  font-weight: bolder;
+  color: red;
+  font-size: medium;
 }
+
 .rating {
   color: white;
   width: 40px;
@@ -43,10 +49,25 @@
   text-align: center;
   border-radius: 2px;
 }
-.quantity {
-  text-align: center;
-  background-color: #d4d0d0;
-  border-radius: 3px;
-  position: relative;
-  top: 4px;
+.main-quantity {
+  text-align: "center";
+  font-size: large;
+  color: black;
+  .quantity {
+    text-align: center;
+    background-color: #d4d0d0;
+    border-radius: 3px;
+    position: relative;
+    top: 4px;
+  }
+  .increase-decrease {
+    font-size: 25px;
+  }
+}
+
+#cart-header {
+  font-size: medium;
+  font-weight: bold;
+  color: black;
+  padding: 0px;
 }

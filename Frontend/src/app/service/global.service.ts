@@ -151,7 +151,7 @@ export class GlobalService {
   }
 
   delete(url: string, data: any) {
-    return this._http.delete(this.apiURL + url, data);
+    return this._http.delete(this.apiURL + url + data);
   }
 
   put(url: string, data: any) {

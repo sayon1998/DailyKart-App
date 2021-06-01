@@ -219,7 +219,53 @@ export class DynamicModelComponent implements OnInit {
     // After Check All Conditions
     if (this.data && this.data.addressId !== 0) {
       // Edit
-      window.location.reload();
+      const param = {
+        userId: localStorage.getItem('userId'),
+        address: [
+          {
+            addressId: this.data.addressId,
+            name: this.addressModal.name,
+            ph: this.addressModal.ph,
+            pin: this.pin.value,
+            city: this.city,
+            state: this.addressModal.state,
+            dist: this.addressModal.dist,
+            area: this.addressModal.area,
+            landmark: this.addressModal.landmark,
+            addressType: this.addressModal.addressType[0].isCheck
+              ? 'Home'
+              : 'Office',
+          },
+        ],
+      };
+      console.log(param);
+      this.startLoading = true;
+      this._global.post('address/save-address', param).subscribe(
+        (resData: any) => {
+          if (resData.status) {
+            if (resData.data && resData.data.address) {
+              this._address.addressArray = [];
+              this._address.addressArray = resData.data.address;
+              localStorage.setItem(
+                'address',
+                JSON.stringify(this._address.addressArray)
+              );
+              this._global.toasterValue(resData.message, 'Success');
+              this.startLoading = false;
+              this.modalController.dismiss().then((res) => {
+                window.location.reload();
+              });
+            }
+          } else {
+            this.startLoading = false;
+            this._global.toasterValue(resData.message, 'Error');
+          }
+        },
+        (err) => {
+          this.startLoading = false;
+          this._global.toasterValue(err.message, 'Error');
+        }
+      );
     } else {
       // Add
       const param = {

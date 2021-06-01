@@ -1,11 +1,20 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable guard-for-in */
 /* eslint-disable @typescript-eslint/prefer-for-of */
 /* eslint-disable no-underscore-dangle */
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import {
+  AlertController,
+  AnimationController,
+  IonRouterOutlet,
+  ModalController,
+  NavController,
+  Platform,
+} from '@ionic/angular';
 import { SheetState } from 'ion-bottom-sheet';
+import { DynamicModelComponent } from '../Model/dynamic-model/dynamic-model.component';
 import { AddressService } from '../service/address.service';
 import { AuthService } from '../service/auth.service';
 import { GlobalService } from '../service/global.service';
@@ -33,7 +42,10 @@ export class MyCartComponent implements OnInit {
   totalOfferPrice = 0;
   selectAllFlag = true;
   cartFlag = true;
+  isLoading = false;
+  lastPin = '';
   public cartArray: any[] = [];
+  public address: any[] = [];
   public spin = true;
   constructor(
     public _address: AddressService,
@@ -43,14 +55,45 @@ export class MyCartComponent implements OnInit {
     public _auth: AuthService,
     public _router: Router,
     public nav: NavController,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public modalController: ModalController,
+    private platform: Platform,
+    public animationCtrl: AnimationController,
+    private routerOutlet: IonRouterOutlet,
+    public alertController: AlertController
   ) {}
 
   ngOnInit(): void {
     // this._global.goBackToForoward();
+    this.platform.ready().then(() => {
+      this.backbuttonSubscribeMethod();
+    });
     this.checkKart();
+    this.getAllAddressess();
   }
-
+  backbuttonSubscribeMethod() {
+    this.platform.backButton.subscribe(async () => {
+      await this.modalController.dismiss();
+      // this.nav.navigateRoot([this._global.previousUrl]);
+    });
+  }
+  // Get Address Details
+  getAllAddressess() {
+    this._global
+      .get('address/get-all-address/', localStorage.getItem('userId'))
+      .subscribe(
+        (resData: any) => {
+          if (resData.status) {
+            if (resData.data) {
+              this.address = resData.data;
+            }
+          }
+        },
+        (err) => {
+          this._global.toasterValue(err.message, 'Error');
+        }
+      );
+  }
   // Check Cart Ids
   checkKart() {
     if (this._auth.isLogin()) {
@@ -91,7 +134,6 @@ export class MyCartComponent implements OnInit {
       this.getCartDetails();
     }
   }
-
   // get cart details
   getCartDetails() {
     if (this._user.cartArray && this._user.cartArray.length > 0) {
@@ -105,6 +147,8 @@ export class MyCartComponent implements OnInit {
               for (const index in resData.data) {
                 resData.data[index].isCheckout = true;
                 resData.data[index].isSpin = false;
+                resData.data[index].status = false;
+                resData.data[index].message = '';
               }
               this.cartArray = resData.data;
               console.log(this.cartArray);
@@ -151,18 +195,18 @@ export class MyCartComponent implements OnInit {
           this.selectAllFlag = true;
         }
         this.totalPrice +=
-          this.cartArray[index].minqty *
+          this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].originalprice);
         this.totalOfferPrice +=
-          this.cartArray[index].minqty *
+          this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].price);
       } else {
         this.selectAllFlag = false;
         this.totalPrice -=
-          this.cartArray[index].minqty *
+          this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].originalprice);
         this.totalOfferPrice -=
-          this.cartArray[index].minqty *
+          this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].price);
       }
     }
@@ -172,8 +216,8 @@ export class MyCartComponent implements OnInit {
     this.totalPrice = 0;
     this.cartArray.forEach((x) => {
       if (x.isCheckout) {
-        this.totalPrice += x.minqty * parseFloat(x.originalprice);
-        this.totalOfferPrice += x.minqty * parseFloat(x.price);
+        this.totalPrice += x.orderqty * parseFloat(x.originalprice);
+        this.totalOfferPrice += x.orderqty * parseFloat(x.price);
       }
     });
   }
@@ -251,69 +295,141 @@ export class MyCartComponent implements OnInit {
     }
     this.getPrice();
   }
-  onClickDelete(item: any) {
-    if (this._auth.isLogin()) {
-      const param = {
-        userId: localStorage.getItem('userId'),
-        cart: [],
-        wishlist: [],
-      };
-      param.cart.push(item._id);
-      item.isSpin = true;
-      this._global.post('product/delete-cart-wishlist', param).subscribe(
-        (resData: any) => {
-          if (resData.status) {
-            if (resData.data) {
-              // localStorage.setItem('cart', JSON.stringify(resData.data.cart));
-              this.checkKart();
+  async onClickDelete(item: any) {
+    const alert = await this.alertController.create({
+      header: 'Are you want to delete ?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            console.log('Confirm Cancel');
+          },
+        },
+        {
+          text: 'Confirm',
+          handler: () => {
+            console.log('Confirm Ok');
+            if (this._auth.isLogin()) {
+              const param = {
+                userId: localStorage.getItem('userId'),
+                cart: [],
+                wishlist: [],
+              };
+              param.cart.push(item._id);
+              item.isSpin = true;
+              this._global
+                .post('product/delete-cart-wishlist', param)
+                .subscribe(
+                  (resData: any) => {
+                    if (resData.status) {
+                      if (resData.data) {
+                        // localStorage.setItem('cart', JSON.stringify(resData.data.cart));
+                        this.spin = true;
+                        this.checkKart();
+                        this._global.toasterValue(
+                          `${item.name} is successfully deleted from your cart`,
+                          'Success'
+                        );
+                      }
+                    }
+                  },
+                  (err) => {
+                    this._global.toasterValue(err.message, 'Error');
+                  }
+                );
+            } else {
+              this.cartArray.splice(this.cartArray.indexOf(item), 1);
+              this._user.cartArray.splice(
+                this._user.cartArray.indexOf(item._id),
+                1
+              );
+              localStorage.removeItem('cart');
+              localStorage.setItem(
+                'cart',
+                JSON.stringify(this._user.cartArray)
+              );
               this._global.toasterValue(
                 `${item.name} is successfully deleted from your cart`,
                 'Success'
               );
             }
-          }
+            this.getPrice();
+          },
         },
-        (err) => {
-          this._global.toasterValue(err.message, 'Error');
-        }
-      );
-    } else {
-      this.cartArray.splice(this.cartArray.indexOf(item), 1);
-      this._user.cartArray.splice(this._user.cartArray.indexOf(item._id), 1);
-      localStorage.removeItem('cart');
-      localStorage.setItem('cart', JSON.stringify(this._user.cartArray));
-      this._global.toasterValue(
-        `${item.name} is successfully deleted from your cart`,
-        'Success'
-      );
-    }
-    this.getPrice();
+      ],
+    });
+    await alert.present();
   }
   onClickBuyNow() {
     console.log(this.cartArray);
     if (this.totalPrice !== 0 && this.totalOfferPrice !== 0) {
-      this._user.checkOutArray.productDetails = [];
-      this.cartArray.forEach((x) => {
-        if (x.isCheckout) {
-          this._user.checkOutArray.productDetails.push(x);
-        }
-      });
-      this._user.checkOutArray.totalOriginalPrice = this.totalPrice;
-      this._user.checkOutArray.totalOfferPrice = this.totalOfferPrice;
-      this._user.checkOutArray.totalOfferPercentage =
-        (
-          100 -
-          (this._user.checkOutArray.totalOfferPrice /
-            this._user.checkOutArray.totalOriginalPrice) *
-            100
-        ).toFixed(2) + '% Off';
-      this._user.checkOutArray.deliveryaddress = this._address.addressArray[0];
-      console.log(this._user.checkOutArray);
-      this.nav.navigateRoot(['/checkout']);
-      // if (this._auth.isLogin()) {
-      // } else {
-      //   this.nav.navigateRoot(['/login']);
-      // }
+      if (this._auth.isLogin()) {
+        this._user.checkOutArray.productDetails = [];
+        const param = {
+          pin: this.address[0].pin.toString(),
+          productId: [],
+        };
+        this.lastPin = this.address[0].pin.toString();
+        this.cartArray.forEach((x) => {
+          if (x.isCheckout) {
+            this._user.checkOutArray.productDetails.push(x);
+            param.productId.push(x._id);
+          }
+        });
+        this._user.checkOutArray.totalOriginalPrice = this.totalPrice;
+        this._user.checkOutArray.totalOfferPrice = this.totalOfferPrice;
+        this._user.checkOutArray.totalOfferPercentage =
+          (
+            100 -
+            (this._user.checkOutArray.totalOfferPrice /
+              this._user.checkOutArray.totalOriginalPrice) *
+              100
+          ).toFixed(2) + '% Off';
+        this._user.checkOutArray.deliveryaddress =
+          this._address.addressArray[0];
+        console.log(param);
+        this.isLoading = true;
+        this._global
+          .post('address/check-multiple-order-deliveriable', param)
+          .subscribe(
+            (resData: any) => {
+              if (resData.status) {
+                if (resData.data && resData.data.length > 0) {
+                  console.log(resData.data);
+                  this.isLoading = false;
+                  let flag = true;
+                  resData.data.forEach((element: any, index: number) => {
+                    if (
+                      this.cartArray.findIndex(
+                        (x) => x._id === element.productId
+                      ) > -1
+                    ) {
+                      if (element.status) {
+                        flag = false;
+                        this.cartArray[index].status = element.status;
+                        this.cartArray[index].message = element.message;
+                      }
+                    }
+                  });
+                  if (flag) {
+                    this.nav.navigateRoot(['/checkout']);
+                  }
+                }
+              } else {
+                this.isLoading = false;
+                this._global.toasterValue(resData.message, 'Error');
+              }
+            },
+            (err) => {
+              this.isLoading = false;
+              this._global.toasterValue(err.message, 'Error');
+            }
+          );
+      } else {
+        this.nav.navigateRoot(['/login']);
+      }
     } else {
       this._global.toasterValue(
         'You have to select minimum one item',
@@ -331,6 +447,11 @@ export class MyCartComponent implements OnInit {
     this.title = 'Address';
     if (type === 'add') {
       // Navigate to Address Page
+      if (this._auth.isLogin()) {
+        this.presentModal('Add your address', '');
+      } else {
+        this.nav.navigateRoot(['/login']);
+      }
     } else if (type === 'change') {
       this.title = 'Change Your' + ' ' + this.title;
       this.sheetState = SheetState.Docked;
@@ -338,10 +459,61 @@ export class MyCartComponent implements OnInit {
   }
 
   onClickAddressChange(index: number) {
-    const tempAdd = this._address.addressArray[index];
-    this._address.addressArray.splice(index, 1);
-    this._address.addressArray.splice(0, 0, tempAdd);
-    console.log(index, this._address.addressArray);
+    const tempAdd = this.address[index];
+    tempAdd.isRecentlyUsed = true;
+    this.address.splice(index, 1);
+    this.address.splice(0, 0, tempAdd);
+    console.log(index, this.address);
+    if (this.lastPin !== this.address[0].pin.toString()) {
+      this.cartArray.forEach((element: any) => {
+        element.status = false;
+        element.message = '';
+      });
+    }
     this.sheetState = SheetState.Bottom;
+  }
+  async presentModal(type: string, data: any) {
+    const enterAnimation = (baseEl: any) => {
+      const backdropAnimation = this.animationCtrl
+        .create()
+        .addElement(baseEl.querySelector('ion-backdrop')!)
+        .fromTo('opacity', '0.01', 'var(--backdrop-opacity)');
+
+      const wrapperAnimation = this.animationCtrl
+        .create()
+        .addElement(baseEl.querySelector('.modal-wrapper')!)
+        .keyframes([
+          { offset: 0, opacity: '0', transform: 'scale(0)' },
+          { offset: 1, opacity: '0.99', transform: 'scale(1)' },
+        ]);
+
+      return this.animationCtrl
+        .create()
+        .addElement(baseEl)
+        .easing('ease-out')
+        .duration(500)
+        .addAnimation([backdropAnimation, wrapperAnimation]);
+    };
+
+    const leaveAnimation = (baseEl: any) =>
+      enterAnimation(baseEl).direction('reverse');
+
+    const modal = await this.modalController.create({
+      component: DynamicModelComponent,
+      enterAnimation,
+      leaveAnimation,
+      cssClass: 'my-custom-class',
+      swipeToClose: true,
+      animated: true,
+      backdropDismiss: false,
+      mode: 'md',
+      keyboardClose: true,
+      presentingElement: this.routerOutlet.nativeEl,
+      componentProps: {
+        data,
+        type,
+      },
+    });
+    return await modal.present();
   }
 }

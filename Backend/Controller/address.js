@@ -4,6 +4,7 @@ const axios = require("axios");
 const addressDetails = require("../Models/address");
 const userDetails = require("../Models/user-details");
 const deliveryPin = require("../Models/delivery-pin");
+const productDetail = require("../Models/product-details");
 
 // Save User Address
 router.post("/save-address", async (req, res) => {
@@ -39,16 +40,83 @@ router.post("/save-address", async (req, res) => {
       resType.status = true;
       return res.status(200).send(resType);
     } else {
-      if (req.body.address[0].addressId === 0) {
+      if (req.body.address && req.body.address[0].addressId === 0) {
         if (addressData.address && addressData.address.length > 0) {
           req.body.address[0].addressId = addressData.address.length + 1;
+          addressData.address.splice(0, 0, req.body.address[0]);
+          await addressData.save();
+        }
+      } else if (req.body.address && req.body.address[0].addressId !== 0) {
+        if (
+          addressData.address &&
+          addressData.address.findIndex(
+            (x) => x.addressId === req.body.address[0].addressId
+          ) > -1
+        ) {
+          addressData.address.splice(
+            addressData.address.findIndex(
+              (x) => x.addressId === req.body.address[0].addressId
+            ),
+            1,
+            req.body.address[0]
+          );
+          await addressData.save();
         }
       }
-      addressData.address.push(req.body.address[0]);
-      resType.data = await addressData.save();
+
+      resType.data = addressData;
       resType.message = "Another Address is successfully Saved";
       resType.status = true;
       return res.status(200).send(resType);
+    }
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Delete User Address
+router.delete("/delete-user-address/:userId/:addressId", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.params.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.params.addressId) {
+      resType.message = "Address Id is Required";
+      return res.status(404).send(resType);
+    }
+    let addressData = await addressDetails.findOne({
+      userId: req.params.userId,
+    });
+    if (addressData === null) {
+      resType.message = "No Address is Available";
+      return res.status(400).send(resType);
+    }
+    if (
+      addressData.address &&
+      addressData.address.findIndex(
+        (x) => x.addressId === parseInt(req.params.addressId)
+      ) > -1
+    ) {
+      addressData.address.splice(
+        addressData.address.findIndex(
+          (x) => x.addressId === parseInt(req.params.addressId)
+        ),
+        1
+      );
+      resType.data = await addressData.save();
+      resType.status = true;
+      resType.message = "Successful";
+      return res.status(200).send(resType);
+    } else {
+      resType.message = "Address Details is not present in our Database";
+      return res.status(404).send(resType);
     }
   } catch (err) {
     resType.message = err.message;
@@ -301,6 +369,75 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
         }
       }
     );
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Check Multiple Order is Available or not in this Address
+router.post("/check-multiple-order-deliveriable", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.pin) {
+      resType.message = "Pin is Required";
+      return res.status(400).send(resType);
+    }
+    if (req.body.productId && req.body.productId.length === 0) {
+      resType.message = "Product Id is Required";
+      return res.status(400).send(resType);
+    }
+    let productResponse = [];
+    for (const index in req.body.productId) {
+      const deliveryDetails = await deliveryPin.findOne({
+        productId: req.body.productId[index],
+      });
+      const productDetails = await productDetail.findById(
+        req.body.productId[index]
+      );
+      if (productDetails === null || deliveryDetails === null) {
+        productResponse.push({
+          productId: req.body.productId[index],
+          status: true,
+          message: "Not Deliveriable",
+        });
+      }
+      if (
+        productDetails.quantity > 0 &&
+        deliveryDetails &&
+        (deliveryDetails.pin.findIndex(
+          (x) => String(x) === String(req.body.pin)
+        ) > -1 ||
+          deliveryDetails.deliveryEverywhere)
+      ) {
+        productResponse.push({
+          productId: req.body.productId[index],
+          status: false,
+          message: "Deliveriable",
+        });
+      } else if (
+        productDetails.quantity > 0 &&
+        deliveryDetails &&
+        (deliveryDetails.pin.findIndex(
+          (x) => String(x) === String(req.body.pin)
+        ) === -1 ||
+          !deliveryDetails.deliveryEverywhere)
+      ) {
+        productResponse.push({
+          productId: req.body.productId[index],
+          status: true,
+          message: `Currently out of stock for ${req.body.pin}`,
+        });
+      }
+    }
+    resType.data = productResponse;
+    resType.message = "Successful";
+    resType.status = true;
+    return res.status(200).send(resType);
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);

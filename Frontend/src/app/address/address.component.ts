@@ -50,7 +50,7 @@ export class AddressComponent implements OnInit {
   backbuttonSubscribeMethod() {
     this.platform.backButton.subscribe(async () => {
       await this.modalController.dismiss();
-      this.nav.navigateRoot([this._global.previousUrl]);
+      // this.nav.navigateRoot([this._global.previousUrl]);
     });
   }
   getAllAddressess() {
@@ -98,6 +98,28 @@ export class AddressComponent implements OnInit {
           icon: 'trash',
           handler: () => {
             console.log('Delete clicked');
+            const param =
+              localStorage.getItem('userId') +
+              '/' +
+              this.address[index].addressId;
+            this._global
+              .delete('address/delete-user-address/', param)
+              .subscribe(
+                (resData: any) => {
+                  console.log(resData);
+                  if (resData.status) {
+                    if (resData.data && resData.data.address) {
+                      this.address = resData.data.address;
+                    }
+                  } else {
+                    this._global.toasterValue(resData.message, 'Error');
+                  }
+                },
+                (err) => {
+                  console.log(err);
+                  this._global.toasterValue(err.message, 'Error');
+                }
+              );
           },
         },
         {

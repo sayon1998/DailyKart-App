@@ -25,11 +25,7 @@ import { DynamicModelComponent } from './Model/dynamic-model/dynamic-model.compo
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: HttpConfigInterceptor,
-      multi: true,
-    },
+
     CanDeactivateTab,
   ],
   bootstrap: [AppComponent],
