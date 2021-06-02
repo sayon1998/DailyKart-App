@@ -131,7 +131,12 @@ export class GlobalService {
       keyboardClose: true,
       translucent: true,
     });
-    await this.loading.present();
+    return await this.loading.present();
+  }
+  async dismiss() {
+    return await this.loadingController
+      .getTop()
+      .then((v) => (v ? this.loadingController.dismiss() : null));
   }
   // Crud Operation Functions
 

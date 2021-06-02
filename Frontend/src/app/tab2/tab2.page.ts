@@ -172,7 +172,7 @@ export class Tab2Page implements OnInit {
       }
     }
   }
-  // Check Wishlist
+  // Check Wishlist & Cart
   checkWishList() {
     if (this._auth.isLogin()) {
       this._global
@@ -185,7 +185,7 @@ export class Tab2Page implements OnInit {
             if (resData.status) {
               if (resData.data) {
                 this._user.wishArray = resData.data.wishlist;
-                this._user.cartArray = resData.data.cart;
+                // this._user.cartArray = resData.data.cart;
                 this.getProductDetails();
               }
             } else {

@@ -79,7 +79,8 @@ export class MyCartComponent implements OnInit {
   }
   // Get Address Details
   getAllAddressess() {
-    this._global
+    if(this._auth.isLogin()){
+      this._global
       .get('address/get-all-address/', localStorage.getItem('userId'))
       .subscribe(
         (resData: any) => {
@@ -93,6 +94,7 @@ export class MyCartComponent implements OnInit {
           this._global.toasterValue(err.message, 'Error');
         }
       );
+    }
   }
   // Check Cart Ids
   checkKart() {
@@ -387,8 +389,8 @@ export class MyCartComponent implements OnInit {
               this._user.checkOutArray.totalOriginalPrice) *
               100
           ).toFixed(2) + '% Off';
-        this._user.checkOutArray.deliveryaddress =
-          this._address.addressArray[0];
+        this._user.checkOutArray.deliveryaddress = this.address[0];
+        this._user.checkOutArray.userId = localStorage.getItem('userId');
         console.log(param);
         this.isLoading = true;
         this._global
@@ -414,6 +416,7 @@ export class MyCartComponent implements OnInit {
                     }
                   });
                   if (flag) {
+                    console.log(this._user.checkOutArray);
                     this.nav.navigateRoot(['/checkout']);
                   }
                 }

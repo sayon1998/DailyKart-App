@@ -1,7 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavController, Platform } from '@ionic/angular';
+import { LoadingController, NavController, Platform } from '@ionic/angular';
+import { AuthService } from '../service/auth.service';
+import { GlobalService } from '../service/global.service';
 import { UserDetailService } from '../service/user-details.service';
 
 @Component({
@@ -20,7 +22,10 @@ export class CheckoutComponent implements OnInit {
     public _user: UserDetailService,
     public _router: Router,
     public platform: Platform,
-    public nav: NavController
+    public nav: NavController,
+    public _global: GlobalService,
+    public _auth: AuthService,
+    public loadingController: LoadingController
   ) {}
 
   ngOnInit(): void {
@@ -32,9 +37,38 @@ export class CheckoutComponent implements OnInit {
       this.nav.navigateRoot(['/cart']);
     }
   }
-  onClickPayment() {
+  async onClickPayment() {
     console.log(this.paymentMode, this.paymentFlag);
-    this.paymentFlag = true;
+    if (this._auth.isLogin()) {
+      if (this.paymentMode === 'COD') {
+        await this._global.startLoading();
+        this._global
+          .post('order/save-orders', this._user.checkOutArray)
+          .subscribe(
+            (resData: any) => {
+              console.log(resData);
+              if (resData.status) {
+                if (resData.data) {
+                  this._global.loadingController.dismiss();
+                  this.paymentFlag = true;
+                } else {
+                  this._global.loadingController.dismiss();
+                  this._global.toasterValue(resData.message, 'Error');
+                }
+              } else {
+                this._global.loadingController.dismiss();
+                this._global.toasterValue(resData.message, 'Error');
+              }
+            },
+            (err) => {
+              this._global.loadingController.dismiss();
+              this._global.toasterValue(err.message, 'Error');
+            }
+          );
+      }
+    } else {
+      this.nav.navigateRoot(['/login']);
+    }
   }
   goToNavigate(type: string) {
     this._user.checkOutArray.productDetails.forEach((element) => {

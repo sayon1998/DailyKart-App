@@ -28,7 +28,6 @@
   <!-- Content -->
   <ion-content>
     <!-- Delivery -->
-
     <ion-item>
       <ion-grid>
         <ion-row>
@@ -36,22 +35,59 @@
         </ion-row>
         <ion-row>
           <ion-col>
-            <ng-container
-              *ngIf="
-                _user.checkOutArray.deliveryaddress &&
-                _user.checkOutArray.deliveryaddress != ''
-              "
-            >
+            <ng-container>
               <span>
                 {{
                   _user.checkOutArray.deliveryaddress &&
-                  _user.checkOutArray.deliveryaddress.address
-                    ? _user.checkOutArray.deliveryaddress.address
+                  _user.checkOutArray.deliveryaddress.area !== "" &&
+                  _user.checkOutArray.deliveryaddress.city !== "" &&
+                  _user.checkOutArray.deliveryaddress.state !== "" &&
+                  _user.checkOutArray.deliveryaddress.dist !== "" &&
+                  _user.checkOutArray.deliveryaddress.pin !== ""
+                    ? _user.checkOutArray.deliveryaddress.area +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.city +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.dist +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.state +
+                      " ,pin:- " +
+                      _user.checkOutArray.deliveryaddress.pin
                     : "No Address Available"
                 }}</span
               >
             </ng-container></ion-col
           >
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+    <!-- Delivery to -->
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <h3>Delivery to</h3>
+          </ion-col>
+          <ion-col>
+            <span>
+              {{
+                _user.checkOutArray &&
+                _user.checkOutArray.deliveryaddress &&
+                _user.checkOutArray.deliveryaddress.name
+                  ? _user.checkOutArray.deliveryaddress.name
+                  : 'Reciever"s name is not present'
+              }}
+            </span>
+            <span>
+              {{
+                _user.checkOutArray &&
+                _user.checkOutArray.deliveryaddress &&
+                _user.checkOutArray.deliveryaddress.ph
+                  ? _user.checkOutArray.deliveryaddress.ph
+                  : 'Reciever"s phone number is not present'
+              }}
+            </span>
+          </ion-col>
         </ion-row>
       </ion-grid>
     </ion-item>
@@ -84,7 +120,7 @@
                 <ion-note>Quantity</ion-note>
               </ion-col>
               <ion-col>
-                <ion-text>{{ item.quantity }}</ion-text>
+                <ion-text>{{ item.orderqty }}</ion-text>
               </ion-col>
             </ion-row>
             <ion-row>
@@ -92,9 +128,9 @@
                 <ion-note>Original Price</ion-note>
               </ion-col>
               <ion-col>
-                <ion-text style="color: grey">{{
-                  item.originalprice
-                }}</ion-text>
+                <ion-text style="color: grey"
+                  >{{ item.originalprice }}
+                </ion-text>
               </ion-col>
             </ion-row>
             <ion-row>
@@ -103,7 +139,7 @@
               </ion-col>
               <ion-col>
                 <ion-text style="color: green">{{
-                  item.offerpercentage
+                  item.offerpercentage + "% off"
                 }}</ion-text>
               </ion-col>
             </ion-row>
@@ -112,7 +148,12 @@
                 <ion-note>Offer Price</ion-note>
               </ion-col>
               <ion-col>
-                <ion-text>{{ item.price }}</ion-text>
+                <ion-text
+                  >{{ item.price }}
+                  <span style="font-size: small; font-weight: bold">{{
+                    " x" + item.orderqty
+                  }}</span></ion-text
+                >
               </ion-col>
             </ion-row>
             <ion-item-divider></ion-item-divider>
@@ -125,7 +166,7 @@
               <ion-col>
                 <ion-row>
                   <ion-col size="5">
-                    <h5 style="font-size: larger">
+                    <h5 style="font-size: larger; font-weight: bold">
                       {{ "₹" + _user.checkOutArray.totalOfferPrice }}
                     </h5>
                   </ion-col>
@@ -141,6 +182,7 @@
                       }"
                       style="
                         font-size: large;
+                        font-weight: bold;
                         text-decoration: line-through;
                         color: grey;
                         position: relative;
@@ -154,6 +196,7 @@
                       style="
                         font-size: small;
                         color: green;
+                        font-weight: bold;
                         position: relative;
                         bottom: 30px;
                       "
@@ -174,7 +217,13 @@
               <ion-col>
                 <ion-row>
                   <ion-col>
-                    <h5 style="font-size: larger; color: orangered">
+                    <h5
+                      style="
+                        font-size: larger;
+                        color: orangered;
+                        font-weight: bold;
+                      "
+                    >
                       {{
                         "₹" +
                           (_user.checkOutArray.totalOriginalPrice -
@@ -198,17 +247,24 @@
         </ion-row>
         <ion-row>
           <ion-col>
-            <ng-container
-              *ngIf="
-                _user.checkOutArray.deliveryaddress &&
-                _user.checkOutArray.deliveryaddress != ''
-              "
-            >
+            <ng-container>
               <span>
                 {{
                   _user.checkOutArray.deliveryaddress &&
-                  _user.checkOutArray.deliveryaddress.address
-                    ? _user.checkOutArray.deliveryaddress.address
+                  _user.checkOutArray.deliveryaddress.area !== "" &&
+                  _user.checkOutArray.deliveryaddress.city !== "" &&
+                  _user.checkOutArray.deliveryaddress.state !== "" &&
+                  _user.checkOutArray.deliveryaddress.dist !== "" &&
+                  _user.checkOutArray.deliveryaddress.pin !== ""
+                    ? _user.checkOutArray.deliveryaddress.area +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.city +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.dist +
+                      " ," +
+                      _user.checkOutArray.deliveryaddress.state +
+                      " ,pin:- " +
+                      _user.checkOutArray.deliveryaddress.pin
                     : "No Address Available"
                 }}</span
               >

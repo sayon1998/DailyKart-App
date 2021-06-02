@@ -48,6 +48,7 @@ export class ProductDetailsComponent implements OnInit {
   public pincode: any;
   public cLocationFLag = false;
   public isDisabled = false;
+  public address: any[] = [];
   constructor(
     public _router: Router,
     public nav: NavController,
@@ -65,10 +66,9 @@ export class ProductDetailsComponent implements OnInit {
   ionViewWillEnter() {
     console.log('********ionViewWillEnter_product-details**********');
     this.route.queryParams.subscribe((params) => {
-      // _global.goBackToForoward();
       if (params && params._id) {
         this.getDetailsById(params._id);
-        this._address.getUserAddress();
+        this.getAllAddressess();
         this.productID = params._id;
       } else {
         this.nav.back();
@@ -100,6 +100,25 @@ export class ProductDetailsComponent implements OnInit {
         this._global.toasterValue(err.message, 'Error');
       }
     );
+  }
+  // Get Address Details
+  getAllAddressess() {
+    if (this._auth.isLogin()) {
+      this._global
+        .get('address/get-all-address/', localStorage.getItem('userId'))
+        .subscribe(
+          (resData: any) => {
+            if (resData.status) {
+              if (resData.data) {
+                this.address = resData.data;
+              }
+            }
+          },
+          (err) => {
+            this._global.toasterValue(err.message, 'Error');
+          }
+        );
+    }
   }
   //Check Wish-list
   checkLocalWishlist(item: any) {
@@ -240,12 +259,33 @@ export class ProductDetailsComponent implements OnInit {
               (resData: any) => {
                 if (resData.status) {
                   if (resData.data) {
-                    this._address.addressArray.push(resData.data);
-                    this.pincode = resData.data.pin;
+                    // this._address.addressArray.push(resData.data);
+                    if (
+                      this.address.findIndex(
+                        (x) => x.pin === String(resData.data.pin)
+                      ) === -1
+                    ) {
+                      this.address.splice(0, 0, {
+                        addressId: this.address.length + 1,
+                        pin: resData.data.pin,
+                      });
+                    } else {
+                      this.address.splice(
+                        this.address.findIndex(
+                          (x) => x.pin === String(resData.data.pin)
+                        ),
+                        1
+                      );
+                      this.address.splice(0, 0, {
+                        addressId: this.address.length + 1,
+                        pin: resData.data.pin,
+                      });
+                    }
+                    // this.pincode = resData.data.pin;
                     this._global
                       .get(
                         'address/address-deliveriable/',
-                        `${this._address.addressArray[0].pin}/${this.productID}`
+                        `${this.address[0].pin}/${this.productID}`
                       )
                       .subscribe((resAddres: any) => {
                         if (resAddres.status) {
@@ -285,20 +325,40 @@ export class ProductDetailsComponent implements OnInit {
         .subscribe(
           (resAddres: any) => {
             if (resAddres.status) {
-              this._address.addressArray.push({
-                pin,
-                address: pin,
-              });
-              this.pincode = pin;
+              if (this.address.findIndex((x) => x.pin === String(pin)) === -1) {
+                this.address.splice(0, 0, {
+                  addressId: this.address.length + 1,
+                  pin,
+                });
+              } else {
+                this.address.splice(
+                  this.address.findIndex((x) => x.pin === String(pin)),
+                  1
+                );
+                this.address.splice(0, 0, {
+                  addressId: this.address.length + 1,
+                  pin,
+                });
+              }
               this.addressFlag = true;
               this.isDisabled = false;
               this.sheetState = SheetState.Bottom;
             } else {
-              this._address.addressArray.push({
-                pin,
-                address: pin,
-              });
-              this.pincode = pin;
+              if (this.address.findIndex((x) => x.pin === String(pin)) === -1) {
+                this.address.splice(0, 0, {
+                  addressId: this.address.length + 1,
+                  pin,
+                });
+              } else {
+                this.address.splice(
+                  this.address.findIndex((x) => x.pin === String(pin)),
+                  1
+                );
+                this.address.splice(0, 0, {
+                  addressId: this.address.length + 1,
+                  pin,
+                });
+              }
               this.addressFlag = false;
               this.isDisabled = false;
               this.sheetState = SheetState.Bottom;
@@ -337,6 +397,7 @@ export class ProductDetailsComponent implements OnInit {
         cart: [product._id],
         wishlist: [],
       };
+      this.isDisabled = true;
       this._global.post('product/save-cart-wishlist', param).subscribe(
         (resData: any) => {
           if (resData.status) {
@@ -345,10 +406,16 @@ export class ProductDetailsComponent implements OnInit {
               this._user.cartArray = resData.data.cart;
               this.inCart();
               this._global.toasterValue(resData.message, 'Success');
+              this.isDisabled = false;
+            } else {
+              this.isDisabled = false;
             }
+          } else {
+            this.isDisabled = false;
           }
         },
         (err) => {
+          this.isDisabled = false;
           this._global.toasterValue(err.message, 'Error');
         }
       );
@@ -480,6 +547,28 @@ export class ProductDetailsComponent implements OnInit {
         );
       }
     }
+  }
+  onClickAddressChange(index: number) {
+    const tempAdd = this.address[index];
+    this.address.splice(index, 1);
+    this.address.splice(0, 0, tempAdd);
+    console.log(index, this.address);
+    this.sheetState = SheetState.Bottom;
+    this.cLocationFLag = true;
+    this._global
+      .get(
+        'address/address-deliveriable/',
+        `${this.address[0].pin}/${this.productID}`
+      )
+      .subscribe((resAddres: any) => {
+        if (resAddres.status) {
+          this.addressFlag = true;
+          this.cLocationFLag = false;
+        } else {
+          this.addressFlag = false;
+          this.cLocationFLag = false;
+        }
+      });
   }
   onClickBuyNow() {}
   ngOnDestroy(): void {

@@ -5,5 +5,6 @@ const app = express();
 app.use("/auth", require("../Controller/authentication"));
 app.use("/product", require("../Controller/product"));
 app.use("/address", require("../Controller/address"));
+app.use("/order", require("../Controller/order"));
 
 module.exports = app;

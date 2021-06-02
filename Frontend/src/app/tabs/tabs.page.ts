@@ -4,6 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { filter } from 'rxjs/internal/operators/filter';
+import { AuthService } from '../service/auth.service';
+import { GlobalService } from '../service/global.service';
 import { UserDetailService } from '../service/user-details.service';
 
 @Component({
@@ -32,7 +34,9 @@ export class TabsPage implements OnInit {
     public nav: NavController,
     public _router: Router,
     private _activatedRoute: ActivatedRoute,
-    public _user: UserDetailService
+    public _user: UserDetailService,
+    public _global: GlobalService,
+    public _auth: AuthService
   ) {
     _router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -49,7 +53,40 @@ export class TabsPage implements OnInit {
         }
       });
   }
-  ngOnInit() {}
+  ngOnInit() {
+    this.checkCartList();
+  }
+  // Check Wishlist & Cart
+  checkCartList() {
+    if (this._auth.isLogin()) {
+      this._global
+        .get(
+          'product/get-cart-wishlist/',
+          `${localStorage.getItem('userId')}/cart`
+        )
+        .subscribe(
+          (resData: any) => {
+            if (resData.status) {
+              if (resData.data) {
+                this._user.cartArray = resData.data.cart;
+              }
+            } else {
+              this._global.toasterValue(resData.message, 'Error');
+            }
+          },
+          (err) => {
+            this._global.toasterValue(err.message, 'Error');
+          }
+        );
+    } else {
+      if (
+        localStorage.getItem('cart') &&
+        typeof localStorage.getItem('cart') !== 'object'
+      ) {
+        this._user.cartArray = JSON.parse(localStorage.getItem('cart'));
+      }
+    }
+  }
   onClickRoute(index: any) {
     // this.nav.navigateRoot([`/tabs/${this.tabArray[index].link}`]);
     this.nav.navigateForward([`/tabs/${this.tabArray[index].link}`]);

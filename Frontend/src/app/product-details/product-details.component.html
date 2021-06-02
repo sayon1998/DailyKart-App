@@ -164,24 +164,21 @@
   <ion-item>
     <ion-grid>
       <ion-row>
-        <ion-col size="8.5"
+        <ion-col [size]="address && address.length > 0 ? '8.5' : '9.5'"
           ><ion-text>
             <ng-container
-              *ngIf="
-                _address.addressArray && _address.addressArray.length > 0;
-                else elseTemplate1
-              "
+              *ngIf="address && address.length > 0; else elseTemplate1"
             >
               <span style="font-weight: bold"
                 ><span style="font-weight: normal; color: rgb(85, 83, 83)"
-                  >Delivery to</span
+                  >Delivery to{{ " " }}</span
                 >
-                {{
-                  _address.addressArray[0].address &&
-                  _address.addressArray[0].address.length > 40
-                    ? _address.addressArray[0].address.slice(0, 40) + ".."
-                    : _address.addressArray[0].address
-                }}</span
+                <span *ngIf="address[0].area && address[0].pin"
+                  >{{ address[0].area }} ,{{ "pin:- " + address[0].pin }}</span
+                >
+                <span *ngIf="!address[0].area">{{
+                  " pin:- " + address[0].pin
+                }}</span></span
               >
             </ng-container>
             <ng-template #elseTemplate1>
@@ -192,24 +189,19 @@
           </ion-text>
           <br />
           <ion-note *ngIf="!addressFlag" style="color: red; font-weight: 700"
-            >Currently out of stock for <strong>{{ pincode }}</strong></ion-note
+            >Currently out of stock for
+            <strong>{{ address[0].pin }}</strong></ion-note
           >
         </ion-col>
         <ion-col>
           <ion-button
+            *ngIf="!cLocationFLag"
             (click)="
-              onClickAddress(
-                _address.addressArray && _address.addressArray.length > 0
-                  ? 'change'
-                  : 'add'
-              )
+              onClickAddress(address && address.length > 0 ? 'change' : 'add')
             "
-            >{{
-              _address.addressArray && _address.addressArray.length > 0
-                ? "change"
-                : "add"
-            }}</ion-button
+            >{{ address && address.length > 0 ? "change" : "add" }}</ion-button
           >
+          <ion-spinner *ngIf="cLocationFLag" color="primary"></ion-spinner>
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -358,14 +350,15 @@
   <ion-grid>
     <ion-row>
       <ion-col
-        style="background-color: #ccc; font-weight: bold"
+        style="background-color: #ccc; font-weight: bold;text-align: center;"
         class="footer-button ion-activatable ripple-parent"
         (click)="onClickNavigate()"
       >
         <ion-ripple-effect></ion-ripple-effect>
-        <ion-text>{{
+        <ion-text *ngIf="!isDisabled">{{
           inCartFlag ? "Go to My Cart" : "Add to My Cart"
         }}</ion-text>
+        <ion-spinner *ngIf="isDisabled" color="dark"></ion-spinner>
       </ion-col>
       <ion-col
         style="background-color: orangered; font-weight: bold; color: white"
@@ -403,7 +396,7 @@
         <ion-button shape="round" slot="end">
           <span
             *ngIf="!isDisabled"
-            (click)="onClickLocation('pincode', pin.value)"
+            (click)="onClickLocation('pincode', pin.value); pin.value = ''"
             >Check</span
           >
           <ion-spinner *ngIf="isDisabled" color="light"></ion-spinner>
@@ -420,26 +413,27 @@
       <ion-icon *ngIf="!cLocationFLag" name="locate" slot="end"></ion-icon>
       <ion-spinner *ngIf="cLocationFLag" color="primary"></ion-spinner>
     </ion-item>
-    <!-- <ion-list *ngIf="_address.addressArray && _address.addressArray.length > 0">
+    <ion-list *ngIf="address && address.length > 0">
       <ion-list-header>
         <ion-label style="font-size: larger"
           >Your Preffered
           {{
-            _address.addressArray && _address.addressArray.length > 1
-              ? "Addressess"
-              : "Address"
+            address && address.length > 1 ? "Addressess" : "Address"
           }}</ion-label
         >
       </ion-list-header>
-      <ion-radio-group [value]="_address.addressArray[0]._id">
-        <ion-item *ngFor="let item of _address.addressArray; let i = index">
-          <ion-label>{{ item.address }}</ion-label>
-          <ion-radio
-            slot="start"
-            [value]="_address.addressArray[i]._id"
-          ></ion-radio>
+      <ion-radio-group [value]="address[0].addressId">
+        <ion-item
+          (click)="onClickAddressChange(i)"
+          *ngFor="let item of address; let i = index"
+        >
+          <ion-label
+            >{{ item.area ? item.area + ", " : "" }}
+            {{ item.pin ? "pin:- " + item.pin : "" }}</ion-label
+          >
+          <ion-radio slot="start" [value]="address[i].addressId"></ion-radio>
         </ion-item>
       </ion-radio-group>
-    </ion-list> -->
+    </ion-list>
   </ion-content>
 </ion-bottom-sheet>
