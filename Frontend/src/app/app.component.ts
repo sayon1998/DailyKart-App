@@ -25,6 +25,8 @@ export class AppComponent implements OnInit {
       if (event instanceof NavigationEnd) {
         this.previousUrl = this.currentUrl;
         this.currentUrl = event.url;
+        _global.previousUrl = this.previousUrl;
+        _global.currentUrl = this.currentUrl;
         console.log(this.previousUrl, this.currentUrl);
       }
     });

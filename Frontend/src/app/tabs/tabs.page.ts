@@ -69,6 +69,40 @@ export class TabsPage implements OnInit {
             if (resData.status) {
               if (resData.data) {
                 this._user.cartArray = resData.data.cart;
+                if (
+                  typeof localStorage.getItem('cart') !== 'object' ||
+                  typeof localStorage.getItem('wishList') !== 'object'
+                ) {
+                  const param = {
+                    userId: localStorage.getItem('userId'),
+                    cart:
+                      typeof localStorage.getItem('cart') !== 'object'
+                        ? JSON.parse(localStorage.getItem('cart'))
+                        : [],
+                    wishlist:
+                      typeof localStorage.getItem('wishList') !== 'object'
+                        ? JSON.parse(localStorage.getItem('wishList'))
+                        : [],
+                  };
+                  console.log(param);
+                  this._global
+                    .post('product/save-cart-wishlist', param)
+                    .subscribe(
+                      (res: any) => {
+                        if (resData.status) {
+                          if (resData.data) {
+                            this._user.cartArray = res.data.cart;
+                            // this._user.wishArray = [];
+                            this._user.wishArray = res.data.wishlist;
+                            // this._global.toasterValue(res.message, 'Success');
+                          }
+                        }
+                      },
+                      (err) => {
+                        // this._global.toasterValue(err.message, 'Error');
+                      }
+                    );
+                }
               }
             } else {
               this._global.toasterValue(resData.message, 'Error');

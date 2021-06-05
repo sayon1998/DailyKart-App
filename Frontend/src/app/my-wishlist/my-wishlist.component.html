@@ -43,125 +43,135 @@
       </ion-col>
     </ion-row>
   </ion-grid>
-  <ion-grid *ngIf="_user.wishArray && _user.wishArray.length === 0 && !isSpin">
-    <ion-row>
-      <ion-col>
-        <img
-          style="margin-left: 25%; margin-top: 50%"
-          [width]="_global.WIDTH / 2"
-          src="assets/images/wishlist-header.png"
-          alt="wishlist-header"
-        />
-      </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col style="text-align: center">
-        <ion-title style="margin-right: 12%">It's empty in here</ion-title>
-      </ion-col>
-      <ion-note style="margin-left: 20%"
-        >Save your items here for future order</ion-note
-      >
-    </ion-row>
-  </ion-grid>
-  <ion-grid *ngIf="_user.wishArray && _user.wishArray.length > 0 && !isSpin">
-    <ion-row>
-      <ion-col
-        style="padding: 0px"
-        size="6"
-        *ngFor="let item of wishArray; let i = index"
-      >
-        <ion-card
-          style="border: 1px solid black"
-          class="product ion-activatable ripple-parent"
+  <ng-container
+    *ngIf="wishArray && wishArray.length > 0 && !isSpin; else elseTemplate"
+  >
+    <ion-grid>
+      <ion-row>
+        <ion-col
+          style="padding: 0px"
+          size="6"
+          *ngFor="let item of wishArray; let i = index"
         >
-          <ion-ripple-effect></ion-ripple-effect>
-          <ion-card-header>
-            <ion-fab vertical="top" horizontal="end">
-              <ion-fab-button
-                color="light"
-                [style.width]="_global.WIDTH / 11 + 'px'"
-                [style.height]="_global.HEIGHT / 21 + 'px'"
-                [disabled]="isDisabled"
-              >
-                <ion-icon
-                  name="close-outline"
-                  class="wishList"
-                  (click)="onClickDeleteWishList(item)"
-                ></ion-icon>
-              </ion-fab-button>
-            </ion-fab>
-
-            <img
-              [style.height]="_global.HEIGHT / 7 + 'px'"
-              src="{{ item.img }}"
-              (click)="onClickProductDetails(i)"
-            />
-          </ion-card-header>
-
-          <ion-card-content
-            style="border-top: 1px solid black"
-            (click)="onClickProductDetails(i)"
+          <ion-card
+            style="border: 1px solid black"
+            class="product ion-activatable ripple-parent"
           >
-            <ion-row>
-              <ion-col>
-                <ion-label>
-                  <ion-title
-                    style="font-size: medium; color: black; font-weight: bolder"
-                    >{{ item.name }}</ion-title
-                  >
-                  <ion-text id="mainPrice">
-                    {{ "₹" + item.price }}
-                    <span>{{ "₹" + item.originalprice }}</span
-                    >&nbsp;&nbsp;<ion-text id="offer">{{
-                      item.offerpercentage + "% off"
-                    }}</ion-text>
-                  </ion-text>
-                  <div style="text-align: center">
-                    <div
-                      [style.left]="_global.HEIGHT / 35 + 'px'"
-                      *ngIf="item.rating"
-                      [ngClass]="[
-                        item.rating && !item.rating.includes('.')
-                          ? 'rating'
-                          : 'rating-decimal'
-                      ]"
+            <ion-ripple-effect></ion-ripple-effect>
+            <ion-card-header>
+              <ion-fab vertical="top" horizontal="end">
+                <ion-fab-button
+                  color="light"
+                  [style.width]="_global.WIDTH / 11 + 'px'"
+                  [style.height]="_global.HEIGHT / 21 + 'px'"
+                  [disabled]="isDisabled"
+                >
+                  <ion-icon
+                    name="close-outline"
+                    class="wishList"
+                    (click)="onClickDeleteWishList(item)"
+                  ></ion-icon>
+                </ion-fab-button>
+              </ion-fab>
+
+              <img
+                [style.height]="_global.HEIGHT / 7 + 'px'"
+                src="{{ item.img }}"
+                (click)="onClickProductDetails(i)"
+              />
+            </ion-card-header>
+
+            <ion-card-content
+              style="border-top: 1px solid black"
+              (click)="onClickProductDetails(i)"
+            >
+              <ion-row>
+                <ion-col>
+                  <ion-label>
+                    <ion-title
+                      style="
+                        font-size: medium;
+                        color: black;
+                        font-weight: bolder;
+                      "
+                      >{{ item.name }}</ion-title
                     >
-                      {{ item.rating }}
-                      <ion-icon name="star"></ion-icon>
+                    <ion-text id="mainPrice">
+                      {{ "₹" + item.price }}
+                      <span>{{ "₹" + item.originalprice }}</span
+                      >&nbsp;&nbsp;<ion-text id="offer">{{
+                        item.offerpercentage + "% off"
+                      }}</ion-text>
+                    </ion-text>
+                    <div style="text-align: center">
+                      <div
+                        [style.left]="_global.HEIGHT / 35 + 'px'"
+                        *ngIf="item.rating"
+                        [ngClass]="[
+                          item.rating && !item.rating.includes('.')
+                            ? 'rating'
+                            : 'rating-decimal'
+                        ]"
+                      >
+                        {{ item.rating }}
+                        <ion-icon name="star"></ion-icon>
+                      </div>
+                      <ion-note *ngIf="item.totalrating && item.rating"
+                        >({{ item.totalrating }})</ion-note
+                      >
                     </div>
-                    <ion-note *ngIf="item.totalrating && item.rating"
-                      >({{ item.totalrating }})</ion-note
-                    >
-                  </div>
-                </ion-label>
+                  </ion-label>
+                </ion-col>
+              </ion-row>
+            </ion-card-content>
+            <ion-button
+              *ngIf="!item.isSpin"
+              expand="full"
+              color="primary"
+              [disabled]="isDisabled"
+              (click)="onClickMoveToCart(item)"
+            >
+              <ion-icon name="cart" slot="start"></ion-icon> Move to
+              Cart</ion-button
+            >
+            <ion-row *ngIf="item.isSpin" style="text-align: center">
+              <ion-col>
+                <ion-spinner color="primary"></ion-spinner>
               </ion-col>
             </ion-row>
-          </ion-card-content>
-          <ion-button
-            *ngIf="!item.isSpin"
-            expand="full"
-            color="primary"
-            [disabled]="isDisabled"
-            (click)="onClickMoveToCart(item)"
-          >
-            <ion-icon name="cart" slot="start"></ion-icon> Move to
-            Cart</ion-button
-          >
-          <ion-row *ngIf="item.isSpin" style="text-align: center">
-            <ion-col>
-              <ion-spinner color="primary"></ion-spinner>
-            </ion-col>
-          </ion-row>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-    <!-- Infinite Scrolling -->
-    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
-      <ion-infinite-scroll-content
-        loadingSpinner="bubbles"
-        loadingText="Loading more wishlist data..."
-      >
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  </ion-grid>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-container>
+  <ng-template #elseTemplate>
+    <ion-grid *ngIf="!isSpin">
+      <ion-row>
+        <ion-col>
+          <img
+            style="margin-left: 25%; margin-top: 50%"
+            [width]="_global.WIDTH / 2"
+            src="assets/images/wishlist-header.png"
+            alt="wishlist-header"
+          />
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col style="text-align: center">
+          <ion-title style="margin-right: 12%">It's empty in here</ion-title>
+        </ion-col>
+        <ion-note style="margin-left: 20%"
+          >Save your items here for future order</ion-note
+        >
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+  <!-- Infinite Scrolling -->
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Loading more wishlist data..."
+    >
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

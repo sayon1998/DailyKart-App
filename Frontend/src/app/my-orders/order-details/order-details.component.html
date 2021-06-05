@@ -1,0 +1,212 @@
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="nav.back()"
+            style="font-size: x-large"
+            name="arrow-back-outline"
+          ></ion-icon>
+          <ion-text
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
+            >Order Details</ion-text
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-row>
+          <ion-col>
+            <ion-text>Order ID:&nbsp;</ion-text>
+            <ion-note style="font-weight: bold">ODD2345</ion-note>
+          </ion-col>
+          <div class="divider"></div>
+          <!-- Order name and seller name and price with order pic -->
+        </ion-row>
+        <ion-row>
+          <ion-col size="8">
+            <ion-text style="word-break: break-all; font-size: large"
+              >order name</ion-text
+            >
+            <br />
+            <ion-note style="word-break: break-all"
+              >Seller: Sayon Shop</ion-note
+            >
+            <br />
+            <ion-row>
+              <!-- Price -->
+              <ion-col>
+                <ion-text id="mainPrice">
+                  {{ "₹" + 123 }}
+                  <span>{{ "₹" + 234 }}</span
+                  >&nbsp;&nbsp;<ion-text id="offer">{{
+                    10 + "% off"
+                  }}</ion-text>
+                </ion-text>
+              </ion-col>
+            </ion-row>
+          </ion-col>
+          <ion-col>
+            <div>
+              <img
+                style="border: 1px solid #111010"
+                src="assets/images/no-save-address.png"
+                alt=""
+              /></div
+          ></ion-col>
+          <div class="divider"></div>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <ion-text style="font-weight: bold; font-size: larger"
+              >Order Status</ion-text
+            >
+          </ion-col>
+        </ion-row>
+        <!-- Product tracking details and return policy -->
+        <ion-row>
+          <ion-col>
+            <ion-row>
+              <ion-col>
+                <input id="myinput" type="range" disabled="true" [value]="50" />
+              </ion-col>
+            </ion-row>
+            <ion-row style="font-size: small; font-weight: bold">
+              <ion-col size="4">Ordered <br />Jun 25, 2021</ion-col>
+              <ion-col size="4" style="text-align: center"
+                >Out for Delivery<br />Jun 25, 2021</ion-col
+              >
+              <ion-col size="4" style="text-align: right"
+                >Delivered<br />Jun 25, 2021</ion-col
+              >
+            </ion-row>
+            <ion-row>
+              <ion-col size="4">
+                <ion-note>No-return policy</ion-note>
+              </ion-col>
+              <ion-col size="4"></ion-col>
+              <ion-col
+                (click)="onClickSeeDetails()"
+                size="4"
+                style="text-align: right; color: #3880ff; font-weight: bold"
+                >Track
+                <ion-icon
+                  style="position: relative"
+                  [style.top]="_global.HEIGHT / 250 + 'px'"
+                  name="chevron-forward-outline"
+                ></ion-icon>
+              </ion-col>
+            </ion-row>
+          </ion-col>
+          <div class="divider"></div>
+        </ion-row>
+        <!-- Product rating -->
+        <ion-row>
+          <ion-col
+            style="text-align: left; font-size: large; font-weight: bold"
+          >
+            <ion-text>Rate Product</ion-text>
+          </ion-col>
+          <ion-col>
+            <ionic5-star-rating
+              #rating
+              activeIcon="star"
+              defaultIcon="star-outline"
+              activeColor="#488aff"
+              defaultColor="#4169E1"
+              readonly="false"
+              [rating]="-1"
+              fontSize="35px"
+              (ratingChanged)="logRatingChange($event)"
+            >
+            </ionic5-star-rating>
+          </ion-col>
+          <div class="divider"></div>
+        </ion-row>
+        <!-- Cancel or Return -->
+        <ion-row>
+          <ion-col>
+            <ion-button expand="block" color="dark">
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Cancel</ion-button
+            >
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="danger">
+              <ion-icon name="return-up-back-outline" slot="start"></ion-icon>
+              Return</ion-button
+            >
+          </ion-col>
+          <div class="divider"></div>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <!-- Delivery Details -->
+        <ion-row>
+          <ion-col
+            size="8.5"
+            style="text-align: left; font-size: large; font-weight: bold"
+          >
+            <ion-text>Delivery Details</ion-text>
+          </ion-col>
+          <ion-col>
+            <ion-button expand="block" color="primary"> Change</ion-button>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col> Delivery Address Details will be here </ion-col>
+          <div class="divider"></div>
+        </ion-row>
+        <!-- Price Details -->
+        <ion-row>
+          <ion-col
+            style="text-align: left; font-size: large; font-weight: bold"
+          >
+            <ion-text>Price Details</ion-text>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col style="text-align: left">Original Price</ion-col>
+          <ion-col style="text-align: right">2100</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col style="text-align: left">Selling Price</ion-col>
+          <ion-col style="text-align: right">1100</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col style="text-align: left">Shipping Price</ion-col>
+          <ion-col style="text-align: right">50</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col style="text-align: left; font-weight: bold"
+            >Total Price</ion-col
+          >
+          <ion-col style="text-align: right">1150</ion-col>
+        </ion-row>
+        <div class="divider"></div>
+        <ion-row>
+          <ion-col style="text-align: left; font-weight: bold; font-size: large"
+            >Payment Mode</ion-col
+          >
+          <ion-col style="text-align: right">COD</ion-col>
+        </ion-row>
+        <div class="divider"></div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

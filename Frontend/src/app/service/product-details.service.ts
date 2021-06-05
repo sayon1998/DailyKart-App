@@ -21,7 +21,13 @@ export class ProductService {
       if (product.highestquentity === product.orderqty) {
         this._global.toasterValue('Highest Quantity Reached');
       } else {
-        product.orderqty += 1;
+        if (product.quantity > product.orderqty) {
+          product.orderqty += 1;
+        } else {
+          this._global.toasterValue(
+            product.name + ' is only left ' + product.quantity + ' in stock'
+          );
+        }
       }
     } else if (type === 'decrease') {
       if (product.minqty === product.orderqty) {

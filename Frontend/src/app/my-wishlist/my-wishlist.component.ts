@@ -14,7 +14,7 @@ import { AlertController } from '@ionic/angular';
   styleUrls: ['./my-wishlist.component.scss'],
 })
 export class MyWishlistComponent implements OnInit {
-  public wishArray: any = ([] = []);
+  public wishArray: any[] = [];
   public isSpin = true;
   public lastKey = 0;
   public totalLimit = 0;
@@ -69,6 +69,8 @@ export class MyWishlistComponent implements OnInit {
       ) {
         this._user.wishArray = JSON.parse(localStorage.getItem('wishList'));
         this.getWishlistProductDetails();
+      } else {
+        this.isSpin = false;
       }
     }
   }
@@ -98,9 +100,12 @@ export class MyWishlistComponent implements OnInit {
         },
         (err) => {
           this.isSpin = false;
-          this._global.toasterValue(err.message);
+          console.log(err.message);
+          // this._global.toasterValue(err.message);
         }
       );
+    } else {
+      this.isSpin = false;
     }
   }
   // Infinite Scroll

@@ -123,9 +123,23 @@
         </ion-row>
       </ion-grid>
     </ion-item>
+    <!-- Delivery More than 200 Rs-->
+    <div
+      id="deliveryCharge"
+      style="text-align: center"
+      [style.height]="_global.HEIGHT / 20 + 'px'"
+      id="deliveryCharge"
+    >
+      <ion-text style="font-size: larger; position: relative; top: 5px"
+        >Delivery charge omit above ₹250</ion-text
+      >
+    </div>
 
     <!-- Cart Items -->
-    <ion-card *ngFor="let item of cartArray; let index = index">
+    <ion-card
+      style="border: 1px solid black"
+      *ngFor="let item of cartArray; let index = index"
+    >
       <ion-card-header>
         <ion-row>
           <ion-col size="11">
@@ -147,6 +161,26 @@
                       : item.name
                   }}
                 </ion-title>
+                <!-- Rating -->
+                <div
+                  style="position: relative; top: 2px"
+                  [style.right]="_global.WIDTH / 15 + 'px'"
+                  *ngIf="item.totalrating && item.rating"
+                >
+                  <div
+                    [ngClass]="[
+                      item.rating && !item.rating.includes('.')
+                        ? 'rating'
+                        : 'rating-decimal'
+                    ]"
+                  >
+                    {{ item.rating }}
+                    <ion-icon name="star"></ion-icon>
+                  </div>
+                  <ion-note style="position: relative; bottom: 2px"
+                    >({{ item.totalrating }})</ion-note
+                  >
+                </div>
               </ion-col>
             </ion-row>
           </ion-col>
@@ -164,25 +198,9 @@
             </ion-fab-button>
           </ion-col>
         </ion-row>
-        <!-- Rating -->
-        <ion-row *ngIf="item.totalrating && item.rating">
-          <div
-            [ngClass]="[
-              item.rating && !item.rating.includes('.')
-                ? 'rating'
-                : 'rating-decimal'
-            ]"
-          >
-            {{ item.rating }}
-            <ion-icon name="star"></ion-icon>
-          </div>
-          <ion-note style="position: relative; bottom: 2px"
-            >({{ item.totalrating }})</ion-note
-          >
-        </ion-row>
-        <ion-row>
+        <ion-row class="bottomRow">
           <ion-col [size]="_global.WIDTH / 50">
-            <ion-row>
+            <ion-row class="bottomRow">
               <!-- Price -->
               <ion-col>
                 <ion-text id="mainPrice">
@@ -199,10 +217,10 @@
               </ion-col>
             </ion-row>
             <!-- Quantity -->
-            <ion-row class="main-quantity">
-              <ion-col>
+            <ion-row class="bottomRow main-quantity">
+              <!-- <ion-col>
                 <ion-text>Quantity:</ion-text>
-              </ion-col>
+              </ion-col> -->
               <!-- Decrease -->
               <ion-col [size]="_global.WIDTH / 15 + 'px'">
                 <ion-icon
@@ -217,8 +235,8 @@
                 ></ion-icon>
               </ion-col>
               <!-- Quantity Value -->
-              <ion-col [size]="_global.WIDTH / 15 + 'px'">
-                <div [style.width]="_global.WIDTH / 15 + 'px'" class="quantity">
+              <ion-col class="quantity" [size]="_global.WIDTH / 15 + 'px'">
+                <div [style.width]="_global.WIDTH / 15 + 'px'">
                   <span style="font-size: small; font-weight: 500">{{
                     item.orderqty
                   }}</span>
@@ -238,8 +256,28 @@
                 ></ion-icon>
               </ion-col>
             </ion-row>
+            <!-- Item left in stock -->
+            <ion-row class="bottomRow" *ngIf="item.quantity <= 10">
+              <ion-col>
+                <ion-text
+                  style="font-size: medium; color: red; font-weight: bold"
+                >
+                  {{ item.quantity + " item is left in stock" }}
+                </ion-text>
+              </ion-col>
+            </ion-row>
+            <!-- Delivery Charge -->
+            <ion-row class="bottomRow" *ngIf="item.deliverycharge">
+              <ion-col>
+                <ion-text
+                  style="font-size: medium; color: red; font-weight: bold"
+                >
+                  {{ "+ ₹" + item.deliverycharge + " is required" }}
+                </ion-text>
+              </ion-col>
+            </ion-row>
             <!-- Order is Out of Stock -->
-            <ion-row>
+            <ion-row class="bottomRow">
               <ion-col>
                 <ion-note *ngIf="item.status" id="stock-out">{{
                   item.message
@@ -251,18 +289,19 @@
           <ion-col>
             <img
               src="{{ item.img }}"
-              style="
-                width: 100%;
-                height: 120%;
-                float: right;
-                border: 2px solid black;
-              "
+              style="width: 100%; float: right; border: 2px solid black"
+            />
+            <img
+              id="free-shipping"
+              src="assets/images/free-shipping.png"
+              alt=""
+              srcset=""
             />
           </ion-col>
         </ion-row>
       </ion-card-header>
       <ion-card-content>
-        <ion-row *ngIf="!item.isSpin">
+        <ion-row class="bottomRow" *ngIf="!item.isSpin">
           <ion-col>
             <ion-button
               [disabled]="isLoading"
@@ -276,7 +315,11 @@
             >
           </ion-col>
         </ion-row>
-        <ion-row *ngIf="item.isSpin" style="text-align: center">
+        <ion-row
+          class="bottomRow"
+          *ngIf="item.isSpin"
+          style="text-align: center"
+        >
           <ion-col>
             <ion-spinner color="primary"></ion-spinner>
           </ion-col>
@@ -318,6 +361,9 @@
                 style="font-size: x-large; color: #3880ff; font-weight: 700"
                 >{{ "₹" + totalOfferPrice }}</ion-text
               >
+              <ion-text *ngIf="deliveryCharge > 0">{{
+                deliveryCharge > 0 ? " + ₹" + deliveryCharge : ""
+              }}</ion-text>
             </ion-col>
           </ion-row>
         </ion-col>

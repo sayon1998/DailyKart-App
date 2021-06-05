@@ -38,7 +38,10 @@ export class Tab2Page implements OnInit {
     private route: ActivatedRoute
   ) {
     this.route.queryParams.subscribe((params) => {
-      if (params && params.isReload === 'true') {
+      // if (params && params.isReload === 'true') {
+      //   this.ionViewWillEnter();
+      // }
+      if (_global.previousUrl === '/tabs/tab2') {
         this.ionViewWillEnter();
       }
     });

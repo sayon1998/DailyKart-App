@@ -158,6 +158,23 @@
             </ion-row>
             <ion-item-divider></ion-item-divider>
             <ion-row
+              *ngIf="
+                i === _user.checkOutArray.productDetails.length - 1 &&
+                _user.checkOutArray.deliveryCharge > 0
+              "
+            >
+              <ion-col style="font-size: larger; font-weight: bold">
+                <h5>Delivery Charge</h5>
+              </ion-col>
+              <ion-col>
+                <ion-text
+                  style="position: relative; font-size: larger"
+                  [style.bottom]="-_global.HEIGHT / 50 + 'px'"
+                  >{{ "₹" + _user.checkOutArray.deliveryCharge }}</ion-text
+                >
+              </ion-col>
+            </ion-row>
+            <ion-row
               *ngIf="i === _user.checkOutArray.productDetails.length - 1"
             >
               <ion-col>

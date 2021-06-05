@@ -7,6 +7,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthService } from 'src/app/service/auth.service';
 import { HttpConfigInterceptor } from 'src/app/service/http-interceptor';
+import { StarRatingModule } from 'ionic5-star-rating';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { HttpConfigInterceptor } from 'src/app/service/http-interceptor';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    StarRatingModule,
   ],
   exports: [
     CommonModule,
@@ -22,6 +24,7 @@ import { HttpConfigInterceptor } from 'src/app/service/http-interceptor';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    StarRatingModule,
   ],
   providers: [
     GlobalService,

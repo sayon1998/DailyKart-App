@@ -1,0 +1,213 @@
+<!-- Header -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="9.5">
+          <ion-icon
+            (click)="nav.back()"
+            style="font-size: x-large"
+            name="arrow-back-outline"
+          ></ion-icon>
+          <ion-text
+            style="
+              position: relative;
+              bottom: 5px;
+              font-size: x-large;
+              left: 2px;
+            "
+            >My Order</ion-text
+          >
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Orders -->
+<ion-content>
+  <!-- Skeleton Loader -->
+  <div *ngIf="isLoading">
+    <ion-row *ngFor="let item of [0, 1, 2, 3, 4]">
+      <ion-col>
+        <ion-skeleton-text
+          animated
+          [style.height]="_global.HEIGHT / 5 + 'px'"
+        ></ion-skeleton-text>
+      </ion-col>
+    </ion-row>
+  </div>
+
+  <!-- Order Details -->
+  <ng-container
+    *ngIf="
+      orderDetail && orderDetail.length > 0 && !isLoading;
+      else elseTemplate
+    "
+  >
+    <ion-card
+      *ngFor="let item of orderDetail; let i = index"
+      style="border: 1px solid gray"
+      class="ion-activatable ripple-parent"
+    >
+      <ion-ripple-effect></ion-ripple-effect>
+      <ion-card-header>
+        <ion-row>
+          <!-- Image -->
+          <ng-container
+            (click)="onClickOrderDetails(i)"
+            *ngIf="
+              item.orderDetail && item.orderDetail.length > 1;
+              else imgTemplate
+            "
+          >
+            <ion-col size="4">
+              <span
+                id="notification-button"
+                *ngFor="let img of item.orderDetail; let ind = index"
+              >
+                <img
+                  *ngIf="ind < 2"
+                  style="
+                    border: 1px solid black;
+                    border-radius: 5%;
+                    width: 40%;
+                    height: 100%;
+                  "
+                  src="{{ img.img }}"
+                  alt=""
+                />&nbsp;
+                <ion-badge
+                  id="notifications-badge"
+                  *ngIf="ind === 1 && item.orderDetail.length > 2"
+                  >+{{ item.orderDetail.length - 2 }}</ion-badge
+                >
+              </span>
+            </ion-col>
+          </ng-container>
+          <ng-template (click)="onClickOrderDetails(i)" #imgTemplate>
+            <ion-col size="4">
+              <img
+                style="
+                  border: 1px solid black;
+                  border-radius: 5%;
+                  width: 100%;
+                  height: 100%;
+                "
+                src="{{ item.orderDetail[0].img }}"
+                alt=""
+              />
+            </ion-col>
+          </ng-template>
+          <!-- Delivery Time and Name and Rating -->
+          <ion-col style="text-align: left">
+            <h6
+              (click)="onClickOrderDetails(i)"
+              style="font-weight: bold; color: green"
+            >
+              {{
+                "Arriving " + item.orderDetail[0].deliveryTime
+                  | date: "fullDate"
+              }}
+            </h6>
+            <ng-container
+              (click)="onClickOrderDetails(i)"
+              *ngIf="
+                item.orderDetail && item.orderDetail.length > 1;
+                else nameTemplete
+              "
+            >
+              <ion-text style="font-size: medium">{{
+                item.orderDetail[0].name.slice(0, 45) + "..."
+              }}</ion-text>
+              <ion-text style="font-size: small">more item</ion-text>
+            </ng-container>
+            <ng-template #nameTemplete>
+              <ion-text
+                (click)="onClickOrderDetails(i)"
+                style="font-size: medium"
+                >{{
+                  item.orderDetail[0].name &&
+                  item.orderDetail[0].name.length > 55
+                    ? item.orderDetail[0].name.slice(0, 55) + "..."
+                    : item.orderDetail[0].name
+                }}</ion-text
+              >
+              <ion-row>
+                <ion-col>
+                  <ionic5-star-rating
+                    #rating
+                    activeIcon="star"
+                    defaultIcon="star-outline"
+                    activeColor="#488aff"
+                    defaultColor="#4169E1"
+                    readonly="false"
+                    [rating]="item.orderDetail[0].userRating"
+                    fontSize="25px"
+                    (ratingChanged)="
+                      logRatingChange($event, item.orderDetail[0])
+                    "
+                  >
+                  </ionic5-star-rating>
+                </ion-col>
+              </ion-row>
+            </ng-template>
+          </ion-col>
+          <!-- Arrow Right -->
+          <ion-col (click)="onClickOrderDetails(i)" size="0.25">
+            <ng-container
+              *ngIf="
+                item.orderDetail && item.orderDetail.length > 1;
+                else arrowTemplate
+              "
+            >
+              <ion-icon
+                [style.margin-top]="_global.HEIGHT / 40 + 'px'"
+                style="font-size: x-large"
+                name="chevron-forward-outline"
+              ></ion-icon>
+            </ng-container>
+            <ng-template #arrowTemplate>
+              <ion-icon
+                [style.margin-top]="_global.HEIGHT / 20 + 'px'"
+                style="font-size: x-large"
+                name="chevron-forward-outline"
+              ></ion-icon>
+            </ng-template>
+          </ion-col>
+        </ion-row>
+      </ion-card-header>
+    </ion-card>
+  </ng-container>
+  <ng-template #elseTemplate>
+    <!-- No Order Available -->
+    <ion-grid style="margin-top: 25%">
+      <ion-row style="text-align: center">
+        <ion-col>
+          <img src="assets/images/no-product-found.jpg" alt="No Order" />
+        </ion-col>
+      </ion-row>
+      <ion-row style="text-align: center">
+        <ion-col>
+          <ion-title>{{
+            _auth.isLogin()
+              ? "Start shopping here"
+              : "Please login to start shopping"
+          }}</ion-title>
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="_auth.isLogin()">
+        <ion-col>
+          <ion-button expand="block" color="primary">
+            Start Shopping</ion-button
+          >
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="!_auth.isLogin()">
+        <ion-col>
+          <ion-button expand="block" color="danger"> Login</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+</ion-content>

@@ -1,3 +1,4 @@
+/* eslint-disable radix */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/member-ordering */
 /* eslint-disable guard-for-in */
@@ -40,6 +41,7 @@ export class MyCartComponent implements OnInit {
   shadowBorder = true;
   totalPrice = 0;
   totalOfferPrice = 0;
+  deliveryCharge = 0;
   selectAllFlag = true;
   cartFlag = true;
   isLoading = false;
@@ -79,21 +81,21 @@ export class MyCartComponent implements OnInit {
   }
   // Get Address Details
   getAllAddressess() {
-    if(this._auth.isLogin()){
+    if (this._auth.isLogin()) {
       this._global
-      .get('address/get-all-address/', localStorage.getItem('userId'))
-      .subscribe(
-        (resData: any) => {
-          if (resData.status) {
-            if (resData.data) {
-              this.address = resData.data;
+        .get('address/get-all-address/', localStorage.getItem('userId'))
+        .subscribe(
+          (resData: any) => {
+            if (resData.status) {
+              if (resData.data) {
+                this.address = resData.data;
+              }
             }
+          },
+          (err) => {
+            this._global.toasterValue(err.message, 'Error');
           }
-        },
-        (err) => {
-          this._global.toasterValue(err.message, 'Error');
-        }
-      );
+        );
     }
   }
   // Check Cart Ids
@@ -161,9 +163,15 @@ export class MyCartComponent implements OnInit {
           }
         },
         (err) => {
+          this.cartFlag = false;
+          this.spin = false;
+          console.log(err.message);
           this._global.toasterValue(err.message);
         }
       );
+    } else {
+      this.cartFlag = false;
+      this.spin = false;
     }
   }
   selectAll(value: boolean, type: string, index: number = null) {
@@ -202,6 +210,9 @@ export class MyCartComponent implements OnInit {
         this.totalOfferPrice +=
           this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].price);
+        if (this.cartArray[index].deliverycharge) {
+          this.deliveryCharge += parseInt(this.cartArray[index].deliverycharge);
+        }
       } else {
         this.selectAllFlag = false;
         this.totalPrice -=
@@ -210,16 +221,23 @@ export class MyCartComponent implements OnInit {
         this.totalOfferPrice -=
           this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].price);
+        if (this.cartArray[index].deliverycharge) {
+          this.deliveryCharge -= parseInt(this.cartArray[index].deliverycharge);
+        }
       }
     }
   }
   getPrice() {
     this.totalOfferPrice = 0;
     this.totalPrice = 0;
+    this.deliveryCharge = 0;
     this.cartArray.forEach((x) => {
       if (x.isCheckout) {
         this.totalPrice += x.orderqty * parseFloat(x.originalprice);
         this.totalOfferPrice += x.orderqty * parseFloat(x.price);
+        if (x.deliverycharge) {
+          this.deliveryCharge += parseInt(x.deliverycharge);
+        }
       }
     });
   }
@@ -380,8 +398,11 @@ export class MyCartComponent implements OnInit {
             param.productId.push(x._id);
           }
         });
-        this._user.checkOutArray.totalOriginalPrice = this.totalPrice;
-        this._user.checkOutArray.totalOfferPrice = this.totalOfferPrice;
+        this._user.checkOutArray.deliveryCharge = this.deliveryCharge;
+        this._user.checkOutArray.totalOriginalPrice =
+          this.totalPrice + this.deliveryCharge;
+        this._user.checkOutArray.totalOfferPrice =
+          this.totalOfferPrice + this.deliveryCharge;
         this._user.checkOutArray.totalOfferPercentage =
           (
             100 -
@@ -410,8 +431,16 @@ export class MyCartComponent implements OnInit {
                     ) {
                       if (element.status) {
                         flag = false;
-                        this.cartArray[index].status = element.status;
-                        this.cartArray[index].message = element.message;
+                        this.cartArray[
+                          this.cartArray.findIndex(
+                            (x) => x._id === element.productId
+                          )
+                        ].status = element.status;
+                        this.cartArray[
+                          this.cartArray.findIndex(
+                            (x) => x._id === element.productId
+                          )
+                        ].message = element.message;
                       }
                     }
                   });

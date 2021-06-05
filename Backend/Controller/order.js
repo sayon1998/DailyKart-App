@@ -5,6 +5,7 @@ const userDetails = require("../Models/user-details");
 const productDetail = require("../Models/product-details");
 const orderDetail = require("../Models/order-details");
 const cartDetail = require("../Models/cart-wishlist");
+const rateDetail = require("../Models/rating-details");
 
 // Save Order
 router.post("/save-orders", async (req, res) => {
@@ -14,11 +15,16 @@ router.post("/save-orders", async (req, res) => {
     message: "",
   };
   let orderArray = {
+    orderId: 0,
     orderDetail: [],
+    addressDetail: {},
     totalorderPrice: "",
     totaloriginalPrice: "",
     totalofferPercentage: "",
   };
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
   let flag = false;
   try {
     if (!req.body.userId) {
@@ -89,9 +95,16 @@ router.post("/save-orders", async (req, res) => {
             totalrating: req.body.productDetails[index].totalrating,
             type: req.body.productDetails[index].type,
             unit: req.body.productDetails[index].unit,
+            deliverycharge: req.body.productDetails[index].unit,
             price: req.body.productDetails[index].price,
             originalprice: req.body.productDetails[index].originalprice,
             offerpercentage: req.body.productDetails[index].offerpercentage,
+            orderTime: today.toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            }),
+            deliveryTime: tomorrow.toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            }),
           });
         } else {
           flag = true;
@@ -154,7 +167,27 @@ router.post("/save-orders", async (req, res) => {
                     }
                   }
                   await address.save();
+                  orderArray.orderId =
+                    orderParam &&
+                    orderParam.orderDetails &&
+                    orderParam.orderDetails.length > 0
+                      ? "ODD" +
+                        new Date().getMilliseconds() +
+                        new Date().getSeconds() +
+                        new Date().getDay() +
+                        new Date().getMonth() +
+                        new Date().getFullYear() +
+                        String(orderParam.orderDetails.length + 1)
+                      : "ODD" +
+                        new Date().getMilliseconds() +
+                        new Date().getSeconds() +
+                        new Date().getDay() +
+                        new Date().getMonth() +
+                        new Date().getFullYear() +
+                        String(1);
+                  orderArray.addressDetail = req.body.deliveryaddress;
                   orderArray.totalorderPrice = req.body.totalOfferPrice;
+                  orderArray.totalDeliveryCharge = req.body.deliveryCharge;
                   orderArray.totaloriginalPrice = req.body.totalOriginalPrice;
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
@@ -211,7 +244,27 @@ router.post("/save-orders", async (req, res) => {
                       }
                     }
                   }
+                  orderArray.orderId =
+                    orderParam &&
+                    orderParam.orderDetails &&
+                    orderParam.orderDetails.length > 0
+                      ? "ODD" +
+                        new Date().getMilliseconds() +
+                        new Date().getSeconds() +
+                        new Date().getDay() +
+                        new Date().getMonth() +
+                        new Date().getFullYear() +
+                        String(orderParam.orderDetails.length + 1)
+                      : "ODD" +
+                        new Date().getMilliseconds() +
+                        new Date().getSeconds() +
+                        new Date().getDay() +
+                        new Date().getMonth() +
+                        new Date().getFullYear() +
+                        String(1);
+                  orderArray.addressDetail = req.body.deliveryaddress;
                   orderArray.totalorderPrice = req.body.totalOfferPrice;
+                  orderArray.totalDeliveryCharge = req.body.deliveryCharge;
                   orderArray.totaloriginalPrice = req.body.totalOriginalPrice;
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
@@ -263,9 +316,64 @@ router.get("/get-order-details/:userId", async (req, res) => {
       userId: req.params.userId,
     });
     if (orderDetails === null) {
+      resType.status = true;
       resType.message = "You have no order";
       return res.status(200).send(resType);
     }
+
+    for (const i in orderDetails.orderDetails) {
+      for (const j in orderDetails.orderDetails[i].orderDetail) {
+        const product = await productDetail.findById(
+          orderDetails.orderDetails[i].orderDetail[j]._id
+        );
+        const rate = await rateDetail.findOne({
+          productId: orderDetails.orderDetails[i].orderDetail[j]._id,
+        });
+        if (product !== null) {
+          orderDetails.orderDetails[i].orderDetail[j].rating = product.rating;
+          orderDetails.orderDetails[i].orderDetail[j].totalrating =
+            product.totalrating;
+          if (rate !== null) {
+            if (
+              rate.fiveStar &&
+              rate.fiveStar.length > 0 &&
+              rate.fiveStar.findIndex((x) => x === req.params.userId) > -1
+            ) {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "5";
+            } else if (
+              rate.fiveStar &&
+              rate.fourStar.length > 0 &&
+              rate.fourStar.findIndex((x) => x === req.params.userId) > -1
+            ) {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "4";
+            } else if (
+              rate.threeStar &&
+              rate.threeStar.length > 0 &&
+              rate.threeStar.findIndex((x) => x === req.params.userId) > -1
+            ) {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "3";
+            } else if (
+              rate.twoStar &&
+              rate.twoStar.length > 0 &&
+              rate.twoStar.findIndex((x) => x === req.params.userId) > -1
+            ) {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "2";
+            } else if (
+              rate.oneStar &&
+              rate.oneStar.length > 0 &&
+              rate.oneStar.findIndex((x) => x === req.params.userId) > -1
+            ) {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "1";
+            } else {
+              orderDetails.orderDetails[i].orderDetail[j].userRating = "-1";
+            }
+          } else {
+            orderDetails.orderDetails[i].orderDetail[j].userRating = "-1";
+          }
+        }
+      }
+    }
+    await orderDetails.save();
     resType.message = "Successful";
     resType.data = orderDetails.orderDetails;
     resType.status = true;

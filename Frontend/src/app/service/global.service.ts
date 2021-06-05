@@ -13,6 +13,7 @@ import {
 import { Plugins } from '@capacitor/core';
 import { environment } from 'src/environments/environment';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 const { Geolocation } = Plugins;
 
 @Injectable()
@@ -30,6 +31,7 @@ export class GlobalService {
   previousUrl: any;
   currentUrl: string;
   loading: any;
+  public order: BehaviorSubject<any> = new BehaviorSubject<any>([]);
   constructor(
     private toaster: ToastController,
     public alertController: AlertController,
@@ -40,12 +42,12 @@ export class GlobalService {
     platform: Platform,
     public loadingController: LoadingController
   ) {
-    this._router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        this.previousUrl = this.currentUrl;
-        this.currentUrl = event.url;
-      }
-    });
+    // this._router.events.subscribe((event) => {
+    //   if (event instanceof NavigationEnd) {
+    //     this.previousUrl = this.currentUrl;
+    //     this.currentUrl = event.url;
+    //   }
+    // });
     platform.ready().then(() => {
       console.log('Width: ' + platform.width());
       console.log('Height: ' + platform.height());

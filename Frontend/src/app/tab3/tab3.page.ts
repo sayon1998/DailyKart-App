@@ -16,7 +16,7 @@ export class Tab3Page {
     {
       _id: '1',
       name: 'My Orders',
-      link: '',
+      link: '/my-order',
       icon: 'file-tray-full',
     },
     {

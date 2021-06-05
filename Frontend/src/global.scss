@@ -104,7 +104,7 @@
   }
   #mainPrice {
     margin-left: 0px;
-    font-size: small;
+    // font-size: small;
     color: black;
     font-weight: bold;
     span {
@@ -135,4 +135,42 @@ ion-modal.stack-modal {
   font-size: small;
   font-weight: bold;
   margin-left: 5%;
+}
+
+.rating {
+  color: white;
+  width: 40px;
+  background-color: rgb(11, 160, 11);
+  text-align: center;
+  border-radius: 2px;
+  font-size: smaller;
+  float: left;
+  margin-right: 2px;
+}
+.rating-decimal {
+  color: white;
+  margin-right: 2px;
+  float: left;
+  font-size: smaller;
+  width: 55px;
+  background-color: rgb(11, 160, 11);
+  text-align: center;
+  border-radius: 2px;
+}
+
+#mainPrice {
+  margin-left: 0px;
+  font-size: large;
+  color: black;
+  font-weight: bold;
+  span {
+    font-size: medium;
+    text-decoration: line-through;
+    color: gray;
+  }
+  #offer {
+    font-weight: bolder;
+    font-size: small;
+    color: rgb(15, 170, 15);
+  }
 }

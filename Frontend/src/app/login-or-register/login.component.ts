@@ -120,6 +120,7 @@ export class LoginComponent implements OnInit {
         if (resData.status) {
           if (resData.data) {
             localStorage.setItem('isLogin', 'true');
+            localStorage.setItem('userId', resData.data._id);
             localStorage.setItem('user-details', JSON.stringify(resData.data));
             if (this.platform.is('cordova')) {
               SMSReceive.stopWatch(

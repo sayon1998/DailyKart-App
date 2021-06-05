@@ -52,6 +52,11 @@ const routes: Routes = [
         (m) => m.UniversalSearchModule
       ),
   },
+  {
+    path: 'my-order',
+    loadChildren: () =>
+      import('./my-orders/my-orders.module').then((m) => m.MyOrdersModule),
+  },
 ];
 @NgModule({
   imports: [

@@ -4,6 +4,7 @@ const productDetail = require("../Models/product-details");
 const cartWishlist = require("../Models/cart-wishlist");
 const userDetail = require("../Models/user-details");
 const imageUpload = require("../Service/image-upload");
+const ratingDetail = require("../Models/rating-details");
 
 // Get All Products
 router.post("/products", async (req, res) => {
@@ -642,7 +643,7 @@ router.get("/get-cart-wishlist/:_id/:type", async (req, res) => {
     });
     if (cartWishDetails === null) {
       resType.status = true;
-      resType.message = `You have no item in your ${type}`;
+      resType.message = `You have no item in your ${req.params.type}`;
       return res.status(200).send(resType);
     }
     resType.status = true;
@@ -849,6 +850,299 @@ router.post("/move-cart-wishlist-viceversa", async (req, res) => {
         }
       }
     );
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+// Rate Product
+router.post("/rate-product", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.productId) {
+      resType.message = "Product Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.rate) {
+      resType.message = "Rating is Required";
+      return res.status(404).send(resType);
+    }
+    let product = await productDetail.findById(req.body.productId);
+    if (product === null) {
+      resType.message = "Product is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    const rate = await ratingDetail.findOne({ productId: req.body.productId });
+    if (rate === null) {
+      // First time rate of a Product
+      if (req.body.rate === "5") {
+        resType.data = await ratingDetail.create({
+          productId: req.body.productId,
+          fiveStar: ["", req.body.userId],
+          fourStar: [""],
+          threeStar: [""],
+          twoStar: [""],
+          oneStar: [""],
+        });
+      } else if (req.body.rate === "4") {
+        resType.data = await ratingDetail.create({
+          productId: req.body.productId,
+          fiveStar: [""],
+          fourStar: ["", req.body.userId],
+          threeStar: [""],
+          twoStar: [""],
+          oneStar: [""],
+        });
+      } else if (req.body.rate === "3") {
+        resType.data = await ratingDetail.create({
+          productId: req.body.productId,
+          fiveStar: [""],
+          fourStar: [""],
+          threeStar: ["", req.body.userId],
+          twoStar: [""],
+          oneStar: [""],
+        });
+      } else if (req.body.rate === "2") {
+        resType.data = await ratingDetail.create({
+          productId: req.body.productId,
+          fiveStar: [""],
+          fourStar: [""],
+          threeStar: [""],
+          twoStar: ["", req.body.userId],
+          oneStar: [""],
+        });
+      } else if (req.body.rate === "1") {
+        resType.data = await ratingDetail.create({
+          productId: req.body.productId,
+          fiveStar: [""],
+          fourStar: [""],
+          threeStar: [""],
+          twoStar: [""],
+          oneStar: ["", req.body.userId],
+        });
+      }
+      product.totalrating = "1";
+      product.rating = req.body.rate + " / 5";
+      await product.save();
+    } else {
+      // Update Rating by User
+      if (rate.fiveStar.findIndex((x) => x === req.body.userId) > -1) {
+        if (req.body.rate === "5") {
+          resType.message = "Already rated 5 star";
+          return res.status(200).send(resType);
+        } else if (req.body.rate === "4") {
+          rate.fiveStar.splice(
+            rate.fiveStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fourStar.push(req.body.userId);
+        } else if (req.body.rate === "3") {
+          rate.fiveStar.splice(
+            rate.fiveStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.threeStar.push(req.body.userId);
+        } else if (req.body.rate === "2") {
+          rate.fiveStar.splice(
+            rate.fiveStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.twoStar.push(req.body.userId);
+        } else if (req.body.rate === "1") {
+          rate.fiveStar.splice(
+            rate.fiveStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.oneStar.push(req.body.userId);
+        }
+      } else if (rate.fourStar.findIndex((x) => x === req.body.userId) > -1) {
+        if (req.body.rate === "5") {
+          rate.fourStar.splice(
+            rate.fourStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fiveStar.push(req.body.userId);
+        } else if (req.body.rate === "4") {
+          resType.message = "Already rated 4 star";
+          return res.status(200).send(resType);
+        } else if (req.body.rate === "3") {
+          rate.fourStar.splice(
+            rate.fourStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.threeStar.push(req.body.userId);
+        } else if (req.body.rate === "2") {
+          rate.fourStar.splice(
+            rate.fourStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.twoStar.push(req.body.userId);
+        } else if (req.body.rate === "1") {
+          rate.fourStar.splice(
+            rate.fourStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.oneStar.push(req.body.userId);
+        }
+      } else if (rate.threeStar.findIndex((x) => x === req.body.userId) > -1) {
+        if (req.body.rate === "5") {
+          rate.threeStar.splice(
+            rate.threeStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fiveStar.push(req.body.userId);
+        } else if (req.body.rate === "4") {
+          rate.threeStar.splice(
+            rate.threeStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fourStar.push(req.body.userId);
+        } else if (req.body.rate === "3") {
+          resType.message = "Already rated 3 star";
+          return res.status(200).send(resType);
+        } else if (req.body.rate === "2") {
+          rate.threeStar.splice(
+            rate.threeStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.twoStar.push(req.body.userId);
+        } else if (req.body.rate === "1") {
+          rate.threeStar.splice(
+            rate.threeStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.oneStar.push(req.body.userId);
+        }
+      } else if (rate.twoStar.findIndex((x) => x === req.body.userId) > -1) {
+        if (req.body.rate === "5") {
+          rate.twoStar.splice(
+            rate.twoStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fiveStar.push(req.body.userId);
+        } else if (req.body.rate === "4") {
+          rate.twoStar.splice(
+            rate.twoStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fourStar.push(req.body.userId);
+        } else if (req.body.rate === "3") {
+          rate.twoStar.splice(
+            rate.twoStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.threeStar.push(req.body.userId);
+        } else if (req.body.rate === "2") {
+          resType.message = "Already rated 2 star";
+          return res.status(200).send(resType);
+        } else if (req.body.rate === "1") {
+          rate.twoStar.splice(
+            rate.twoStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.oneStar.push(req.body.userId);
+        }
+      } else if (rate.oneStar.findIndex((x) => x === req.body.userId) > -1) {
+        if (req.body.rate === "5") {
+          rate.oneStar.splice(
+            rate.oneStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fiveStar.push(req.body.userId);
+        } else if (req.body.rate === "4") {
+          rate.oneStar.splice(
+            rate.oneStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.fourStar.push(req.body.userId);
+        } else if (req.body.rate === "3") {
+          rate.oneStar.splice(
+            rate.oneStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.threeStar.push(req.body.userId);
+        } else if (req.body.rate === "2") {
+          rate.oneStar.splice(
+            rate.oneStar.findIndex((x) => x === req.body.userId),
+            1
+          );
+          rate.twoStar.push(req.body.userId);
+        } else if (req.body.rate === "1") {
+          resType.message = "Already rated 1 star";
+          return res.status(200).send(resType);
+        }
+      } else {
+        if (req.body.rate === "5") {
+          rate.fiveStar.push(req.body.userId);
+        } else if (req.body.rate === "4") {
+          rate.fourStar.push(req.body.userId);
+        } else if (req.body.rate === "3") {
+          rate.threeStar.push(req.body.userId);
+        } else if (req.body.rate === "2") {
+          rate.twoStar.push(req.body.userId);
+        } else if (req.body.rate === "1") {
+          rate.oneStar.push(req.body.userId);
+        }
+      }
+      resType.data = await rate.save();
+      product.totalrating = String(
+        (rate.fiveStar && rate.fiveStar.length === 0
+          ? 0
+          : rate.fiveStar.length - 1) +
+          (rate.fourStar && rate.fourStar.length === 0
+            ? 0
+            : rate.fourStar.length - 1) +
+          (rate.threeStar && rate.threeStar.length === 0
+            ? 0
+            : rate.threeStar.length - 1) +
+          (rate.twoStar && rate.twoStar.length === 0
+            ? 0
+            : rate.twoStar.length - 1) +
+          (rate.oneStar && rate.oneStar.length === 0
+            ? 0
+            : rate.oneStar.length - 1)
+      );
+      let rating = (
+        ((rate.fiveStar && rate.fiveStar.length === 0
+          ? 0
+          : rate.fiveStar.length - 1) *
+          5 +
+          (rate.fourStar && rate.fourStar.length === 0
+            ? 0
+            : rate.fourStar.length - 1) *
+            4 +
+          (rate.threeStar && rate.threeStar.length === 0
+            ? 0
+            : rate.threeStar.length - 1) *
+            3 +
+          (rate.twoStar && rate.twoStar.length === 0
+            ? 0
+            : rate.twoStar.length - 1) *
+            2 +
+          (rate.oneStar && rate.oneStar.length === 0
+            ? 0
+            : rate.oneStar.length - 1)) /
+        parseInt(product.totalrating)
+      ).toFixed(1);
+      let decimal = (rating - Math.floor(rating)) * 10;
+      if (decimal > 0) {
+        product.rating = String(rating) + "/5";
+      } else {
+        product.rating = String(Math.floor(rating)) + "/5";
+      }
+      await product.save();
+    }
+    resType.message = "Thanks for the rating";
+    resType.status = true;
+    return res.status(200).send(resType);
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);

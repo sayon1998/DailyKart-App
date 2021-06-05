@@ -13,6 +13,7 @@ export class UserDetailService {
     productDetails: [],
     totalOriginalPrice: 0,
     totalOfferPrice: 0,
+    deliveryCharge: 0,
     totalOfferPercentage: null,
     deliveryaddress: {},
   };

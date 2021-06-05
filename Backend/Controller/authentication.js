@@ -146,6 +146,7 @@ router.post("/sign-upin", async (req, res) => {
                       subject: "DailyKart Login Alert",
                     };
                     resType.data = {
+                      _id: params._id,
                       fName: params.fName,
                       mName: params.mName,
                       lName: params.lName,
@@ -177,6 +178,7 @@ router.post("/sign-upin", async (req, res) => {
                     }
                     if (cartWishParams === null) {
                       resType.data = {
+                        _id: params._id,
                         fName: params.fName,
                         mName: params.mName,
                         lName: params.lName,
@@ -188,6 +190,7 @@ router.post("/sign-upin", async (req, res) => {
                       };
                     } else {
                       resType.data = {
+                        _id: params._id,
                         fName: params.fName,
                         mName: params.mName,
                         lName: params.lName,
@@ -269,6 +272,7 @@ router.post("/sign-upin", async (req, res) => {
                           }
                           if (cartWishParams === null) {
                             resType.data = {
+                              _id: params._id,
                               fName: params.fName,
                               mName: params.mName,
                               lName: params.lName,
@@ -280,6 +284,7 @@ router.post("/sign-upin", async (req, res) => {
                             };
                           } else {
                             resType.data = {
+                              _id: params._id,
                               fName: params.fName,
                               mName: params.mName,
                               lName: params.lName,
@@ -316,6 +321,7 @@ router.post("/sign-upin", async (req, res) => {
                       }
                       if (cartWishParams === null) {
                         resType.data = {
+                          _id: params._id,
                           fName: params.fName,
                           mName: params.mName,
                           lName: params.lName,
@@ -327,6 +333,7 @@ router.post("/sign-upin", async (req, res) => {
                         };
                       } else {
                         resType.data = {
+                          _id: params._id,
                           fName: params.fName,
                           mName: params.mName,
                           lName: params.lName,
