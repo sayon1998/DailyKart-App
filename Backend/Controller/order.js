@@ -6,12 +6,13 @@ const productDetail = require("../Models/product-details");
 const orderDetail = require("../Models/order-details");
 const cartDetail = require("../Models/cart-wishlist");
 const rateDetail = require("../Models/rating-details");
+const deliveryCharge = require("../Models/delivery-charge");
 
 // Save Order
 router.post("/save-orders", async (req, res) => {
   const resType = {
     status: false,
-    data: [],
+    data: {},
     message: "",
   };
   let orderArray = {
@@ -95,7 +96,7 @@ router.post("/save-orders", async (req, res) => {
             totalrating: req.body.productDetails[index].totalrating,
             type: req.body.productDetails[index].type,
             unit: req.body.productDetails[index].unit,
-            deliverycharge: req.body.productDetails[index].unit,
+            deliverycharge: req.body.productDetails[index].deliverycharge,
             price: req.body.productDetails[index].price,
             originalprice: req.body.productDetails[index].originalprice,
             offerpercentage: req.body.productDetails[index].offerpercentage,
@@ -163,6 +164,7 @@ router.post("/save-orders", async (req, res) => {
                           ),
                           1
                         );
+                        await cartDetails.save();
                       }
                     }
                   }
@@ -191,11 +193,15 @@ router.post("/save-orders", async (req, res) => {
                   orderArray.totaloriginalPrice = req.body.totalOriginalPrice;
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
-                  resType.data = await orderDetail.create({
-                    userId: req.body.userId,
-                    orderDetails: [orderArray],
-                  });
-                  await cartDetails.save();
+                  (orderArray.isOrderPlaced = true),
+                    (orderArray.isOrderPacked = false),
+                    (orderArray.isOrderDispatched = false),
+                    (orderArray.isOrderOutForDelivery = false),
+                    (orderArray.isOrderDelivered = false),
+                    (resType.data = await orderDetail.create({
+                      userId: req.body.userId,
+                      orderDetails: [orderArray],
+                    }));
                   resType.status = true;
                   resType.message = "Order placed successfully";
                   return res.status(200).send(resType);
@@ -241,6 +247,7 @@ router.post("/save-orders", async (req, res) => {
                           ),
                           1
                         );
+                        await cartDetails.save();
                       }
                     }
                   }
@@ -268,10 +275,14 @@ router.post("/save-orders", async (req, res) => {
                   orderArray.totaloriginalPrice = req.body.totalOriginalPrice;
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
-                  orderParam.orderDetails.push(orderArray);
+                  (orderArray.isOrderPlaced = true),
+                    (orderArray.isOrderPacked = false),
+                    (orderArray.isOrderDispatched = false),
+                    (orderArray.isOrderOutForDelivery = false),
+                    (orderArray.isOrderDelivered = false),
+                    orderParam.orderDetails.push(orderArray);
                   await address.save();
                   resType.data = await orderParam.save();
-                  await cartDetails.save();
                   resType.status = true;
                   resType.message = "Order placed successfully";
                   return res.status(200).send(resType);
@@ -299,7 +310,7 @@ router.post("/save-orders", async (req, res) => {
 router.get("/get-order-details/:userId", async (req, res) => {
   const resType = {
     status: false,
-    data: [],
+    data: {},
     message: "",
   };
   try {
@@ -378,6 +389,238 @@ router.get("/get-order-details/:userId", async (req, res) => {
     resType.data = orderDetails.orderDetails;
     resType.status = true;
     return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Get Order Details by User Id and Order Id
+router.get("/get-order-details/:userId/:orderId", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.params.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.params.orderId) {
+      resType.message = "Order Id is Required";
+      return res.status(404).send(resType);
+    }
+    const userDetail = await userDetails.findById(req.params.userId);
+    if (userDetail === null) {
+      resType.message = "User is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    const orderDetails = await orderDetail.findOne({
+      userId: req.params.userId,
+    });
+    if (orderDetails === null) {
+      resType.status = true;
+      resType.message = "You have no order";
+      return res.status(200).send(resType);
+    }
+    flag = false;
+    for (const index in orderDetails.orderDetails) {
+      if (orderDetails.orderDetails[index].orderId === req.params.orderId) {
+        resType.message = "Successful";
+        resType.data = orderDetails.orderDetails[index];
+        resType.status = true;
+        return res.status(200).send(resType);
+      }
+    }
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Delivery Charge
+router.post("/delivery-charge", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  if (!req.body.minDeliveryAmt) {
+    resType.message = "Minimum Delivery Amount is Required";
+    return res.status(404).send(resType);
+  }
+  const deliveryChargeDetail = await deliveryCharge.find({});
+  if (
+    typeof deliveryChargeDetail === "object" &&
+    deliveryChargeDetail.length === 0
+  ) {
+    if (req.body.chargeAmt) {
+      resType.data = await deliveryCharge.create({
+        minDeliveryAmt: req.body.minDeliveryAmt,
+        chargeAmt: req.body.chargeAmt,
+      });
+    } else {
+      resType.data = await deliveryCharge.create({
+        minDeliveryAmt: req.body.minDeliveryAmt,
+      });
+    }
+
+    resType.status = true;
+    resType.message = "Successful";
+    return res.status(200).send(resType);
+  } else {
+    if (!req.body.previousAmt) {
+      resType.message = "Previous Amount is Required";
+      return res.status(404).send(resType);
+    }
+    const deliveryChargeDetailAmt = await deliveryCharge.findOne({
+      minDeliveryAmt: req.body.previousAmt,
+    });
+    if (deliveryChargeDetailAmt === null) {
+      resType.message = "No Amount is Present";
+      return res.status(404).send(resType);
+    }
+    deliveryChargeDetailAmt.minDeliveryAmt = req.body.minDeliveryAmt;
+    if (req.body.chargeAmt) {
+      deliveryChargeDetailAmt.chargeAmt = req.body.chargeAmt;
+    }
+    resType.data = await deliveryChargeDetailAmt.save();
+    resType.status = true;
+    resType.message = "Successful";
+    return res.status(200).send(resType);
+  }
+});
+
+// Get Delivery Charge
+router.get("/get-delivery-charge", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  const deliveryChargeDetail = await deliveryCharge.find({});
+  if (deliveryChargeDetail && deliveryChargeDetail.length === 0) {
+    resType.message = "No Delivery Charge is Required";
+    resType.status = true;
+    return res.status(200).send(resType);
+  } else {
+    resType.data = {
+      deliveryCharge: deliveryChargeDetail[0].minDeliveryAmt,
+      chargeAmt: deliveryChargeDetail[0].chargeAmt,
+    };
+    resType.message = "Successful";
+    resType.status = true;
+    return res.status(200).send(resType);
+  }
+});
+
+// Update Order
+router.post("/update-order", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.orderId) {
+      resType.message = "Order Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.orderStatus) {
+      resType.message = "Order Status is Required";
+      return res.status(404).send(resType);
+    }
+    const orderDetails = await orderDetail.findOne({ userId: req.body.userId });
+    if (orderDetails === null) {
+      resType.message = "User have no order";
+      return res.status(404).send(resType);
+    }
+    flag = true;
+    let tempArray = orderDetails.orderDetails;
+    for (const index in tempArray) {
+      if (tempArray[index].orderId === req.body.orderId) {
+        if (
+          req.body.orderStatus === "packed" &&
+          tempArray[index].isOrderPlaced &&
+          !tempArray[index].isOrderPacked
+        ) {
+          tempArray[index].isOrderPacked = true;
+          tempArray[index].orderPackedDate = new Date().toLocaleString(
+            "en-US",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "dispatched" &&
+          tempArray[index].isOrderPlaced &&
+          tempArray[index].isOrderPacked &&
+          !tempArray[index].isOrderDispatched
+        ) {
+          tempArray[index].isOrderDispatched = true;
+          tempArray[index].orderDispatchedDate = new Date().toLocaleString(
+            "en-US",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "out_for_delivery" &&
+          tempArray[index].isOrderPlaced &&
+          tempArray[index].isOrderPacked &&
+          tempArray[index].isOrderDispatched &&
+          !tempArray[index].isOrderOutForDelivery
+        ) {
+          tempArray[index].isOrderOutForDelivery = true;
+          tempArray[index].orderOutForDeliveryDate = new Date().toLocaleString(
+            "en-US",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "delivered" &&
+          tempArray[index].isOrderPlaced &&
+          tempArray[index].isOrderPacked &&
+          tempArray[index].isOrderDispatched &&
+          tempArray[index].isOrderOutForDelivery &&
+          !tempArray[index].isOrderDelivered
+        ) {
+          tempArray[index].isOrderDelivered = true;
+          tempArray[index].orderDeliveredDate = new Date().toLocaleString(
+            "en-US",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else {
+          resType.message = "Something Error Occurred";
+          return res.status(404).send(resType);
+        }
+        flag = false;
+        resType.data = orderDetails.orderDetails[index];
+        resType.status = true;
+        resType.message = "Successful";
+        return res.status(200).send(resType);
+      }
+    }
+    if (flag) {
+      resType.message = "This order is not present in our database";
+      return res.status(404).send(resType);
+    }
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);

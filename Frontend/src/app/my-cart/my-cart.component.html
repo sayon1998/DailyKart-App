@@ -125,13 +125,14 @@
     </ion-item>
     <!-- Delivery More than 200 Rs-->
     <div
+      *ngIf="totalDeliveryCharge > 0 && totalOfferPrice < totalDeliveryCharge"
       id="deliveryCharge"
       style="text-align: center"
       [style.height]="_global.HEIGHT / 20 + 'px'"
       id="deliveryCharge"
     >
       <ion-text style="font-size: larger; position: relative; top: 5px"
-        >Delivery charge omit above ₹250</ion-text
+        >Delivery charge omit above ₹{{ totalDeliveryCharge }}</ion-text
       >
     </div>
 
@@ -156,8 +157,8 @@
               <ion-col>
                 <ion-title id="cart-header">
                   {{
-                    item.name && item.name.length > 30
-                      ? item.name.slice(0, 30) + "..."
+                    item.name && item.name.length > 29
+                      ? item.name.slice(0, 29) + "..."
                       : item.name
                   }}
                 </ion-title>
@@ -267,7 +268,12 @@
               </ion-col>
             </ion-row>
             <!-- Delivery Charge -->
-            <ion-row class="bottomRow" *ngIf="item.deliverycharge">
+            <ion-row
+              class="bottomRow"
+              *ngIf="
+                item.deliverycharge && totalOfferPrice < totalDeliveryCharge
+              "
+            >
               <ion-col>
                 <ion-text
                   style="font-size: medium; color: red; font-weight: bold"
@@ -292,6 +298,7 @@
               style="width: 100%; float: right; border: 2px solid black"
             />
             <img
+              *ngIf="totalOfferPrice >= totalDeliveryCharge"
               id="free-shipping"
               src="assets/images/free-shipping.png"
               alt=""
@@ -361,9 +368,14 @@
                 style="font-size: x-large; color: #3880ff; font-weight: 700"
                 >{{ "₹" + totalOfferPrice }}</ion-text
               >
-              <ion-text *ngIf="deliveryCharge > 0">{{
-                deliveryCharge > 0 ? " + ₹" + deliveryCharge : ""
-              }}</ion-text>
+              <ion-text
+                *ngIf="
+                  deliveryCharge > 0 && totalOfferPrice < totalDeliveryCharge
+                "
+                >{{
+                  deliveryCharge > 0 ? " + ₹" + deliveryCharge : ""
+                }}</ion-text
+              >
             </ion-col>
           </ion-row>
         </ion-col>

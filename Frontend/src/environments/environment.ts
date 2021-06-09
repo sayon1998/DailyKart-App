@@ -13,8 +13,8 @@ export const environment = {
     appId: '1:609237155387:web:1b69b082e5b093a045661e',
     measurementId: 'G-R9BBZWBBS7',
   },
-  apiUrl: 'http://192.168.100.101:3000/api/',
-  // apiUrl: 'http://localhost:3000/api/',
+  // apiUrl: 'http://192.168.100.101:3000/api/',
+  apiUrl: 'http://localhost:3000/api/',
 };
 
 /*

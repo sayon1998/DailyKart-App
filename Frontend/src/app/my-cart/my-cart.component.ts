@@ -49,6 +49,8 @@ export class MyCartComponent implements OnInit {
   public cartArray: any[] = [];
   public address: any[] = [];
   public spin = true;
+  public totalDeliveryCharge = 0;
+  public chargeAmount = 0;
   constructor(
     public _address: AddressService,
     public _user: UserDetailService,
@@ -70,8 +72,25 @@ export class MyCartComponent implements OnInit {
     this.platform.ready().then(() => {
       this.backbuttonSubscribeMethod();
     });
-    this.checkKart();
-    this.getAllAddressess();
+    this.getDeliveryCharge();
+  }
+  getDeliveryCharge() {
+    this._global.get('order/get-delivery-charge').subscribe((resData: any) => {
+      if (resData.status) {
+        if (resData.data) {
+          this.totalDeliveryCharge = parseInt(resData.data.deliveryCharge);
+          this.chargeAmount = parseInt(resData.data.chargeAmt);
+          this.checkKart();
+          this.getAllAddressess();
+        } else {
+          this.checkKart();
+          this.getAllAddressess();
+        }
+      } else {
+        this.checkKart();
+        this.getAllAddressess();
+      }
+    });
   }
   backbuttonSubscribeMethod() {
     this.platform.backButton.subscribe(async () => {
@@ -221,9 +240,19 @@ export class MyCartComponent implements OnInit {
         this.totalOfferPrice -=
           this.cartArray[index].orderqty *
           parseFloat(this.cartArray[index].price);
-        if (this.cartArray[index].deliverycharge) {
-          this.deliveryCharge -= parseInt(this.cartArray[index].deliverycharge);
-        }
+        this.deliveryCharge = 0;
+        this.cartArray.forEach((x, i) => {
+          if (x.isCheckout) {
+            if (
+              x.deliverycharge &&
+              this.totalOfferPrice < this.totalDeliveryCharge &&
+              i !== index
+            ) {
+              this.deliveryCharge += parseInt(x.deliverycharge);
+            }
+          }
+        });
+        console.log(this.deliveryCharge);
       }
     }
   }
@@ -235,11 +264,17 @@ export class MyCartComponent implements OnInit {
       if (x.isCheckout) {
         this.totalPrice += x.orderqty * parseFloat(x.originalprice);
         this.totalOfferPrice += x.orderqty * parseFloat(x.price);
-        if (x.deliverycharge) {
+        if (
+          x.deliverycharge &&
+          this.totalOfferPrice < this.totalDeliveryCharge
+        ) {
           this.deliveryCharge += parseInt(x.deliverycharge);
         }
       }
     });
+    if (this.totalOfferPrice >= this.totalDeliveryCharge) {
+      this.deliveryCharge = 0;
+    }
   }
   onClickMoveToWishlist(item: any) {
     if (this._auth.isLogin()) {
@@ -273,6 +308,7 @@ export class MyCartComponent implements OnInit {
                   1
                 );
                 this.cartArray.splice(this.cartArray.indexOf(item), 1);
+                this.getPrice();
               }
             }
           },
@@ -312,8 +348,8 @@ export class MyCartComponent implements OnInit {
         localStorage.setItem('cart', JSON.stringify(this._user.cartArray));
         localStorage.setItem('wishList', JSON.stringify([item._id]));
       }
+      this.getPrice();
     }
-    this.getPrice();
   }
   async onClickDelete(item: any) {
     const alert = await this.alertController.create({
@@ -382,7 +418,7 @@ export class MyCartComponent implements OnInit {
     });
     await alert.present();
   }
-  onClickBuyNow() {
+  async onClickBuyNow() {
     console.log(this.cartArray);
     if (this.totalPrice !== 0 && this.totalOfferPrice !== 0) {
       if (this._auth.isLogin()) {
@@ -398,11 +434,18 @@ export class MyCartComponent implements OnInit {
             param.productId.push(x._id);
           }
         });
-        this._user.checkOutArray.deliveryCharge = this.deliveryCharge;
+        this._user.checkOutArray.deliveryCharge =
+          this.totalOfferPrice < this.totalDeliveryCharge
+            ? this.deliveryCharge + this.chargeAmount
+            : this.deliveryCharge;
         this._user.checkOutArray.totalOriginalPrice =
-          this.totalPrice + this.deliveryCharge;
+          this.totalOfferPrice < this.totalDeliveryCharge
+            ? this.totalPrice + this.deliveryCharge + this.chargeAmount
+            : this.totalPrice + this.deliveryCharge;
         this._user.checkOutArray.totalOfferPrice =
-          this.totalOfferPrice + this.deliveryCharge;
+          this.totalOfferPrice < this.totalDeliveryCharge
+            ? this.totalOfferPrice + this.deliveryCharge + this.chargeAmount
+            : this.totalOfferPrice + this.deliveryCharge;
         this._user.checkOutArray.totalOfferPercentage =
           (
             100 -
@@ -412,53 +455,125 @@ export class MyCartComponent implements OnInit {
           ).toFixed(2) + '% Off';
         this._user.checkOutArray.deliveryaddress = this.address[0];
         this._user.checkOutArray.userId = localStorage.getItem('userId');
-        console.log(param);
-        this.isLoading = true;
-        this._global
-          .post('address/check-multiple-order-deliveriable', param)
-          .subscribe(
-            (resData: any) => {
-              if (resData.status) {
-                if (resData.data && resData.data.length > 0) {
-                  console.log(resData.data);
-                  this.isLoading = false;
-                  let flag = true;
-                  resData.data.forEach((element: any, index: number) => {
-                    if (
-                      this.cartArray.findIndex(
-                        (x) => x._id === element.productId
-                      ) > -1
-                    ) {
-                      if (element.status) {
-                        flag = false;
-                        this.cartArray[
-                          this.cartArray.findIndex(
-                            (x) => x._id === element.productId
-                          )
-                        ].status = element.status;
-                        this.cartArray[
-                          this.cartArray.findIndex(
-                            (x) => x._id === element.productId
-                          )
-                        ].message = element.message;
+        console.log(this._user.checkOutArray);
+        if (this.totalOfferPrice < this.totalDeliveryCharge) {
+          const alert = await this.alertController.create({
+            header: 'Delivery Charge',
+            message: `You have to pay rs ${this._user.checkOutArray.deliveryCharge} extra `,
+            buttons: [
+              {
+                text: 'Cancel',
+                role: 'cancel',
+                cssClass: 'secondary',
+                handler: () => {
+                  console.log('Confirm Cancel');
+                },
+              },
+              {
+                text: 'Procced',
+                handler: () => {
+                  console.log('Confirm Ok');
+                  this.isLoading = true;
+                  this._global
+                    .post('address/check-multiple-order-deliveriable', param)
+                    .subscribe(
+                      (resData: any) => {
+                        if (resData.status) {
+                          if (resData.data && resData.data.length > 0) {
+                            console.log(resData.data);
+                            this.isLoading = false;
+                            let flag = true;
+                            resData.data.forEach(
+                              (element: any, index: number) => {
+                                if (
+                                  this.cartArray.findIndex(
+                                    (x) => x._id === element.productId
+                                  ) > -1
+                                ) {
+                                  if (element.status) {
+                                    flag = false;
+                                    this.cartArray[
+                                      this.cartArray.findIndex(
+                                        (x) => x._id === element.productId
+                                      )
+                                    ].status = element.status;
+                                    this.cartArray[
+                                      this.cartArray.findIndex(
+                                        (x) => x._id === element.productId
+                                      )
+                                    ].message = element.message;
+                                  }
+                                }
+                              }
+                            );
+                            if (flag) {
+                              console.log(this._user.checkOutArray);
+                              this.nav.navigateRoot(['/checkout']);
+                            }
+                          }
+                        } else {
+                          this.isLoading = false;
+                          this._global.toasterValue(resData.message, 'Error');
+                        }
+                      },
+                      (err) => {
+                        this.isLoading = false;
+                        this._global.toasterValue(err.message, 'Error');
                       }
+                    );
+                },
+              },
+            ],
+          });
+          await alert.present();
+        } else {
+          this.isLoading = true;
+          this._global
+            .post('address/check-multiple-order-deliveriable', param)
+            .subscribe(
+              (resData: any) => {
+                if (resData.status) {
+                  if (resData.data && resData.data.length > 0) {
+                    console.log(resData.data);
+                    this.isLoading = false;
+                    let flag = true;
+                    resData.data.forEach((element: any, index: number) => {
+                      if (
+                        this.cartArray.findIndex(
+                          (x) => x._id === element.productId
+                        ) > -1
+                      ) {
+                        if (element.status) {
+                          flag = false;
+                          this.cartArray[
+                            this.cartArray.findIndex(
+                              (x) => x._id === element.productId
+                            )
+                          ].status = element.status;
+                          this.cartArray[
+                            this.cartArray.findIndex(
+                              (x) => x._id === element.productId
+                            )
+                          ].message = element.message;
+                        }
+                      }
+                    });
+                    if (flag) {
+                      console.log(this._user.checkOutArray);
+                      this.nav.navigateRoot(['/checkout']);
                     }
-                  });
-                  if (flag) {
-                    console.log(this._user.checkOutArray);
-                    this.nav.navigateRoot(['/checkout']);
                   }
+                } else {
+                  this.isLoading = false;
+                  this._global.toasterValue(resData.message, 'Error');
                 }
-              } else {
+              },
+              (err) => {
                 this.isLoading = false;
-                this._global.toasterValue(resData.message, 'Error');
+                this._global.toasterValue(err.message, 'Error');
               }
-            },
-            (err) => {
-              this.isLoading = false;
-              this._global.toasterValue(err.message, 'Error');
-            }
-          );
+            );
+        }
       } else {
         this.nav.navigateRoot(['/login']);
       }
