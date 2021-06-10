@@ -57,8 +57,7 @@ const productSchema = new mongoose.Schema({
     required: true, // Which type of product it is (Category)
   },
   returnpolicy: {
-    type: String,
-    required: true, // What is the return policy
+    type: String, // What is the return policy
   },
   company: {
     type: String,

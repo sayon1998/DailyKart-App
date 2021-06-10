@@ -70,11 +70,8 @@ export class MyOrdersComponent implements OnInit {
   onClickOrderDetails(index: number) {
     console.log(this.orderDetail[index].orderId);
     // this._global.order.next(this.orderDetail[index]);
-    this.nav.navigateRoot([
-      'my-order/order-detail',
-      {
-        queryParams: { orderId: this.orderDetail[index].orderId },
-      },
-    ]);
+    this.nav.navigateRoot(['my-order/order-detail'], {
+      queryParams: { orderId: this.orderDetail[index].orderId },
+    });
   }
 }

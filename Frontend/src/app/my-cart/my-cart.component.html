@@ -422,12 +422,40 @@
     </ion-item>
     <ion-list *ngIf="address && address.length > 0">
       <ion-radio-group [value]="address[0].addressId">
-        <ion-item
-          *ngFor="let item of address; let i = index"
-          (click)="onClickAddressChange(i)"
-        >
-          <ion-label>{{ item.area }} ,{{ "pin:- " + item.pin }}</ion-label>
-          <ion-radio slot="start" [value]="address[i].addressId"></ion-radio>
+        <ion-item *ngFor="let item of address; let i = index">
+          <ion-row>
+            <ion-col (click)="onClickAddressChange(i)" size="9.5">
+              <ion-text>{{ item.name }}</ion-text>
+              <br />
+              <ion-text>
+                {{ item.area }} ,{{ item.city }} ,{{ item.dist }} ,{{
+                  item.state
+                }}
+                ,{{ "pin:- " + item.pin }}</ion-text
+              >
+              <br />
+              <ion-note>{{ item.ph }}</ion-note>
+            </ion-col>
+            <ion-col>
+              <ion-button
+                [style.width]="_global.WIDTH / 10 + 'px'"
+                [style.height]="_global.HEIGHT / 30 + 'px'"
+                expand="block"
+                color="primary"
+              >
+                <ion-icon
+                  style="font-size: medium"
+                  name="create-outline"
+                ></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+
+          <ion-radio
+            (click)="onClickAddressChange(i)"
+            slot="start"
+            [value]="address[i].addressId"
+          ></ion-radio>
         </ion-item>
       </ion-radio-group>
     </ion-list>

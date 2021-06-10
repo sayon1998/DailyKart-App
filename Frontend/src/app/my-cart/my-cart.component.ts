@@ -434,6 +434,21 @@ export class MyCartComponent implements OnInit {
             param.productId.push(x._id);
           }
         });
+        if (
+          this._user.checkOutArray.productDetails.findIndex(
+            (x: any) => x.quantity === 0
+          ) > -1
+        ) {
+          this._global.toasterValue(
+            this._user.checkOutArray.productDetails[
+              this._user.checkOutArray.productDetails.findIndex(
+                (x: any) => x.quantity === 0
+              )
+            ].name + ' is no item left',
+            'Warning'
+          );
+          return false;
+        }
         this._user.checkOutArray.deliveryCharge =
           this.totalOfferPrice < this.totalDeliveryCharge
             ? this.deliveryCharge + this.chargeAmount
