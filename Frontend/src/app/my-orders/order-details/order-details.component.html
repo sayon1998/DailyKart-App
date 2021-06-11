@@ -36,6 +36,32 @@
           <div class="divider"></div>
           <!-- Order name and seller name and price with order pic -->
         </ion-row>
+        <ion-row
+          *ngIf="(isCancel || isReturn) && orderData && orderData.length > 1"
+        >
+          <ion-col>
+            <ion-button *ngIf="isCancel" expand="block" color="dark">
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Cancel All</ion-button
+            >
+          </ion-col>
+          <ion-col>
+            <ion-button
+              *ngIf="isReturn && orderStatus.isOrderDelivered"
+              expand="block"
+              color="dark"
+              ><ion-icon name="repeat-outline" slot="start"></ion-icon> Replace
+              All</ion-button
+            >
+          </ion-col>
+          <ion-col>
+            <ion-button *ngIf="isReturn" expand="block" color="danger">
+              <ion-icon name="return-up-back-outline" slot="start"></ion-icon>
+              Return All</ion-button
+            >
+          </ion-col>
+          <div class="divider"></div>
+        </ion-row>
         <div *ngFor="let item of orderData">
           <ion-row>
             <ion-col size="8">
@@ -110,6 +136,16 @@
             <div class="divider"></div>
           </ion-row>
           <!-- Cancel or Return -->
+          <ion-row
+            *ngIf="isReturn && item.returnTime < orderStatus.orderDeliveredDate"
+          >
+            <ion-col style="text-align: center">
+              <ion-text style="font-weight: bold; font-size: small"
+                >Until
+                {{ item.returnTime | date: "MMM d, y, h:mm a" }}</ion-text
+              >
+            </ion-col>
+          </ion-row>
           <ion-row *ngIf="isCancel || isReturn">
             <ion-col *ngIf="isCancel">
               <ion-button expand="block" color="dark">
@@ -117,14 +153,10 @@
                 Cancel</ion-button
               >
             </ion-col>
-            <ion-col
-              *ngIf="
-                isReturn && item.returnTime < orderStatus.orderDeliveredDate
-              "
-            >
-              <ion-text style="font-weight: bold; font-size: small"
-                >Until
-                {{ item.returnTime | date: "MMM d, y, h:mm a" }}</ion-text
+            <ion-col *ngIf="isReturn && orderStatus.isOrderDelivered">
+              <ion-button expand="block" color="dark"
+                ><ion-icon name="repeat-outline" slot="start"></ion-icon>
+                Replace</ion-button
               >
             </ion-col>
             <ion-col

@@ -691,4 +691,106 @@ router.post("/update-order", async (req, res) => {
   }
 });
 
+// Cancel All or Particular Order
+router.post("/cancel-order", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (req.body.productId && req.body.productId.length === 0) {
+      resType.message = "Product Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.orderId) {
+      resType.message = "Order Id is Required";
+      return res.status(404).send(resType);
+    }
+    const userDetail = await userDetails.findById(req.body.userId);
+    if (userDetail === null) {
+      resType.message = "User is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    const orderDetails = await orderDetail.findOne({ userId: req.body.userId });
+    let tempArray = orderDetails.orderDetails;
+    let flag = false;
+    for (const index in tempArray) {
+      if (tempArray[index].orderId === req.body.orderId) {
+        for (const j in tempArray[index].orderDetail) {
+          if (
+            req.body.productId.findIndex(
+              (x) => x === tempArray[index].orderDetail[j]._id
+            ) > -1
+          ) {
+            if (
+              !tempArray[index].isOrderDelivered &&
+              !tempArray[index].isOrderOutForDelivery
+            ) {
+              flag = true;
+              tempArray[index].orderDetail[j].isOrderCancel = true;
+              tempArray[index].orderDetail[j].cancelDate =
+                new Date().toLocaleString("en-US", {
+                  timeZone: "Asia/Kolkata",
+                });
+              const product = await productDetail.findById(
+                tempArray[index].orderDetail[j]._id
+              );
+              if (product !== null) {
+                product.quantity += tempArray[index].orderDetail[j].orderqty;
+                await product.save();
+              }
+              tempArray[index].totaloriginalPrice -=
+                parseInt(tempArray[index].orderDetail[j].price) *
+                tempArray[index].orderDetail[j].orderqty;
+              tempArray[index].totalorderPrice -=
+                parseInt(tempArray[index].orderDetail[j].originalprice) *
+                tempArray[index].orderDetail[j].orderqty;
+              tempArray[index].totalofferPercentage =
+                (
+                  100 -
+                  (tempArray[index].totalorderPrice /
+                    tempArray[index].totaloriginalPrice) *
+                    100
+                ).toFixed(2) + "% off";
+              const deliveryChargeDetail = await deliveryCharge.find({});
+              if (
+                parseFloat(tempArray[index].totaloriginalPrice) <
+                parseFloat(deliveryChargeDetail.minDeliveryAmt)
+              ) {
+                tempArray[index].totaloriginalPrice += parseInt(
+                  deliveryChargeDetail.chargeAmt
+                );
+                tempArray[index].deliveryCharge += parseInt(
+                  deliveryChargeDetail.chargeAmt
+                );
+              }
+            } else {
+              resType.message = "Ordered can not be cancelled";
+              return res.status(400).send(resType);
+            }
+          }
+        }
+      }
+    }
+    if (!flag) {
+      resType.message = "Ordered Id is not Found";
+      return res.status(400).send(resType);
+    }
+    orderDetails.orderDetails = [];
+    orderDetails.orderDetails = tempArray;
+    resType.status = true;
+    resType.data = await orderDetails.save();
+    resType.message = "Successfuly Canceled";
+    return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
 module.exports = router;
