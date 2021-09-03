@@ -449,7 +449,7 @@ router.post("/save-cart-wishlist", async (req, res) => {
                 wishlist: wishArray,
               });
               resType.status = true;
-              resType.message = `Your cart is successfully saved in your wishlist and cart`;
+              resType.message = `Your product is successfully saved`;
               return res.status(200).send(resType);
             } else {
               if (req.body.cart && req.body.cart.length > 0) {
@@ -829,7 +829,7 @@ router.post("/move-cart-wishlist-viceversa", async (req, res) => {
                 wishlistData !== null &&
                 cartWishParams.cart.indexOf(wishlistData._id) === -1
               ) {
-                cartWishParams.cart.push(wishlistData._id);
+                cartWishParams.cart.push(req.body.wishlist[index]);
                 cartWishParams.wishlist.splice(
                   cartWishParams.wishlist.indexOf(String(wishlistData._id)),
                   1

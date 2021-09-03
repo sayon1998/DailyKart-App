@@ -263,44 +263,48 @@ router.post("/sign-upin", async (req, res) => {
                         type: "login-alert",
                         subject: "DailyKart Login Alert",
                       };
-                      await cartWishlist.findOne(
-                        { userId: params._id },
-                        async (err, cartWishParams) => {
-                          if (err) {
-                            resType.message = err.message;
-                            return res.status(404).send(resType);
-                          }
-                          if (cartWishParams === null) {
-                            resType.data = {
-                              _id: params._id,
-                              fName: params.fName,
-                              mName: params.mName,
-                              lName: params.lName,
-                              email: params.email,
-                              ph: params.ph,
-                              gender: params.gender,
-                              cart: [],
-                              wishlist: [],
-                            };
-                          } else {
-                            resType.data = {
-                              _id: params._id,
-                              fName: params.fName,
-                              mName: params.mName,
-                              lName: params.lName,
-                              email: params.email,
-                              ph: params.ph,
-                              gender: params.gender,
-                              cart: cartWishParams.cart,
-                              wishlist: cartWishParams.wishlist,
-                            };
-                          }
-                          emailTemp.emailTemplate(emailParam);
-                          resType.status = true;
-                          resType.message = "Login Successful";
-                          return res.status(200).send(resType);
-                        }
-                      );
+                      emailTemp.emailTemplate(emailParam);
+                      resType.status = true;
+                      resType.message = "Login Successful";
+                      return res.status(200).send(resType);
+                      // await cartWishlist.findOne(
+                      //   { userId: params._id },
+                      //   async (err, cartWishParams) => {
+                      //     if (err) {
+                      //       resType.message = err.message;
+                      //       return res.status(404).send(resType);
+                      //     }
+                      //     if (cartWishParams === null) {
+                      //       resType.data = {
+                      //         _id: params._id,
+                      //         fName: params.fName,
+                      //         mName: params.mName,
+                      //         lName: params.lName,
+                      //         email: params.email,
+                      //         ph: params.ph,
+                      //         gender: params.gender,
+                      //         cart: [],
+                      //         wishlist: [],
+                      //       };
+                      //     } else {
+                      //       resType.data = {
+                      //         _id: params._id,
+                      //         fName: params.fName,
+                      //         mName: params.mName,
+                      //         lName: params.lName,
+                      //         email: params.email,
+                      //         ph: params.ph,
+                      //         gender: params.gender,
+                      //         cart: cartWishParams.cart,
+                      //         wishlist: cartWishParams.wishlist,
+                      //       };
+                      //     }
+                      //     emailTemp.emailTemplate(emailParam);
+                      //     resType.status = true;
+                      //     resType.message = "Login Successful";
+                      //     return res.status(200).send(resType);
+                      //   }
+                      // );
                     } catch (err) {
                       resType.message = err.message;
                       return res.status(404).send(resType);
@@ -311,48 +315,51 @@ router.post("/sign-upin", async (req, res) => {
                     console.log(error);
                   });
               } else {
-                try {
-                  await cartWishlist.findOne(
-                    { userId: params._id },
-                    async (err, cartWishParams) => {
-                      if (err) {
-                        resType.message = err.message;
-                        return res.status(404).send(resType);
-                      }
-                      if (cartWishParams === null) {
-                        resType.data = {
-                          _id: params._id,
-                          fName: params.fName,
-                          mName: params.mName,
-                          lName: params.lName,
-                          email: params.email,
-                          ph: params.ph,
-                          gender: params.gender,
-                          cart: [],
-                          wishlist: [],
-                        };
-                      } else {
-                        resType.data = {
-                          _id: params._id,
-                          fName: params.fName,
-                          mName: params.mName,
-                          lName: params.lName,
-                          email: params.email,
-                          ph: params.ph,
-                          gender: params.gender,
-                          cart: cartWishParams.cart,
-                          wishlist: cartWishParams.wishlist,
-                        };
-                      }
-                      resType.status = true;
-                      resType.message = "Login Successful";
-                      return res.status(200).send(resType);
-                    }
-                  );
-                } catch (err) {
-                  resType.message = err.message;
-                  return res.status(404).send(resType);
-                }
+                resType.status = true;
+                resType.message = "Login Successful";
+                return res.status(200).send(resType);
+                // try {
+                //   await cartWishlist.findOne(
+                //     { userId: params._id },
+                //     async (err, cartWishParams) => {
+                //       if (err) {
+                //         resType.message = err.message;
+                //         return res.status(404).send(resType);
+                //       }
+                //       if (cartWishParams === null) {
+                //         resType.data = {
+                //           _id: params._id,
+                //           fName: params.fName,
+                //           mName: params.mName,
+                //           lName: params.lName,
+                //           email: params.email,
+                //           ph: params.ph,
+                //           gender: params.gender,
+                //           cart: [],
+                //           wishlist: [],
+                //         };
+                //       } else {
+                //         resType.data = {
+                //           _id: params._id,
+                //           fName: params.fName,
+                //           mName: params.mName,
+                //           lName: params.lName,
+                //           email: params.email,
+                //           ph: params.ph,
+                //           gender: params.gender,
+                //           cart: cartWishParams.cart,
+                //           wishlist: cartWishParams.wishlist,
+                //         };
+                //       }
+                //       resType.status = true;
+                //       resType.message = "Login Successful";
+                //       return res.status(200).send(resType);
+                //     }
+                //   );
+                // } catch (err) {
+                //   resType.message = err.message;
+                //   return res.status(404).send(resType);
+                // }
               }
             } else {
               resType.message = "Please Enter Correct Password";
@@ -394,8 +401,42 @@ router.post("/check-phnumber-availability", async (req, res) => {
         resType.message = "Phone number is not present";
         return res.status(200).send(resType);
       } else {
-        resType.message = "Phone number is already present";
-        return res.status(400).send(resType);
+        await cartWishlist.findOne(
+          { userId: params._id },
+          async (err, cartWishParams) => {
+            if (err) {
+              resType.message = err.message;
+              return res.status(404).send(resType);
+            }
+            if (cartWishParams === null) {
+              resType.data = {
+                _id: params._id,
+                fName: params.fName,
+                mName: params.mName,
+                lName: params.lName,
+                email: params.email,
+                ph: params.ph,
+                gender: params.gender,
+                cart: [],
+                wishlist: [],
+              };
+            } else {
+              resType.data = {
+                _id: params._id,
+                fName: params.fName,
+                mName: params.mName,
+                lName: params.lName,
+                email: params.email,
+                ph: params.ph,
+                gender: params.gender,
+                cart: cartWishParams.cart,
+                wishlist: cartWishParams.wishlist,
+              };
+            }
+            resType.message = "Phone number is already present";
+            return res.status(200).send(resType);
+          }
+        );
       }
     });
   } catch (err) {
