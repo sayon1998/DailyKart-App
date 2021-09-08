@@ -28,6 +28,7 @@ import SkeletonContent from 'react-native-skeleton-content-nonexpo';
 import Color from '../../services/color';
 import Global from '../../services/global';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
 
 const {width, height} = Dimensions.get('window');
 
@@ -68,6 +69,38 @@ export default class Home extends Component {
         },
       ],
       items: [],
+      categoryList: [
+        {
+          _id: '1',
+          name: 'Vegetables',
+          img: 'https://res.cloudinary.com/dzruu87x0/image/upload/v1622110593/jqmvzre1dmafgublrwpw.jpg',
+          link: 'Category',
+        },
+        {
+          _id: '2',
+          name: 'Fish',
+          img: 'https://res.cloudinary.com/dzruu87x0/image/upload/v1609009695/samples/food/fish-vegetables.jpg',
+          link: 'Category',
+        },
+        {
+          _id: '3',
+          name: 'Spices',
+          img: 'https://res.cloudinary.com/dzruu87x0/image/upload/v1609009703/samples/food/spices.jpg',
+          link: 'Category',
+        },
+        {
+          _id: '4',
+          name: 'Dessert',
+          img: 'https://res.cloudinary.com/dzruu87x0/image/upload/v1609009694/samples/food/dessert.jpg',
+          link: 'Category',
+        },
+        {
+          _id: '5',
+          name: 'Pot Mussels',
+          img: 'https://res.cloudinary.com/dzruu87x0/image/upload/v1609009695/samples/food/pot-mussels.jpg',
+          link: 'Category',
+        },
+      ],
     };
   }
   componentDidMount() {
@@ -230,7 +263,11 @@ export default class Home extends Component {
 
             <View style={{height: height / 3}}>
               <View style={{flexDirection: 'column', margin: hp(0.5)}}>
-                <Text style={{fontSize: 17}}>{item.name}</Text>
+                <Text style={{fontSize: 17}}>
+                  {item.name && item.name.length > 20
+                    ? item.name.slice(0, 20) + '...'
+                    : item.name}
+                </Text>
                 {item.totalrating ? (
                   <View style={{flexDirection: 'row'}}>
                     <Icon color="green" name="star" size={15} />
@@ -296,6 +333,36 @@ export default class Home extends Component {
       />
     );
   };
+  _renderCategory = () => {
+    return (
+      <FlatList
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        legacyImplementation={false}
+        style={styles.categoryContainer}
+        data={this.state.categoryList}
+        keyExtractor={item => item._id}
+        scrollEnabled={true}
+        renderItem={({item, index}) => (
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.props.navigation.navigate(item.link, {
+                categoryName: item.name,
+              });
+            }}>
+            <CardView
+              key={index}
+              style={styles.categoryContent}
+              cardElevation={5}
+              cardMaxElevation={2}
+              cornerRadius={100}>
+              <Image style={styles.categoryImage} source={{uri: item.img}} />
+            </CardView>
+          </TouchableWithoutFeedback>
+        )}
+      />
+    );
+  };
   render() {
     return (
       <View style={styles.mainContainer}>
@@ -317,91 +384,153 @@ export default class Home extends Component {
             </Text>
           </View>
         ) : (
-          <SkeletonContent
-            containerStyle={{
-              flex: 1,
-              flexDirection: this.state.isLoading ? 'row' : 'column',
-              flexWrap: 'wrap',
-            }}
-            isLoading={this.state.isLoading}
-            animationDirection="diagonalDownRight"
-            layout={[
-              {
-                key: '0',
-                width: wp(95),
-                height: height / 5,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '1',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '2',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '3',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '4',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '5',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-              {
-                key: '6',
-                width: 175,
-                height: 200,
-                margin: hp(1),
-                borderRadius: 10,
-              },
-            ]}>
-            <View style={{height: height / 5}}>
-              <Carousel
-                ref={c => {
-                  this._carousel = c;
-                }}
-                data={this.state.entries}
-                renderItem={this._renderBannerItem}
-                sliderWidth={this.state.sliderWidth}
-                itemWidth={this.state.itemWidth}
-                enableSnap={true}
-                autoplay={true}
-                enableMomentum={true}
-                loop={true}
+          <View>
+            {!this.state.isLoading ? (
+              <View style={{height: height / 5}}>
+                <Carousel
+                  ref={c => {
+                    this._carousel = c;
+                  }}
+                  data={this.state.entries}
+                  renderItem={this._renderBannerItem}
+                  sliderWidth={this.state.sliderWidth}
+                  itemWidth={this.state.itemWidth}
+                  enableSnap={true}
+                  autoplay={true}
+                  enableMomentum={true}
+                  loop={true}
+                />
+              </View>
+            ) : (
+              <SkeletonContent
+                containerStyle={{}}
+                isLoading={this.state.isLoading}
+                animationDirection="diagonalDownRight"
+                layout={[
+                  {
+                    key: '1',
+                    width: wp(96),
+                    height: height / 5.5,
+                    margin: hp(1),
+                    borderRadius: 5,
+                  },
+                ]}
               />
+            )}
+
+            {this.state.isLoading ? (
+              <SkeletonContent
+                containerStyle={{flexDirection: 'row'}}
+                isLoading={this.state.isLoading}
+                animationDirection="diagonalDownRight"
+                layout={[
+                  {
+                    key: '1',
+                    width: 80,
+                    height: 80,
+                    margin: hp(1),
+                    borderRadius: 100,
+                  },
+                  {
+                    key: '2',
+                    width: 80,
+                    height: 80,
+                    margin: hp(1),
+                    borderRadius: 100,
+                  },
+                  {
+                    key: '3',
+                    width: 80,
+                    height: 80,
+                    margin: hp(1),
+                    borderRadius: 100,
+                  },
+                  {
+                    key: '4',
+                    width: 80,
+                    height: 80,
+                    margin: hp(1),
+                    borderRadius: 100,
+                  },
+                  {
+                    key: '5',
+                    width: 80,
+                    height: 80,
+                    margin: hp(1),
+                    borderRadius: 100,
+                  },
+                ]}
+              />
+            ) : (
+              this._renderCategory()
+            )}
+            <View style={{borderBottomWidth: 0.5}}>
+              <Text
+                style={{
+                  fontSize: 25,
+                  fontWeight: 'bold',
+                  alignSelf: 'flex-start',
+                  marginLeft: hp(1),
+                  marginBottom: hp(1),
+                }}>
+                Latest products
+              </Text>
             </View>
-            <Text
-              style={{
-                fontSize: 25,
-                fontWeight: 'bold',
-                alignSelf: 'flex-start',
-                marginLeft: hp(1),
-              }}>
-              Latest products
-            </Text>
+            <SkeletonContent
+              containerStyle={{
+                flex: 1,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+              }}
+              isLoading={this.state.isLoading}
+              animationDirection="diagonalDownRight"
+              layout={[
+                {
+                  key: '1',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+                {
+                  key: '2',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+                {
+                  key: '3',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+                {
+                  key: '4',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+                {
+                  key: '5',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+                {
+                  key: '6',
+                  width: 175,
+                  height: 200,
+                  margin: hp(1),
+                  borderRadius: 10,
+                },
+              ]}
+            />
             {this._renderProducts()}
-          </SkeletonContent>
+          </View>
         )}
       </View>
     );
@@ -430,6 +559,27 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: 'white',
     margin: hp(1),
+  },
+  categoryContainer: {
+    width: width + 5,
+    flex: 1,
+    flexGrow: 0,
+    minHeight: 100,
+    flexDirection: 'row',
+  },
+  categoryContent: {
+    width: 80,
+    height: 80,
+    margin: 5,
+    justifyContent: 'center',
+  },
+  categoryImage: {
+    width: 70,
+    height: 70,
+    maxWidth: 70,
+    maxHeight: 70,
+    borderRadius: 100,
+    alignSelf: 'center',
   },
   slide: {
     backgroundColor: 'red',

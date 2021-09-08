@@ -6,7 +6,8 @@ import axios from 'axios';
 import {ToastAndroid} from 'react-native';
 import {BehaviorSubject} from 'rxjs';
 const subscriber = new BehaviorSubject('');
-export {subscriber};
+const address = new BehaviorSubject();
+export {subscriber, address};
 const Global = {
   apiURL: 'http://192.168.0.152:3000/api/',
   isLoggedIn: async () => {
@@ -62,7 +63,8 @@ const Global = {
     return items;
   },
   onClickCartWishList: async (type = '', data, productName = '') => {
-    let wishList = [];
+    let wishList = [],
+      cartList = [];
     let responseStatus = false;
     let api = Global.apiURL;
     if (await Global.isLoggedIn()) {
@@ -119,8 +121,25 @@ const Global = {
           cart: [],
           wishlist: data,
         };
+      } else if (type === 'cartDelete') {
+        api += 'product/delete-cart-wishlist';
+        cartList = JSON.parse(await AsyncStorage.getItem('cartList'));
+        if (cartList.indexOf(data) > -1) {
+          params = {
+            userId: await AsyncStorage.getItem('_id'),
+            cart: [data],
+            wishlist: [],
+          };
+        } else {
+          Global.toasterMessage(
+            `${productName} is already deleted from ${
+              (await AsyncStorage.getItem('name')).split(' ')[0]
+            }'s cart`,
+          );
+          return responseStatus;
+        }
       }
-
+      console.log(params);
       await axios
         .post(api, params)
         .then(async response => {
@@ -146,7 +165,6 @@ const Global = {
               );
               responseStatus = true;
             } else if (type === 'wishlistDelete') {
-              console.log('LINE_126');
               await AsyncStorage.setItem(
                 'wishList',
                 JSON.stringify(response.data.data.wishlist),
@@ -168,6 +186,17 @@ const Global = {
                 } sucessfully deleted from ${
                   (await AsyncStorage.getItem('name')).split(' ')[0]
                 }'s wishlist`,
+              );
+              responseStatus = true;
+            } else if (type === 'cartDelete') {
+              await AsyncStorage.setItem(
+                'cartList',
+                JSON.stringify(response.data.data.cart),
+              );
+              Global.toasterMessage(
+                `${productName} is sucessfully deleted from ${
+                  (await AsyncStorage.getItem('name')).split(' ')[0]
+                }'s cart`,
               );
               responseStatus = true;
             }

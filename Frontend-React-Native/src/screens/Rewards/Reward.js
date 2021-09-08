@@ -19,26 +19,18 @@ import {
 import {StackActions} from '@react-navigation/native';
 import Global from '../../services/global';
 
-export default class Category extends Component {
-  constructor(props) {
+export default class Reward extends Component {
+  constructor() {
     super();
     this.state = {
       phone: '',
       isEditable: false,
     };
   }
-  componentDidMount() {
-    this.unsubscribe = this.props.navigation.addListener('focus', async () => {
-      console.log(this.props.route.params.categoryName);
-    });
-  }
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
   render() {
     return (
       <View style={styles.mainContainer}>
-        <Text>Category</Text>
+        <Text>Reward</Text>
       </View>
     );
   }

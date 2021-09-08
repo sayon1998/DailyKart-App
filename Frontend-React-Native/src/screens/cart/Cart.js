@@ -15,25 +15,28 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Modal,
+  Button,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Global from '../../services/global';
+import Global, {address} from '../../services/global';
 import axios from 'axios';
 import CardView from 'react-native-cardview';
 import CheckBox from '@react-native-community/checkbox';
 import Color from '../../services/color';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Picker} from '@react-native-community/picker';
+import BottomSheetHandler from '../../services/BottomSheetHandler';
 
 const {width, height} = Dimensions.get('window');
 
 export default class Cart extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       name: '',
       cartLists: [],
@@ -45,15 +48,31 @@ export default class Cart extends Component {
       bottomViewer: true,
       totalPrice: 0,
       totalDeliveryCharge: 0,
+      dialog: false,
+      dialogText: '',
+      dialogItems: [],
+      dialogLoading: false,
+      dialogType: '',
+      locationContainerOpen: false,
+      addressName: '',
+      ph: '',
+      address: '',
+      pin: '',
+      isCheckoutLoading: false,
     };
+    this.handler = this.handler.bind(this);
   }
+
   componentDidMount() {
     // ######### Comment for Production #########
     this.getCartDetails();
+    this.getAddress();
     //  ########## End Comment ##########
     this.unsubscribe = this.props.navigation.addListener('focus', () => {
       console.log('Cart Listener');
+      this.handler = this.handler.bind(this);
       this.getCartDetails();
+      this.getAddress();
       this.setState({
         name: '',
         cartLists: [],
@@ -65,11 +84,77 @@ export default class Cart extends Component {
         bottomViewer: true,
         totalPrice: 0,
         totalDeliveryCharge: 0,
+        dialog: false,
+        dialogText: '',
+        dialogItems: [],
+        dialogLoading: false,
+        dialogType: '',
+        locationContainerOpen: false,
+        addressName: '',
+        ph: '',
+        address: '',
+        pin: '',
+        isCheckoutLoading: false,
       });
     });
   }
   componentWillUnmount() {
     this.unsubscribe();
+  }
+  handler() {
+    this.setState({
+      locationContainerOpen: false,
+    });
+    address.subscribe(res => {
+      if (res && res.pin) {
+        this.setState({
+          addressName: res.name,
+          ph: res.ph,
+          address:
+            res.area +
+            ', City- ' +
+            res.city +
+            ', Dist- ' +
+            res.dist +
+            ', State- ' +
+            res.state +
+            ', Pin- ' +
+            res.pin,
+          pin: res.pin,
+        });
+      }
+    });
+  }
+  async getAddress() {
+    if (await Global.isLoggedIn()) {
+      await axios
+        .get(
+          Global.apiURL +
+            `address/get-address/${await AsyncStorage.getItem('_id')}`,
+        )
+        .then(res => {
+          if (res.data && res.data.status && res.data.data) {
+            this.setState({
+              addressName: res.data.data.name,
+              ph: res.data.data.ph,
+              address:
+                res.data.data.area +
+                ', City- ' +
+                res.data.data.city +
+                ', Dist- ' +
+                res.data.data.dist +
+                ', State- ' +
+                res.data.data.state +
+                ', Pin- ' +
+                res.data.data.pin,
+              pin: res.data.data.pin,
+            });
+          }
+        })
+        .catch(err => {
+          console.warn(err.response.data.message);
+        });
+    }
   }
   async getCartDetails() {
     let cartList = [];
@@ -129,7 +214,7 @@ export default class Cart extends Component {
               response.data.data.forEach(e => {
                 e.isChecked = true;
                 e.qty = parseInt(e.minqty);
-                totalPrice += parseInt(e.price);
+                totalPrice += parseInt(e.price) * parseInt(e.minqty);
                 if (e.deliverycharge) {
                   deliveryCharge += parseInt(e.deliverycharge);
                 }
@@ -235,6 +320,213 @@ export default class Cart extends Component {
       this.getCartDetails();
     });
   };
+  toggleDialog = (type = '', text = '', items) => {
+    this.setState({
+      dialog: !this.state.dialog,
+      dialogText: text,
+      dialogItems: items,
+      dialogType: type,
+    });
+  };
+  renderDialog() {
+    return (
+      <Modal transparent={true} visible={this.state.dialog}>
+        <View
+          style={{
+            backgroundColor: '#000000aa',
+            flex: 1,
+            justifyContent: 'center',
+          }}>
+          <View
+            style={{
+              backgroundColor: '#ffffff',
+              margin: 20,
+              padding: 10,
+              borderRadius: 10,
+              maxHeight: height / 2,
+              // flex: 1,
+            }}>
+            <View
+              style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+              <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 5}}>
+                {this.state.dialogText}
+              </Text>
+              <TouchableOpacity
+                disabled={this.state.dialogLoading}
+                onPress={this.toggleDialog}>
+                <Icon name="close-circle-outline" size={30} />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+              <View
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderWidth: 2,
+                  borderRadius: 10,
+                }}>
+                <Image
+                  style={{
+                    width: 95,
+                    height: 95,
+                    borderWidth: 2,
+                    borderRadius: 10,
+                  }}
+                  source={{uri: this.state.dialogItems.img}}
+                />
+              </View>
+              <View>
+                <Text>
+                  <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                    Product:{' '}
+                  </Text>{' '}
+                  <Text
+                    style={{
+                      fontSize: 15,
+                    }}>
+                    {this.state.dialogItems.name &&
+                    this.state.dialogItems.name.length > 20
+                      ? this.state.dialogItems.name.slice(0, 20) + '...'
+                      : this.state.dialogItems.name}
+                  </Text>
+                </Text>
+                {this.state.dialogItems.rating ? (
+                  <Text>
+                    <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                      Rating:{' '}
+                    </Text>
+                    <Icon name="star" color="green" size={15} />
+                    <Text
+                      style={{
+                        color: 'green',
+                        fontWeight: 'bold',
+                        fontSize: 15,
+                      }}>
+                      {this.state.dialogItems.rating}
+                    </Text>
+                  </Text>
+                ) : null}
+
+                <Text>
+                  <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                    Price:{' '}
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 15,
+                    }}>
+                    {'₹'}
+                    {this.state.dialogItems.price}
+                  </Text>{' '}
+                  <Text
+                    style={{
+                      color: 'gray',
+                      fontSize: 14,
+                      textDecorationLine: 'line-through',
+                    }}>
+                    {'₹'}
+                    {this.state.dialogItems.originalprice}
+                  </Text>{' '}
+                  {this.state.dialogItems.offerpercentage !== '0' ? (
+                    <Text
+                      style={{
+                        color: 'green',
+                        fontWeight: 'bold',
+                        fontSize: 13,
+                      }}>
+                      {this.state.dialogItems.offerpercentage + '%'}
+                    </Text>
+                  ) : null}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                marginTop: hp(1),
+              }}>
+              {!this.state.dialogLoading ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    marginTop: hp(1),
+                  }}>
+                  <Button
+                    title="Cancel"
+                    color={Color.warn}
+                    onPress={() => this.toggleDialog()}
+                  />
+                  <View style={{marginLeft: hp(1)}}></View>
+                  <Button
+                    title="Confirm"
+                    color={Color.primary}
+                    onPress={async () => {
+                      this.setState({dialogLoading: true});
+                      await this.performAction(
+                        this.state.dialogItems._id,
+                        this.state.dialogItems.name,
+                      );
+                    }}
+                  />
+                </View>
+              ) : (
+                <ActivityIndicator size="large" color={Color.primary} />
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+  performAction = async () => {
+    await Global.onClickCartWishList(
+      'cartDelete',
+      this.state.dialogItems._id,
+      this.state.dialogItems.name,
+    ).then(res => {
+      if (res) {
+        let tempCart = [];
+        this.state.cartLists.forEach(e => {
+          if (e._id !== this.state.dialogItems._id) {
+            tempCart.push(e);
+          }
+        });
+        if (tempCart && tempCart.length > 0) {
+          this.setState({
+            dialog: false,
+            dialogText: '',
+            dialogItems: [],
+            dialogLoading: false,
+            dialogType: '',
+            cartLists: tempCart,
+          });
+        } else {
+          this.setState({
+            dialog: false,
+            cartLists: [],
+            noProduct: true,
+            dialogText: '',
+            dialogItems: [],
+            dialogLoading: false,
+            dialogType: '',
+          });
+        }
+        this.priceDetailsUpdate(this.state.cartLists);
+      } else {
+        this.setState({
+          dialog: false,
+          dialogText: '',
+          dialogItems: [],
+          dialogLoading: false,
+          dialogType: '',
+        });
+      }
+    });
+  };
   _renderCart = () => {
     return (
       <FlatList
@@ -260,173 +552,182 @@ export default class Cart extends Component {
             cardElevation={5}
             cardMaxElevation={2}
             cornerRadius={10}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 5,
-              }}>
-              <View style={{borderWidth: 1, borderTopLeftRadius: 10}}>
+            <View style={{borderWidth: 1}}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 5,
+                }}>
                 <CheckBox
                   tintColors={{
                     true: Color.primary,
                   }}
+                  disabled={this.state.isCheckoutLoading}
                   value={item.isChecked}
                   onValueChange={value => {
                     this.onClickCheckbox(value, item._id);
                   }}
                 />
-              </View>
-
-              <View style={{borderWidth: 1, borderTopRightRadius: 10}}>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={async () => {
+                    this.toggleDialog(
+                      'delete',
+                      `Are ${
+                        this.state.name ? this.state.name.split(' ')[0] : 'you'
+                      } want to delete?`,
+                      item,
+                    );
+                  }}>
                   <Icon name="close" size={30} />
                 </TouchableOpacity>
               </View>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginLeft: 5,
-                marginRight: 10,
-                marginBottom: 10,
-              }}>
-              <View style={{flexDirection: 'column'}}>
-                <Text style={{fontSize: 20}}>
-                  {item.name && item.name.length > 25
-                    ? item.name.slice(0, 25) + '...'
-                    : item.name}
-                </Text>
-                <Text style={{fontSize: 16, color: 'gray'}}>
-                  {item.company && item.company.length > 25
-                    ? item.company.slice(0, 25) + '...'
-                    : item.company}
-                </Text>
-                {item.totalrating ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 5,
+                  marginRight: 10,
+                  marginBottom: 10,
+                }}>
+                <View style={{flexDirection: 'column'}}>
+                  <Text style={{fontSize: 20}}>
+                    {item.name && item.name.length > 25
+                      ? item.name.slice(0, 25) + '...'
+                      : item.name}
+                  </Text>
+                  <Text style={{fontSize: 16, color: 'gray'}}>
+                    {item.company && item.company.length > 25
+                      ? item.company.slice(0, 25) + '...'
+                      : item.company}
+                  </Text>
+                  {item.totalrating ? (
+                    <View style={{flexDirection: 'row'}}>
+                      <Icon color="green" name="star" size={15} />
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        {item.rating}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        ({item.totalrating})
+                      </Text>
+                    </View>
+                  ) : null}
                   <View style={{flexDirection: 'row'}}>
-                    <Icon color="green" name="star" size={15} />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
-                      }}>
-                      {item.rating}
+                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                      {'₹'}
+                      {item.price}{' '}
                     </Text>
                     <Text
                       style={{
-                        fontSize: 16,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
+                        fontSize: 18,
+                        color: 'gray',
+                        textDecorationLine: 'line-through',
                       }}>
-                      ({item.totalrating})
+                      {'₹'}
+                      {item.originalprice}
                     </Text>
+                    {item.offerpercentage !== '0' ? (
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: 'green',
+                          fontWeight: 'bold',
+                        }}>
+                        {' '}
+                        {item.offerpercentage + '%'}
+                      </Text>
+                    ) : null}
                   </View>
-                ) : null}
-                <View style={{flexDirection: 'row'}}>
-                  <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                    {'₹'}
-                    {item.price}{' '}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      color: 'gray',
-                      textDecorationLine: 'line-through',
-                    }}>
-                    {'₹'}
-                    {item.originalprice}
-                  </Text>
-                  {item.offerpercentage !== '0' ? (
+                  {item.deliverycharge ? (
+                    <Text style={{fontSize: 16}}>
+                      <Text style={{color: 'red', fontWeight: 'bold'}}>
+                        {'₹'}
+                        {item.deliverycharge}
+                      </Text>
+                      {' shipping charge required'}
+                    </Text>
+                  ) : (
+                    <Text style={{fontSize: 16, color: 'green'}}>
+                      Free shipping{' '}
+                      <Text style={{fontWeight: 'bold', color: 'black'}}>
+                        (Conditionally)
+                      </Text>
+                    </Text>
+                  )}
+                  {item.quantity <= 10 ? (
                     <Text
                       style={{
                         fontSize: 16,
-                        color: 'green',
+                        color: Color.warn,
                         fontWeight: 'bold',
                       }}>
-                      {' '}
-                      {item.offerpercentage + '%'}
+                      Only {item.quantity} item left.
                     </Text>
                   ) : null}
                 </View>
-                {item.deliverycharge ? (
-                  <Text style={{fontSize: 16}}>
-                    <Text style={{color: 'red', fontWeight: 'bold'}}>
-                      {'₹'}
-                      {item.deliverycharge}
-                    </Text>
-                    {' shipping charge required'}
-                  </Text>
-                ) : (
-                  <Text style={{fontSize: 16, color: 'green'}}>
-                    Free shipping{' '}
-                    <Text style={{fontWeight: 'bold', color: 'black'}}>
-                      (Conditionally)
-                    </Text>
-                  </Text>
-                )}
-                {item.quantity <= 10 ? (
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: Color.warn,
-                      fontWeight: 'bold',
-                    }}>
-                    Only {item.quantity} item left.
-                  </Text>
-                ) : null}
+                <View
+                  style={{
+                    width: 105,
+                    height: 105,
+                    borderWidth: 1,
+                    justifyContent: 'center',
+                  }}>
+                  <Image
+                    style={{width: 100, height: 100, alignSelf: 'center'}}
+                    source={{uri: item.img}}
+                  />
+                </View>
               </View>
               <View
                 style={{
-                  width: 105,
-                  height: 105,
-                  borderWidth: 1,
-                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 5,
+                  marginRight: 10,
+                  marginBottom: 20,
                 }}>
-                <Image
-                  style={{width: 100, height: 100, alignSelf: 'center'}}
-                  source={{uri: item.img}}
-                />
-              </View>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginLeft: 5,
-                marginRight: 10,
-                marginBottom: 20,
-              }}>
-              <View>
-                {/* <Text style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
-                  ** Item is not available in 741245 **
-                </Text> */}
-              </View>
-              <View
-                style={{flexDirection: 'row', justifyContent: 'flex-start'}}>
-                <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
-                  Qty:
-                </Text>
-                <View style={{borderBottomWidth: 1, width: 90}}>
-                  <Picker
-                    selectedValue={item.qty}
-                    style={{height: 20, width: 100}}
-                    onValueChange={(itemValue, itemIndex) => {
-                      this.quantityUpdate(itemValue, item._id);
-                    }}>
-                    {item.qtyArray.map((myValue, myIndex) => {
-                      return (
-                        <Picker.Item
-                          key={myIndex}
-                          label={myValue.label}
-                          value={myValue.value}
-                        />
-                      );
-                    })}
-                  </Picker>
+                {item.errMsg ? (
+                  <Text
+                    style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
+                    {item.errMsg}
+                  </Text>
+                ) : (
+                  <View />
+                )}
+                <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+                  <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
+                    Qty:
+                  </Text>
+                  <View style={{borderWidth: 0.5, width: 70, marginLeft: 1}}>
+                    <Picker
+                      selectedValue={item.qty}
+                      style={{height: 20, width: 85}}
+                      onValueChange={(itemValue, itemIndex) => {
+                        this.quantityUpdate(itemValue, item._id);
+                      }}>
+                      {item.qtyArray.map((myValue, myIndex) => {
+                        return (
+                          <Picker.Item
+                            key={myIndex}
+                            label={myValue.label}
+                            value={myValue.value}
+                          />
+                        );
+                      })}
+                    </Picker>
+                  </View>
                 </View>
               </View>
             </View>
@@ -435,11 +736,90 @@ export default class Cart extends Component {
       />
     );
   };
+  toggleLocation = () => {
+    this.setState({
+      locationContainerOpen: !this.state.locationContainerOpen,
+    });
+  };
+  locationRender = () => {
+    return (
+      <BottomSheetHandler
+        toggle={this.state.locationContainerOpen}
+        handler={this.handler}
+      />
+    );
+  };
+  async onClickCheckout() {
+    let params = {
+        pin: this.state.pin,
+        productId: [],
+      },
+      flag = false;
+    this.state.cartLists.forEach(e => {
+      if (e.isChecked) {
+        params.productId.push(e._id);
+      }
+    });
+    this.setState({isCheckoutLoading: true});
+    await axios
+      .post(Global.apiURL + 'address/check-multiple-order-deliveriable', params)
+      .then(async res => {
+        if (res.data && res.data.status) {
+          if (res.data.data && res.data.data.length > 0) {
+            let Checkout = [];
+            this.state.cartLists.forEach(e => {
+              if (
+                e.isChecked &&
+                res.data.data.findIndex(x => x.productId === e._id) > -1
+              ) {
+                e.errMsg =
+                  res.data.data[
+                    res.data.data.findIndex(x => x.productId === e._id)
+                  ].message === 'Deliveriable'
+                    ? ''
+                    : res.data.data[
+                        res.data.data.findIndex(x => x.productId === e._id)
+                      ].message;
+                if (
+                  res.data.data[
+                    res.data.data.findIndex(x => x.productId === e._id)
+                  ].message !== 'Deliveriable'
+                ) {
+                  flag = true;
+                }
+              } else {
+                e.errMsg = '';
+              }
+              Checkout.push(e);
+            });
+            this.setState({cartLists: Checkout, isCheckoutLoading: false});
+            if (!flag) {
+              if (await Global.isLoggedIn()) {
+                console.log('Move to Checkout');
+                // this.props.navigation.navigate('Checkout', {
+                //   checkout: Checkout,
+                // });
+              } else {
+                this.props.navigation.navigate('Auth');
+              }
+            }
+          } else {
+            this.setState({isCheckoutLoading: false});
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err.response.data.message);
+        this.setState({isCheckoutLoading: false});
+      });
+  }
   render() {
     return (
       <View style={styles.mainContainer}>
         <View style={{height: height}}>
           {/* Location */}
+          {!!this.state.locationContainerOpen && this.locationRender()}
+          {!!this.state.dialog && this.renderDialog()}
           <CardView
             key={0}
             style={styles.cardContainer}
@@ -447,31 +827,48 @@ export default class Cart extends Component {
             cardMaxElevation={2}
             cornerRadius={10}>
             <View style={styles.bottomMainRow}>
-              <View style={{flexDirection: 'column', justifyContent: 'center'}}>
-                <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
-                  <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                    Deliver to
-                  </Text>{' '}
-                  {'Sayon Chakraborty'}
-                </Text>
-                <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
-                  Phone Number: {'+91-' + '9748623490'}
-                </Text>
+              {this.state.address ? (
+                <View
+                  style={{
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    maxWidth: 250,
+                  }}>
+                  <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
+                    <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+                      Deliver to
+                    </Text>{' '}
+                    {this.state.addressName}
+                  </Text>
+                  {/* <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
+                      Phone Number: {'+91-' + this.state.ph}
+                    </Text> */}
+                  <Text
+                    style={{
+                      alignSelf: 'flex-start',
+                      marginLeft: 5,
+                      fontSize: 12,
+                    }}>
+                    {this.state.address}
+                  </Text>
+                </View>
+              ) : (
                 <Text
                   style={{
-                    alignSelf: 'flex-start',
-                    marginLeft: 5,
-                    fontSize: 16,
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    alignSelf: 'center',
+                    marginLeft: 10,
                   }}>
-                  Address: {'Madanpur, Kalyannagr....'}
+                  No address available
                 </Text>
-              </View>
+              )}
 
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  {width: 100, height: 40, marginTop: 20},
-                ]}>
+                style={[styles.button, {width: 100, height: 40, marginTop: 20}]}
+                onPress={() => {
+                  this.toggleLocation();
+                }}>
                 <Text
                   style={[
                     styles.buttonText,
@@ -517,6 +914,7 @@ export default class Cart extends Component {
               <View style={{flexDirection: 'column'}}>
                 <View style={{flexDirection: 'row'}}>
                   <CheckBox
+                    disabled={this.state.isCheckoutLoading}
                     tintColors={{
                       true: Color.primary,
                       false: 'black',
@@ -558,10 +956,21 @@ export default class Cart extends Component {
                   ) : null}
                 </View>
               </View>
-
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Checkout</Text>
-              </TouchableOpacity>
+              {this.state.isCheckoutLoading ? (
+                <ActivityIndicator
+                  style={{marginRight: wp(5), marginTop: hp(1)}}
+                  size="large"
+                  color={Color.primary}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    this.onClickCheckout();
+                  }}>
+                  <Text style={styles.buttonText}>Checkout</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ) : null}

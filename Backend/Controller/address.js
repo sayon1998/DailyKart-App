@@ -154,6 +154,34 @@ router.get("/get-all-address/:userId", async (req, res) => {
   }
 });
 
+// Get 1st Address from a User's Address Table
+router.get("/get-address/:userId", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  if (!req.params.userId) {
+    resType.message = "User Id is required.";
+    return res.status(404).send(resType);
+  }
+  try {
+    const addressData = await addressDetails.findOne({
+      userId: req.params.userId,
+    });
+    if (addressData === null) {
+      resType.message = "User have no address";
+      return res.status(404).send(resType);
+    }
+    resType.data = addressData.address[0];
+    resType.status = true;
+    return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
 //Get Address By (current location)
 router.get("/get-current-location/:lat/:lon", async (req, res) => {
   const resType = {
@@ -463,29 +491,37 @@ router.get("/get-state-city-place/:pin", async (req, res) => {
       .then(async function (response) {
         // handle success
         try {
-          console.log(
-            response.data.postalCodes[0].placeName +
-              "," +
-              response.data.postalCodes[0].adminName2 +
-              "," +
-              response.data.postalCodes[0].adminName1 +
-              "," +
-              response.data.postalCodes[0].postalCode
-          );
-          let city = [];
-          for (const index in response.data.postalCodes) {
-            city.push(response.data.postalCodes[index].placeName);
+          if (
+            response.data.postalCodes &&
+            response.data.postalCodes.length > 0
+          ) {
+            console.log(
+              response.data.postalCodes[0].placeName +
+                "," +
+                response.data.postalCodes[0].adminName2 +
+                "," +
+                response.data.postalCodes[0].adminName1 +
+                "," +
+                response.data.postalCodes[0].postalCode
+            );
+            let city = [];
+            for (const index in response.data.postalCodes) {
+              city.push(response.data.postalCodes[index].placeName);
+            }
+            resType.data = {
+              city,
+              ps: response.data.postalCodes[0].adminName3,
+              dist: response.data.postalCodes[0].adminName2,
+              state: response.data.postalCodes[0].adminName1,
+              pin: response.data.postalCodes[0].postalCode,
+            };
+            resType.status = true;
+            resType.message = "Successful";
+            return res.status(200).send(resType);
+          } else {
+            resType.message = "No address is found to this pin code";
+            return res.status(404).send(resType);
           }
-          resType.data = {
-            city,
-            ps: response.data.postalCodes[0].adminName3,
-            dist: response.data.postalCodes[0].adminName2,
-            state: response.data.postalCodes[0].adminName1,
-            pin: response.data.postalCodes[0].postalCode,
-          };
-          resType.status = true;
-          resType.message = "Successful";
-          return res.status(200).send(resType);
         } catch (err) {
           resType.message = err.message;
           return res.status(404).send(resType);
@@ -495,6 +531,75 @@ router.get("/get-state-city-place/:pin", async (req, res) => {
         // handle error
         console.log(error);
       });
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Address Recently Used
+router.post("/address-recently-used", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  if (!req.body.addressId) {
+    resType.message = "Address Id is required.";
+    return res.status(404).send(resType);
+  }
+  if (!req.body.userId) {
+    resType.message = "User Id is required.";
+    return res.status(404).send(resType);
+  }
+  try {
+    const userData = await userDetails.findById(req.body.userId);
+    if (userData === null) {
+      resType.message = "userid is not present in our database";
+      return res.status(404).send(resType);
+    }
+    const addressData = await addressDetails.findOne({
+      userId: req.body.userId,
+    });
+    if (addressData === null) {
+      resType.message = "No address is available";
+      return res.status(404).send(resType);
+    }
+    if (
+      addressData.address.findIndex((x) => x.addressId === req.body.addressId) >
+      -1
+    ) {
+      let tempData =
+        addressData.address[
+          addressData.address.findIndex(
+            (x) => x.addressId === req.body.addressId
+          )
+        ];
+      addressData.address.splice(
+        addressData.address.findIndex(
+          (x) => x.addressId === req.body.addressId
+        ),
+        1
+      );
+      addressData.address.splice(0, 0, tempData);
+      let tempAdd = [];
+      addressData.address.forEach((e) => {
+        if (e.addressId === req.body.addressId) {
+          e.isRecentlyUsed = true;
+        } else {
+          e.isRecentlyUsed = false;
+        }
+        tempAdd.push(e);
+      });
+      addressData.address = tempAdd;
+      resType.data = await addressData.save();
+      resType.message = "Successful";
+      resType.status = true;
+      return res.status(200).send(resType);
+    } else {
+      resType.message = "Address is not available";
+      return res.status(400).send(resType);
+    }
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);

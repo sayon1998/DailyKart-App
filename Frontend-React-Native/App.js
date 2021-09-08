@@ -39,6 +39,7 @@ import Account from './src/screens/account/Account';
 import Category from './src/screens/category/Category';
 import Wishlist from './src/screens/wishlist/Wishlist';
 import Cart from './src/screens/cart/Cart';
+import Reward from './src/screens/Rewards/Reward';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -171,6 +172,23 @@ const homeDrawer = props => {
         name="Cart"
         component={Cart}
       />
+      <Drawer.Screen
+        options={{
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="Category"
+        component={Category}
+      />
     </Drawer.Navigator>
   );
 };
@@ -185,7 +203,7 @@ const tabDrawer = props => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Category') {
+          } else if (route.name === 'Reward') {
             iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'Account') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
@@ -195,12 +213,13 @@ const tabDrawer = props => {
           return <Icon name={iconName} size={size} color={color} />;
         },
         lazy: true,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: Color.primary,
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
       })}>
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Category" component={Category} />
+      <Tab.Screen name="Reward" component={Reward} />
       <Tab.Screen name="Account" component={Account} />
     </Tab.Navigator>
   );
