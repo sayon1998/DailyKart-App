@@ -216,6 +216,7 @@ export default class Home extends Component {
         numColumns={2}
         keyExtractor={item => item._id}
         scrollEnabled={true}
+        style={{marginBottom: hp(25)}}
         renderItem={({item, index}) => (
           <CardView
             key={index}

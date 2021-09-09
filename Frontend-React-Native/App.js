@@ -40,6 +40,7 @@ import Category from './src/screens/category/Category';
 import Wishlist from './src/screens/wishlist/Wishlist';
 import Cart from './src/screens/cart/Cart';
 import Reward from './src/screens/Rewards/Reward';
+import Checkout from './src/screens/checkout/Checkout';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -64,6 +65,7 @@ const MainStack = () => {
       <main.Screen name="Home" component={homeDrawer} />
       <main.Screen name="Auth" component={Auth} />
       <main.Screen name="register" component={Register} />
+      <main.Screen name="Cart" component={cartDrawer} />
     </main.Navigator>
   );
 };
@@ -169,7 +171,52 @@ const homeDrawer = props => {
             />
           ),
         }}
-        name="Cart"
+        name="Category"
+        component={Category}
+      />
+      {/* <Drawer.Screen
+        options={{
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="Checkout"
+        component={Checkout}
+      /> */}
+    </Drawer.Navigator>
+  );
+};
+
+const cartDrawer = props => {
+  return (
+    <Drawer.Navigator
+      initialRouteName="CartDrawer"
+      screenOptions={screenOptionStyle}
+      drawerContent={props => <DrawerContainer {...props} />}>
+      <Drawer.Screen
+        options={{
+          title: 'Cart',
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="CartDrawer"
         component={Cart}
       />
       <Drawer.Screen
@@ -186,8 +233,8 @@ const homeDrawer = props => {
             />
           ),
         }}
-        name="Category"
-        component={Category}
+        name="Checkout"
+        component={Checkout}
       />
     </Drawer.Navigator>
   );

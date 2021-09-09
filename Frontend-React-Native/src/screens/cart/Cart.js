@@ -766,20 +766,24 @@ export default class Cart extends Component {
       .then(async res => {
         if (res.data && res.data.status) {
           if (res.data.data && res.data.data.length > 0) {
-            let Checkout = [];
+            let Checkout = [],
+              tempCheckout = [],
+              totalOriginalPrice = 0;
             this.state.cartLists.forEach(e => {
               if (
                 e.isChecked &&
                 res.data.data.findIndex(x => x.productId === e._id) > -1
               ) {
-                e.errMsg =
+                (e.errMsg =
                   res.data.data[
                     res.data.data.findIndex(x => x.productId === e._id)
                   ].message === 'Deliveriable'
                     ? ''
                     : res.data.data[
                         res.data.data.findIndex(x => x.productId === e._id)
-                      ].message;
+                      ].message),
+                  tempCheckout.push(e),
+                  (totalOriginalPrice += parseFloat(e.originalprice) * e.qty);
                 if (
                   res.data.data[
                     res.data.data.findIndex(x => x.productId === e._id)
@@ -796,9 +800,15 @@ export default class Cart extends Component {
             if (!flag) {
               if (await Global.isLoggedIn()) {
                 console.log('Move to Checkout');
-                // this.props.navigation.navigate('Checkout', {
-                //   checkout: Checkout,
-                // });
+                this.props.navigation.navigate('Checkout', {
+                  checkout: tempCheckout,
+                  address: this.state.address,
+                  name: this.state.addressName,
+                  ph: this.state.ph,
+                  deliveryCharge: this.state.totalDeliveryCharge,
+                  totalPrice: this.state.totalPrice,
+                  totalOriginalPrice: totalOriginalPrice,
+                });
               } else {
                 this.props.navigation.navigate('Auth');
               }

@@ -8,7 +8,7 @@ const cartDetail = require("../Models/cart-wishlist");
 const rateDetail = require("../Models/rating-details");
 const deliveryCharge = require("../Models/delivery-charge");
 
-// Save Order
+// Order Placed
 router.post("/save-orders", async (req, res) => {
   const resType = {
     status: false,
