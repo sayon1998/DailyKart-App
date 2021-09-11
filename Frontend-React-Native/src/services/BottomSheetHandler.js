@@ -47,6 +47,7 @@ export default class BottomSheetHandler extends Component {
       spinner: false,
       pin: '',
       address: [],
+      sheetType: '',
     };
   }
   async componentDidMount() {
@@ -81,6 +82,8 @@ export default class BottomSheetHandler extends Component {
   }
   toggleBottomSheet = () => {
     if (this.props.toggle) {
+      console.log('Type', this.props.type);
+      this.setState({sheetType: this.props.type});
       this.RBSheet.open();
     } else {
       this.RBSheet.close();
@@ -214,7 +217,7 @@ export default class BottomSheetHandler extends Component {
             dist: res.data.data.dist,
             pin: res.data.data.pin,
             state: res.data.data.state,
-            city: res.data.data.city[0],
+            city: res.data.data.city,
           });
           this.setState({isSubmitLoading: false});
           this.RBSheet.close();
@@ -225,7 +228,7 @@ export default class BottomSheetHandler extends Component {
       })
       .catch(err => {
         this.setState({isSubmitLoading: false});
-        // console.warn(err.response.data.message);
+        console.warn(err.message);
         Global.toasterMessage(err.response.data.message);
       });
   }
@@ -362,91 +365,102 @@ export default class BottomSheetHandler extends Component {
               alignSelf: 'flex-start',
               marginLeft: hp(0.5),
             }}>
-            Address
+            {this.state.sheetType === 'order' ? 'Order Now' : 'Address'}
           </Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={this.state.pin}
-              placeholder="Enter pin code here"
-              placeholderTextColor="grey"
-              keyboardType="number-pad"
-              onChangeText={input => {
-                if (input && input.length === 6) {
-                  Keyboard.dismiss(0);
-                }
-                if (input && input.length <= 6) {
-                  this.setState({pin: input});
-                }
-              }}
-            />
-            <Button
-              disabled={this.state.isGpsLoading || this.state.isSubmitLoading}
-              title="Submit"
-              color={Color.primary}
-              onPress={() => {
-                if (this.state.pin && this.state.pin.length === 6) {
-                  this.onClickSubmit();
-                } else {
-                  Global.toasterMessage('Please provide correct pin code');
-                }
-              }}
-            />
-          </View>
-          <View style={styles.locationRow}>
-            <Text style={{fontSize: 18, marginLeft: 5}}>
-              Use your current location
-            </Text>
-            {this.state.isGpsLoading ? (
-              <ActivityIndicator
-                style={{marginRight: 5}}
-                size="small"
-                color={Color.primary}
-              />
-            ) : (
-              <Icon
-                style={{marginRight: 5}}
-                onPress={async () => {
-                  if (!this.state.isSubmitLoading) {
-                    await this.requestLocationPermission();
-                  }
-                }}
-                name="gps-fixed"
-                size={25}
-                color={this.state.colorChange ? Color.primary : 'black'}
-              />
-            )}
-          </View>
-          <Text style={{fontSize: 20, fontWeight: 'bold', margin: hp(1)}}>
-            Your Addresses
-          </Text>
-          <View style={{borderBottomWidth: 1}} />
-          {this.state.isLoading ? (
-            <ActivityIndicator
-              style={{alignSelf: 'center', marginVertical: hp(10)}}
-              size="large"
-              color={Color.primary}
-            />
-          ) : this.state.address && this.state.address.length > 0 ? (
-            this._renderAddress()
+          {this.state.sheetType === 'order' ? (
+            <View>
+              <Text>Order Details</Text>
+            </View>
           ) : (
-            <View style={{flexDirection: 'column', justifyContent: 'center'}}>
-              <Image
-                style={{width: 150, height: 150, alignSelf: 'center'}}
-                source={require('../assets/images/no-save-address.png')}
-              />
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: 'gray',
-                  alignSelf: 'center',
-                  marginBottom: 5,
-                }}>
-                You have no save addresses
-              </Text>
-              <View style={{alignSelf: 'center'}}>
-                <Button title="Add Address" color={Color.primary} />
+            <View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  value={this.state.pin}
+                  placeholder="Enter pin code here"
+                  placeholderTextColor="grey"
+                  keyboardType="number-pad"
+                  onChangeText={input => {
+                    if (input && input.length === 6) {
+                      Keyboard.dismiss(0);
+                    }
+                    if (input && input.length <= 6) {
+                      this.setState({pin: input});
+                    }
+                  }}
+                />
+                <Button
+                  disabled={
+                    this.state.isGpsLoading || this.state.isSubmitLoading
+                  }
+                  title="Submit"
+                  color={Color.primary}
+                  onPress={() => {
+                    if (this.state.pin && this.state.pin.length === 6) {
+                      this.onClickSubmit();
+                    } else {
+                      Global.toasterMessage('Please provide correct pin code');
+                    }
+                  }}
+                />
               </View>
+              <View style={styles.locationRow}>
+                <Text style={{fontSize: 18, marginLeft: 5}}>
+                  Use your current location
+                </Text>
+                {this.state.isGpsLoading ? (
+                  <ActivityIndicator
+                    style={{marginRight: 5}}
+                    size="small"
+                    color={Color.primary}
+                  />
+                ) : (
+                  <Icon
+                    style={{marginRight: 5}}
+                    onPress={async () => {
+                      if (!this.state.isSubmitLoading) {
+                        await this.requestLocationPermission();
+                      }
+                    }}
+                    name="gps-fixed"
+                    size={25}
+                    color={this.state.colorChange ? Color.primary : 'black'}
+                  />
+                )}
+              </View>
+              <Text style={{fontSize: 20, fontWeight: 'bold', margin: hp(1)}}>
+                Your Addresses
+              </Text>
+              <View style={{borderBottomWidth: 1}} />
+              {this.state.isLoading ? (
+                <ActivityIndicator
+                  style={{alignSelf: 'center', marginVertical: hp(10)}}
+                  size="large"
+                  color={Color.primary}
+                />
+              ) : this.state.address && this.state.address.length > 0 ? (
+                this._renderAddress()
+              ) : (
+                <View
+                  style={{flexDirection: 'column', justifyContent: 'center'}}>
+                  <Image
+                    style={{width: 150, height: 150, alignSelf: 'center'}}
+                    source={require('../assets/images/no-save-address.png')}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      color: 'gray',
+                      alignSelf: 'center',
+                      marginBottom: 5,
+                    }}>
+                    You have no save addresses
+                  </Text>
+                  <View style={{alignSelf: 'center'}}>
+                    <Button title="Add Address" color={Color.primary} />
+                  </View>
+                </View>
+              )}
             </View>
           )}
         </View>

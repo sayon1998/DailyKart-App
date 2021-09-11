@@ -33,7 +33,7 @@ import {TouchableWithoutFeedback} from 'react-native-gesture-handler';
 const {width, height} = Dimensions.get('window');
 
 export default class Home extends Component {
-  constructor() {
+  constructor(props) {
     super();
     this.state = {
       sliderWidth: width,
@@ -224,7 +224,14 @@ export default class Home extends Component {
             cardElevation={5}
             cardMaxElevation={2}
             cornerRadius={10}>
-            <Image style={styles.imgContainer} source={{uri: item.img}} />
+            <TouchableOpacity
+              onPress={() => {
+                this.props.navigation.navigate('Product', {
+                  productId: item._id,
+                });
+              }}>
+              <Image style={styles.imgContainer} source={{uri: item.img}} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.wishList}
               onPress={async () => {
@@ -261,65 +268,71 @@ export default class Home extends Component {
                 color={item.icon.includes('-') ? 'black' : 'red'}
               />
             </TouchableOpacity>
-
-            <View style={{height: height / 3}}>
-              <View style={{flexDirection: 'column', margin: hp(0.5)}}>
-                <Text style={{fontSize: 17}}>
-                  {item.name && item.name.length > 20
-                    ? item.name.slice(0, 20) + '...'
-                    : item.name}
-                </Text>
-                {item.totalrating ? (
-                  <View style={{flexDirection: 'row'}}>
-                    <Icon color="green" name="star" size={15} />
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
-                      }}>
-                      {item.rating}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
-                      }}>
-                      ({item.totalrating})
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={{flexDirection: 'row'}}>
-                  <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                    {'₹'}
-                    {item.price}{' '}
+            <TouchableOpacity
+              onPress={() => {
+                this.props.navigation.navigate('Product', {
+                  productId: item._id,
+                });
+              }}>
+              <View style={{height: height / 3}}>
+                <View style={{flexDirection: 'column', margin: hp(0.5)}}>
+                  <Text style={{fontSize: 17}}>
+                    {item.name && item.name.length > 20
+                      ? item.name.slice(0, 20) + '...'
+                      : item.name}
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: 'gray',
-                      textDecorationLine: 'line-through',
-                    }}>
-                    {'₹'}
-                    {item.originalprice}
-                  </Text>
-                  {item.offerpercentage !== '0' ? (
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        color: 'green',
-                        fontWeight: 'bold',
-                      }}>
-                      {' '}
-                      {item.offerpercentage + '%'}
-                    </Text>
+                  {item.totalrating ? (
+                    <View style={{flexDirection: 'row'}}>
+                      <Icon color="green" name="star" size={15} />
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        {item.rating}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        ({item.totalrating})
+                      </Text>
+                    </View>
                   ) : null}
+                  <View style={{flexDirection: 'row'}}>
+                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                      {'₹'}
+                      {item.price}{' '}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: 'gray',
+                        textDecorationLine: 'line-through',
+                      }}>
+                      {'₹'}
+                      {item.originalprice}
+                    </Text>
+                    {item.offerpercentage !== '0' ? (
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          color: 'green',
+                          fontWeight: 'bold',
+                        }}>
+                        {' '}
+                        {item.offerpercentage + '%'}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </CardView>
         )}
         ListFooterComponent={() =>

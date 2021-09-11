@@ -41,6 +41,8 @@ import Wishlist from './src/screens/wishlist/Wishlist';
 import Cart from './src/screens/cart/Cart';
 import Reward from './src/screens/Rewards/Reward';
 import Checkout from './src/screens/checkout/Checkout';
+import OrderPlaced from './src/screens/order/OrderPlaced';
+import Product from './src/screens/product/Product';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -142,6 +144,13 @@ const homeDrawer = props => {
       />
       <Drawer.Screen
         options={{
+          title: '',
+        }}
+        name="OrderPlaced"
+        component={OrderPlaced}
+      />
+      <Drawer.Screen
+        options={{
           headerLeft: () => (
             <Icon
               style={{marginLeft: hp(1)}}
@@ -174,8 +183,10 @@ const homeDrawer = props => {
         name="Category"
         component={Category}
       />
-      {/* <Drawer.Screen
+      <Drawer.Screen
         options={{
+          headerTitleStyle: {alignSelf: 'flex-start'},
+          title: '',
           headerLeft: () => (
             <Icon
               style={{marginLeft: hp(1)}}
@@ -187,10 +198,32 @@ const homeDrawer = props => {
               size={25}
             />
           ),
+          headerRight: () => (
+            <View
+              style={{
+                marginRight: 15,
+                flexDirection: 'row',
+              }}>
+              <TouchableOpacity>
+                <Icon
+                  style={{marginRight: 15}}
+                  color="white"
+                  name="search"
+                  size={20}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  props.navigation.navigate('Cart');
+                }}>
+                <Icon name="cart" color="white" size={20} />
+              </TouchableOpacity>
+            </View>
+          ),
         }}
-        name="Checkout"
-        component={Checkout}
-      /> */}
+        name="Product"
+        component={Product}
+      />
     </Drawer.Navigator>
   );
 };
@@ -280,12 +313,13 @@ const App = () => {
   };
   useDoubleBackPressExit(() => {});
   return (
-    <SafeAreaView style={backgroundStyle}>
+    // style={backgroundStyle}
+    <SafeAreaView>
       <StatusBar />
       {/* barStyle={isDarkMode ? 'light-content' : 'dark-content'} */}
       <View
         style={{
-          backgroundColor: isDarkMode ? Colors.black : Colors.white,
+          // backgroundColor: isDarkMode ? Colors.black : Colors.white,
           width: wp(100),
           height: hp(100),
         }}>

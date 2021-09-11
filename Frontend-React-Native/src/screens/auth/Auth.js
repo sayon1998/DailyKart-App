@@ -64,6 +64,7 @@ export default class Auth extends Component {
             if (!response.data.status) {
               this.setState({isProceed: true, editable: false});
               await AsyncStorage.setItem('_id', response.data.data._id);
+              await AsyncStorage.setItem('ph', response.data.data.ph);
               await AsyncStorage.setItem(
                 'name',
                 response.data.data.fName +

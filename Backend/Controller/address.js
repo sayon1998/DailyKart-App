@@ -44,7 +44,8 @@ router.post("/save-address", async (req, res) => {
         if (addressData.address && addressData.address.length > 0) {
           req.body.address[0].addressId = addressData.address.length + 1;
           addressData.address.splice(0, 0, req.body.address[0]);
-          await addressData.save();
+          (addressData.address[1].isRecentlyUsed = false),
+            await addressData.save();
         }
       } else if (req.body.address && req.body.address[0].addressId !== 0) {
         if (
@@ -371,13 +372,14 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
           return res.status(400).send(resType);
         }
         if (params === null) {
-          resType.message = "Order is not deliveriable to this pin code";
+          resType.message =
+            "Order is not deliveriable at " + req.params.pin + ".";
           return res.status(200).send(resType);
         }
         if (!params.deliveryEverywhere) {
           let flag = false;
           for (const index in params.pin) {
-            if (params.pin[index] === req.params.pin) {
+            if (String(params.pin[index]) === String(req.params.pin)) {
               flag = true;
               break;
             }
@@ -387,11 +389,12 @@ router.get("/address-deliveriable/:pin/:productId", async (req, res) => {
             resType.status = true;
             return res.status(200).send(resType);
           } else {
-            resType.message = "Order is not deliveriable to this pin code";
+            resType.message =
+              "Order is not deliveriable at " + req.params.pin + ".";
             return res.status(200).send(resType);
           }
         } else {
-          resType.message = "Order is deliveriable";
+          resType.message = "Order is deliveriable.";
           resType.status = true;
           return res.status(200).send(resType);
         }

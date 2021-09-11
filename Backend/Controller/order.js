@@ -54,7 +54,7 @@ router.post("/save-orders", async (req, res) => {
       resType.message = "Total original price is Required";
       return res.status(404).send(resType);
     }
-    if (req.body.orderDetails && req.body.productDetails.length === 0) {
+    if (req.body.productDetails && req.body.productDetails.length === 0) {
       resType.message = "Product details is Required";
       return res.status(404).send(resType);
     }
@@ -81,10 +81,10 @@ router.post("/save-orders", async (req, res) => {
         }
         if (
           product.quantity > 0 &&
-          product.quantity >= req.body.productDetails[index].orderqty
+          product.quantity >= req.body.productDetails[index].qty
         ) {
           product.quantity =
-            product.quantity - req.body.productDetails[index].orderqty;
+            product.quantity - req.body.productDetails[index].qty;
           await product.save();
           orderArray.orderDetail.push({
             _id: req.body.productDetails[index]._id,
@@ -96,7 +96,7 @@ router.post("/save-orders", async (req, res) => {
             totalrating: req.body.productDetails[index].totalrating,
             type: req.body.productDetails[index].type,
             unit: req.body.productDetails[index].unit,
-            orderqty: req.body.productDetails[index].orderqty,
+            orderqty: req.body.productDetails[index].qty,
             deliverycharge: req.body.productDetails[index].deliverycharge,
             price: req.body.productDetails[index].price,
             originalprice: req.body.productDetails[index].originalprice,
@@ -195,6 +195,7 @@ router.post("/save-orders", async (req, res) => {
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
                   orderArray.deliveryCharge = req.body.deliveryCharge;
+                  orderArray.paymentMethod = req.body.paymentMethod;
                   (orderArray.isOrderPlaced = true),
                     (orderArray.isOrderPacked = false),
                     (orderArray.isOrderDispatched = false),
@@ -278,6 +279,7 @@ router.post("/save-orders", async (req, res) => {
                   orderArray.totalofferPercentage =
                     req.body.totalOfferPercentage;
                   orderArray.deliveryCharge = req.body.deliveryCharge;
+                  orderArray.paymentMethod = req.body.paymentMethod;
                   (orderArray.isOrderPlaced = true),
                     (orderArray.isOrderPacked = false),
                     (orderArray.isOrderDispatched = false),

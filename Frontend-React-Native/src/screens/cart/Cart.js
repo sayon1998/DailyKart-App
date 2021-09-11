@@ -31,10 +31,15 @@ import Color from '../../services/color';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Picker} from '@react-native-community/picker';
 import BottomSheetHandler from '../../services/BottomSheetHandler';
+import {TextInput} from 'react-native-gesture-handler';
 
 const {width, height} = Dimensions.get('window');
 
 export default class Cart extends Component {
+  addressTypeArray = [
+    {label: 'Office', value: 'Office'},
+    {label: 'Home', value: 'Home'},
+  ];
   constructor(props) {
     super(props);
     this.state = {
@@ -59,6 +64,14 @@ export default class Cart extends Component {
       address: '',
       pin: '',
       isCheckoutLoading: false,
+      addressId: '',
+      city: '',
+      cityArray: [],
+      dist: '',
+      state: '',
+      area: '',
+      landmark: '',
+      addressType: 'Home',
     };
     this.handler = this.handler.bind(this);
   }
@@ -70,7 +83,7 @@ export default class Cart extends Component {
     //  ########## End Comment ##########
     this.unsubscribe = this.props.navigation.addListener('focus', () => {
       console.log('Cart Listener');
-      this.handler = this.handler.bind(this);
+      // this.handler = this.handler.bind(this);
       this.getCartDetails();
       this.getAddress();
       this.setState({
@@ -95,6 +108,14 @@ export default class Cart extends Component {
         address: '',
         pin: '',
         isCheckoutLoading: false,
+        addressId: '',
+        city: '',
+        cityArray: [],
+        dist: '',
+        state: '',
+        landmark: '',
+        area: '',
+        addressType: 'Home',
       });
     });
   }
@@ -105,15 +126,20 @@ export default class Cart extends Component {
     this.setState({
       locationContainerOpen: false,
     });
-    address.subscribe(res => {
+    address.subscribe(async res => {
       if (res && res.pin) {
         this.setState({
+          addressId: res.addressId ? res.addressId : 0,
           addressName: res.name,
-          ph: res.ph,
+          ph: res.ph ? res.ph : await AsyncStorage.getItem('ph'),
+          city: res.city[0],
+          cityArray: res.city,
+          dist: res.dist,
+          state: res.state,
           address:
             res.area +
             ', City- ' +
-            res.city +
+            res.city[0] +
             ', Dist- ' +
             res.dist +
             ', State- ' +
@@ -135,8 +161,13 @@ export default class Cart extends Component {
         .then(res => {
           if (res.data && res.data.status && res.data.data) {
             this.setState({
+              addressId: res.data.data.addressId,
               addressName: res.data.data.name,
-              ph: res.data.data.ph,
+              ph: String(res.data.data.ph),
+              city: res.data.data.city,
+              cityArray: [res.data.data.city],
+              dist: res.data.data.dist,
+              state: res.data.data.state,
               address:
                 res.data.data.area +
                 ', City- ' +
@@ -147,7 +178,7 @@ export default class Cart extends Component {
                 res.data.data.state +
                 ', Pin- ' +
                 res.data.data.pin,
-              pin: res.data.data.pin,
+              pin: String(res.data.data.pin),
             });
           }
         })
@@ -343,7 +374,7 @@ export default class Cart extends Component {
               margin: 20,
               padding: 10,
               borderRadius: 10,
-              maxHeight: height / 2,
+              // maxHeight: height / 2,
               // flex: 1,
             }}>
             <View
@@ -357,91 +388,222 @@ export default class Cart extends Component {
                 <Icon name="close-circle-outline" size={30} />
               </TouchableOpacity>
             </View>
-            <View
-              style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+            {this.state.dialogType === 'address' ? (
               <View
                 style={{
-                  width: 100,
-                  height: 100,
-                  borderWidth: 2,
-                  borderRadius: 10,
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}>
-                <Image
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>Name: </Text>
+                  <TextInput
+                    style={[styles.input, {width: wp(70)}]}
+                    value={this.state.addressName}
+                    placeholder="Enter Name"
+                    placeholderTextColor="grey"
+                    onChangeText={input => {
+                      this.setState({addressName: input});
+                    }}
+                  />
+                </View>
+                <View
                   style={{
-                    width: 95,
-                    height: 95,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                  }}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Text>Ph: </Text>
+                    <TextInput
+                      style={[styles.input, {width: wp(50)}]}
+                      value={this.state.ph}
+                      placeholder="Enter Phone Number"
+                      placeholderTextColor="grey"
+                      keyboardType="number-pad"
+                      onChangeText={input => {
+                        this.setState({ph: input});
+                      }}
+                    />
+                  </View>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Text>Pin: </Text>
+                    <TextInput
+                      style={[styles.input, {width: wp(15)}]}
+                      value={this.state.pin}
+                      editable={false}
+                    />
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>City: </Text>
+                  <View style={{borderWidth: 1, borderRadius: 5}}>
+                    <Picker
+                      selectedValue={this.state.city}
+                      style={{height: 40, width: wp(72)}}
+                      onValueChange={(itemValue, itemIndex) => {
+                        console.log(itemValue);
+                        this.setState({city: itemValue});
+                      }}>
+                      {this.state.cityArray.map((myValue, myIndex) => {
+                        return (
+                          <Picker.Item
+                            key={myIndex}
+                            label={myValue}
+                            value={myValue}
+                          />
+                        );
+                      })}
+                    </Picker>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>Dist: </Text>
+                  <TextInput
+                    style={[styles.input, {width: wp(72)}]}
+                    value={this.state.dist}
+                    editable={false}
+                  />
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>State: </Text>
+                  <TextInput
+                    style={[styles.input, {width: wp(72)}]}
+                    value={this.state.state}
+                    editable={false}
+                  />
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>Area: </Text>
+                  <TextInput
+                    style={[styles.input, {height: 50, width: wp(73)}]}
+                    value={this.state.area}
+                    onChangeText={value => {
+                      this.setState({area: value});
+                    }}
+                    multiline={true}
+                    numberOfLines={5}
+                  />
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>Landmark: </Text>
+                  <TextInput
+                    style={[styles.input, {width: wp(65)}]}
+                    value={this.state.landmark}
+                    onChangeText={value => {
+                      this.setState({landmark: value});
+                    }}
+                  />
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Text>Type: </Text>
+                  <View style={{borderWidth: 1, borderRadius: 5}}>
+                    <Picker
+                      selectedValue={this.state.addressType}
+                      style={{height: 40, width: wp(72)}}
+                      onValueChange={(itemValue, itemIndex) => {
+                        console.log(itemValue);
+                        this.setState({addressType: itemValue});
+                      }}>
+                      {this.addressTypeArray.map((myValue, myIndex) => {
+                        return (
+                          <Picker.Item
+                            key={myIndex}
+                            label={myValue.label}
+                            value={myValue.value}
+                          />
+                        );
+                      })}
+                    </Picker>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+                <View
+                  style={{
+                    width: 100,
+                    height: 100,
                     borderWidth: 2,
                     borderRadius: 10,
-                  }}
-                  source={{uri: this.state.dialogItems.img}}
-                />
-              </View>
-              <View>
-                <Text>
-                  <Text style={{fontSize: 16, fontWeight: 'bold'}}>
-                    Product:{' '}
-                  </Text>{' '}
-                  <Text
+                  }}>
+                  <Image
                     style={{
-                      fontSize: 15,
-                    }}>
-                    {this.state.dialogItems.name &&
-                    this.state.dialogItems.name.length > 20
-                      ? this.state.dialogItems.name.slice(0, 20) + '...'
-                      : this.state.dialogItems.name}
-                  </Text>
-                </Text>
-                {this.state.dialogItems.rating ? (
+                      width: 95,
+                      height: 95,
+                      borderWidth: 2,
+                      borderRadius: 10,
+                    }}
+                    source={{uri: this.state.dialogItems.img}}
+                  />
+                </View>
+                <View>
                   <Text>
                     <Text style={{fontSize: 16, fontWeight: 'bold'}}>
-                      Rating:{' '}
-                    </Text>
-                    <Icon name="star" color="green" size={15} />
+                      Product:{' '}
+                    </Text>{' '}
                     <Text
                       style={{
-                        color: 'green',
+                        fontSize: 15,
+                      }}>
+                      {this.state.dialogItems.name &&
+                      this.state.dialogItems.name.length > 20
+                        ? this.state.dialogItems.name.slice(0, 20) + '...'
+                        : this.state.dialogItems.name}
+                    </Text>
+                  </Text>
+                  {this.state.dialogItems.rating ? (
+                    <Text>
+                      <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                        Rating:{' '}
+                      </Text>
+                      <Icon name="star" color="green" size={15} />
+                      <Text
+                        style={{
+                          color: 'green',
+                          fontWeight: 'bold',
+                          fontSize: 15,
+                        }}>
+                        {this.state.dialogItems.rating}
+                      </Text>
+                    </Text>
+                  ) : null}
+
+                  <Text>
+                    <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                      Price:{' '}
+                    </Text>
+                    <Text
+                      style={{
                         fontWeight: 'bold',
                         fontSize: 15,
                       }}>
-                      {this.state.dialogItems.rating}
-                    </Text>
-                  </Text>
-                ) : null}
-
-                <Text>
-                  <Text style={{fontSize: 16, fontWeight: 'bold'}}>
-                    Price:{' '}
-                  </Text>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      fontSize: 15,
-                    }}>
-                    {'₹'}
-                    {this.state.dialogItems.price}
-                  </Text>{' '}
-                  <Text
-                    style={{
-                      color: 'gray',
-                      fontSize: 14,
-                      textDecorationLine: 'line-through',
-                    }}>
-                    {'₹'}
-                    {this.state.dialogItems.originalprice}
-                  </Text>{' '}
-                  {this.state.dialogItems.offerpercentage !== '0' ? (
+                      {'₹'}
+                      {this.state.dialogItems.price}
+                    </Text>{' '}
                     <Text
                       style={{
-                        color: 'green',
-                        fontWeight: 'bold',
-                        fontSize: 13,
+                        color: 'gray',
+                        fontSize: 14,
+                        textDecorationLine: 'line-through',
                       }}>
-                      {this.state.dialogItems.offerpercentage + '%'}
-                    </Text>
-                  ) : null}
-                </Text>
+                      {'₹'}
+                      {this.state.dialogItems.originalprice}
+                    </Text>{' '}
+                    {this.state.dialogItems.offerpercentage !== '0' ? (
+                      <Text
+                        style={{
+                          color: 'green',
+                          fontWeight: 'bold',
+                          fontSize: 13,
+                        }}>
+                        {this.state.dialogItems.offerpercentage + '%'}
+                      </Text>
+                    ) : null}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
             <View
               style={{
                 flexDirection: 'row',
@@ -465,7 +627,6 @@ export default class Cart extends Component {
                     title="Confirm"
                     color={Color.primary}
                     onPress={async () => {
-                      this.setState({dialogLoading: true});
                       await this.performAction(
                         this.state.dialogItems._id,
                         this.state.dialogItems.name,
@@ -483,49 +644,115 @@ export default class Cart extends Component {
     );
   }
   performAction = async () => {
-    await Global.onClickCartWishList(
-      'cartDelete',
-      this.state.dialogItems._id,
-      this.state.dialogItems.name,
-    ).then(res => {
-      if (res) {
-        let tempCart = [];
-        this.state.cartLists.forEach(e => {
-          if (e._id !== this.state.dialogItems._id) {
-            tempCart.push(e);
+    if (this.state.dialogType === 'address') {
+      if (!this.state.area) {
+        Global.toasterMessage('Area is Required');
+        return false;
+      }
+      if (!this.state.ph) {
+        Global.toasterMessage('Phone number is Required');
+        return false;
+      }
+      if (!this.state.addressName) {
+        Global.toasterMessage('Name is Required');
+        return false;
+      }
+      let params = {
+        userId: await AsyncStorage.getItem('_id'),
+        address: [
+          {
+            addressId: this.state.addressId,
+            name: this.state.addressName,
+            isRecentlyUsed: true,
+            ph: this.state.ph,
+            pin: this.state.pin,
+            city: this.state.city,
+            state: this.state.state,
+            dist: this.state.dist,
+            area: this.state.area,
+            landmark: this.state.landmark,
+            addressType: this.state.addressType,
+          },
+        ],
+      };
+      this.setState({dialogLoading: true});
+      await axios
+        .post(Global.apiURL + 'address/save-address', params)
+        .then(res => {
+          console.log(JSON.stringify(res.data));
+          if (res.data && res.data.status) {
+            if (
+              res.data.data &&
+              res.data.data.address &&
+              res.data.data.address.length > 0
+            ) {
+              this.setState({
+                dialogLoading: false,
+                addressId: res.data.data.address[0].addressId,
+              });
+              this.toggleDialog();
+              this.onClickCheckout();
+            } else {
+              this.setState({
+                dialogLoading: false,
+              });
+              this.toggleDialog();
+            }
           }
-        });
-        if (tempCart && tempCart.length > 0) {
+        })
+        .catch(err => {
+          console.log(err.response.data.message);
           this.setState({
-            dialog: false,
-            dialogText: '',
-            dialogItems: [],
             dialogLoading: false,
-            dialogType: '',
-            cartLists: tempCart,
           });
+          Global.toasterMessage(err.response.data.message);
+        });
+    } else {
+      this.setState({dialogLoading: true});
+      await Global.onClickCartWishList(
+        'cartDelete',
+        this.state.dialogItems._id,
+        this.state.dialogItems.name,
+      ).then(res => {
+        if (res) {
+          let tempCart = [];
+          this.state.cartLists.forEach(e => {
+            if (e._id !== this.state.dialogItems._id) {
+              tempCart.push(e);
+            }
+          });
+          if (tempCart && tempCart.length > 0) {
+            this.setState({
+              dialog: false,
+              dialogText: '',
+              dialogItems: [],
+              dialogLoading: false,
+              dialogType: '',
+              cartLists: tempCart,
+            });
+          } else {
+            this.setState({
+              dialog: false,
+              cartLists: [],
+              noProduct: true,
+              dialogText: '',
+              dialogItems: [],
+              dialogLoading: false,
+              dialogType: '',
+            });
+          }
+          this.priceDetailsUpdate(this.state.cartLists);
         } else {
           this.setState({
             dialog: false,
-            cartLists: [],
-            noProduct: true,
             dialogText: '',
             dialogItems: [],
             dialogLoading: false,
             dialogType: '',
           });
         }
-        this.priceDetailsUpdate(this.state.cartLists);
-      } else {
-        this.setState({
-          dialog: false,
-          dialogText: '',
-          dialogItems: [],
-          dialogLoading: false,
-          dialogType: '',
-        });
-      }
-    });
+      });
+    }
   };
   _renderCart = () => {
     return (
@@ -799,18 +1026,47 @@ export default class Cart extends Component {
             this.setState({cartLists: Checkout, isCheckoutLoading: false});
             if (!flag) {
               if (await Global.isLoggedIn()) {
-                console.log('Move to Checkout');
-                this.props.navigation.navigate('Checkout', {
-                  checkout: tempCheckout,
-                  address: this.state.address,
-                  name: this.state.addressName,
-                  ph: this.state.ph,
-                  deliveryCharge: this.state.totalDeliveryCharge,
-                  totalPrice: this.state.totalPrice,
-                  totalOriginalPrice: totalOriginalPrice,
-                });
+                // console.log(
+                //   'Move to Checkout',
+                //   this.state.addressId,
+                //   this.state.address,
+                //   this.state.ph,
+                // );
+                if (this.state.addressId && this.state.addressId !== 0) {
+                  this.props.navigation.navigate('Checkout', {
+                    checkout: tempCheckout,
+                    address: this.state.address,
+                    name: this.state.addressName,
+                    ph: this.state.ph,
+                    addressDetails: {
+                      addressId: this.state.addressId,
+                      name: this.state.addressName,
+                      isRecentlyUsed: true,
+                      ph: this.state.ph,
+                      pin: this.state.pin,
+                      city: this.state.city,
+                      state: this.state.state,
+                      dist: this.state.dist,
+                      area: this.state.area,
+                      landmark: this.state.landmark,
+                      addressType: this.state.addressType,
+                    },
+                    deliveryCharge: this.state.totalDeliveryCharge,
+                    totalPrice: this.state.totalPrice,
+                    totalOriginalPrice: totalOriginalPrice,
+                  });
+                } else {
+                  // Address Dialog will open
+                  this.toggleDialog(
+                    'address',
+                    `Are ${
+                      this.state.name.split(' ')[0]
+                    } want to save this address?`,
+                    this.state.address,
+                  );
+                }
               } else {
-                this.props.navigation.navigate('Auth');
+                this.props.navigation.navigate('Auth', {redirectPath: 'Cart'});
               }
             }
           } else {
@@ -850,9 +1106,9 @@ export default class Cart extends Component {
                     </Text>{' '}
                     {this.state.addressName}
                   </Text>
-                  {/* <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
-                      Phone Number: {'+91-' + this.state.ph}
-                    </Text> */}
+                  <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
+                    Ph: {'+91-' + this.state.ph}
+                  </Text>
                   <Text
                     style={{
                       alignSelf: 'flex-start',
@@ -943,7 +1199,9 @@ export default class Cart extends Component {
                       this.state.totalDeliveryCharge > 0
                         ? 'center'
                         : 'flex-start',
-                    marginLeft: 5,
+                    marginLeft: 15,
+                    position: 'relative',
+                    bottom: 5,
                   }}>
                   <Text
                     style={{
@@ -1011,22 +1269,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   button: {
-    width: 150,
-    height: 50,
+    width: 100,
+    height: 40,
     margin: 10,
+    marginRight: 20,
     borderRadius: 5,
     backgroundColor: Color.primary,
   },
   buttonText: {
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
     color: 'white',
     textAlign: 'center',
-    lineHeight: 50,
+    lineHeight: 40,
   },
   bottomContainer: {
     width: width,
-    height: 80,
+    height: 60,
     justifyContent: 'space-between',
     position: 'absolute',
     backgroundColor: 'white',
@@ -1042,5 +1301,15 @@ const styles = StyleSheet.create({
     height: height / 2,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  input: {
+    width: wp(80),
+    height: 40,
+    color: 'black',
+    backgroundColor: 'white',
+    borderColor: 'grey',
+    borderWidth: 1,
+    borderRadius: 5,
+    margin: hp(1),
   },
 });

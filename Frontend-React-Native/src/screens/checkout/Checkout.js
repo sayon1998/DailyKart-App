@@ -11,6 +11,7 @@ import {
   Text,
   Dimensions,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -23,6 +24,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {StackActions} from '@react-navigation/routers';
 import RadioForm from 'react-native-simple-radio-button';
 import Color from '../../services/color';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const {width, height} = Dimensions.get('window');
 
@@ -36,12 +39,14 @@ export default class Checkout extends Component {
     this.state = {
       ph: '',
       name: '',
+      addressDetails: {},
       address: '',
       deliverycharge: 0,
       totalPrice: 0,
       totalOriginalPrice: 0,
       checkout: [],
       paymentMethod: 0,
+      isLoading: false,
     };
   }
   componentDidMount() {
@@ -58,6 +63,7 @@ export default class Checkout extends Component {
   }
   getCheckoutDetails() {
     this.setState({
+      addressDetails: this.props.route.params.addressDetails,
       ph: this.props.route.params.ph,
       name: this.props.route.params.name,
       address: this.props.route.params.address,
@@ -308,8 +314,76 @@ export default class Checkout extends Component {
       />
     );
   }
-  onClickProceed() {
+  async onClickProceed() {
     console.log('Proceed to Order');
+    if (await Global.isLoggedIn()) {
+      if (this.state.paymentMethod === 0) {
+        this.onPlaceOrder({
+          userId: await AsyncStorage.getItem('_id'),
+          deliveryaddress: this.state.addressDetails,
+          deliveryCharge: this.state.deliverycharge
+            ? this.state.deliverycharge
+            : 0,
+          totalOfferPrice: String(this.state.totalPrice),
+          totalOfferPercentage:
+            String(
+              parseFloat(
+                ((parseFloat(this.state.totalOriginalPrice) -
+                  parseFloat(this.state.totalPrice)) /
+                  parseFloat(this.state.totalOriginalPrice)) *
+                  100,
+              ).toFixed(2),
+            ) + '%',
+          totalOriginalPrice: String(this.state.totalOriginalPrice),
+          productDetails: this.state.checkout,
+          paymentMethod: 'COD',
+        });
+      } else {
+        // Online Method
+      }
+    } else {
+      Global.isLoggedIn('Please login at first');
+      this.props.navigation.dispatch(StackActions.replace('Auth'));
+    }
+  }
+  async onPlaceOrder(params) {
+    this.setState({isLoading: true});
+    await axios
+      .post(Global.apiURL + 'order/save-orders', params)
+      .then(res => {
+        // console.log(JSON.stringify(res.data));
+        if (res.data && res.data.status) {
+          if (
+            res.data.data &&
+            res.data.data.orderDetails &&
+            res.data.data.orderDetails.length > 0
+          ) {
+            this.setState({isLoading: false});
+            this.props.navigation.navigate('OrderPlaced', {
+              orderDetails:
+                res.data.data.orderDetails[
+                  res.data.data.orderDetails.length - 1
+                ].orderDetail[0],
+            });
+          }
+        } else {
+          Global.toasterMessage(res.data.message);
+          this.setState({isLoading: false});
+        }
+      })
+      .catch(err => {
+        console.log(
+          err.response && err.response.data && err.response.data.message
+            ? err.response.data.message
+            : err.message,
+        );
+        this.setState({isLoading: false});
+        Global.toasterMessage(
+          err.response && err.response.data && err.response.data.message
+            ? err.response.data.message
+            : err.message,
+        );
+      });
   }
   render() {
     return (
@@ -519,13 +593,21 @@ export default class Checkout extends Component {
         <View style={styles.bottomContainer}>
           <View style={styles.bottomMainRow}>
             <View />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                this.onClickProceed();
-              }}>
-              <Text style={styles.buttonText}>Proceed</Text>
-            </TouchableOpacity>
+            {this.state.isLoading ? (
+              <ActivityIndicator
+                style={{margin: 15}}
+                size="large"
+                color={Color.primary}
+              />
+            ) : (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  this.onClickProceed();
+                }}>
+                <Text style={styles.buttonText}>Proceed</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -564,7 +646,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     width: width,
-    height: 80,
+    height: 60,
     justifyContent: 'space-between',
     backgroundColor: 'white',
     elevation: 20,
@@ -575,17 +657,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   button: {
-    width: 150,
-    height: 50,
+    width: 100,
+    height: 40,
     margin: 10,
+    marginRight: 20,
     borderRadius: 5,
     backgroundColor: Color.primary,
   },
   buttonText: {
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
     color: 'white',
     textAlign: 'center',
-    lineHeight: 50,
+    lineHeight: 40,
   },
 });

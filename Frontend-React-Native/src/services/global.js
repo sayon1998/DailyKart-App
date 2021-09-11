@@ -10,6 +10,7 @@ const address = new BehaviorSubject();
 export {subscriber, address};
 const Global = {
   apiURL: 'http://192.168.0.152:3000/api/',
+  // apiURL: 'http://192.168.64.185:3000/api/',
   isLoggedIn: async () => {
     let user_id = (await AsyncStorage.getItem('_id')) ? true : false;
 
@@ -61,6 +62,21 @@ const Global = {
       });
     }
     return items;
+  },
+  checCartList: async id => {
+    let cartListArr = [],
+      flag = false;
+    cartListArr = JSON.parse(await AsyncStorage.getItem('cartList'));
+    if (id) {
+      if (cartListArr && cartListArr.length > 0) {
+        cartListArr.forEach(e => {
+          if (e === id) {
+            flag = true;
+          }
+        });
+      }
+    }
+    return flag;
   },
   onClickCartWishList: async (type = '', data, productName = '') => {
     let wishList = [],
@@ -158,6 +174,10 @@ const Global = {
               );
               responseStatus = true;
             } else if (type === 'cartAdd') {
+              await AsyncStorage.setItem(
+                'cartList',
+                JSON.stringify(response.data.data.cart),
+              );
               Global.toasterMessage(
                 `${productName} is sucessfully added in ${
                   (await AsyncStorage.getItem('name')).split(' ')[0]
@@ -276,6 +296,26 @@ const Global = {
             }'s wishlist`,
           );
           responseStatus = true;
+        }
+      } else if (type === 'cartAdd') {
+        cartList = JSON.parse(await AsyncStorage.getItem('cartList'));
+        if (cartList !== null && cartList.indexOf(data) === -1) {
+          cartList = [...cartList, data];
+          await AsyncStorage.setItem('cartList', JSON.stringify(cartList));
+          Global.toasterMessage(
+            `${productName} is added in your temporary cart`,
+          );
+          responseStatus = true;
+        } else if (!cartList) {
+          await AsyncStorage.setItem('cartList', JSON.stringify([data]));
+          Global.toasterMessage(
+            `${productName} is added in your temporary cart`,
+          );
+          responseStatus = true;
+        } else {
+          Global.toasterMessage(
+            `${productName} is already added in your temporary cart`,
+          );
         }
       }
     }
