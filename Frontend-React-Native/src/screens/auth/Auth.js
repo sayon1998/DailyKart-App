@@ -280,6 +280,21 @@ export default class Auth extends Component {
       );
     }
   }
+  async componentWillUnmount() {
+    this.setState({
+      spinner: false,
+      editable: true,
+      isOTP: false,
+      isProceed: false,
+      isPass: false,
+      isNewUser: false,
+      ph: null,
+      pass: '',
+      otpSec: 30,
+      codeInput: '',
+      autoVerify: false,
+    });
+  }
   render() {
     return (
       <ImageBackground

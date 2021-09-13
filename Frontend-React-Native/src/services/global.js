@@ -63,7 +63,7 @@ const Global = {
     }
     return items;
   },
-  checCartList: async id => {
+  checkCartList: async id => {
     let cartListArr = [],
       flag = false;
     cartListArr = JSON.parse(await AsyncStorage.getItem('cartList'));
@@ -78,7 +78,12 @@ const Global = {
     }
     return flag;
   },
-  onClickCartWishList: async (type = '', data, productName = '') => {
+  onClickCartWishList: async (
+    type = '',
+    data,
+    productName = '',
+    quickOrder = false,
+  ) => {
     let wishList = [],
       cartList = [];
     let responseStatus = false;
@@ -178,11 +183,13 @@ const Global = {
                 'cartList',
                 JSON.stringify(response.data.data.cart),
               );
-              Global.toasterMessage(
-                `${productName} is sucessfully added in ${
-                  (await AsyncStorage.getItem('name')).split(' ')[0]
-                }'s cart`,
-              );
+              if (!quickOrder) {
+                Global.toasterMessage(
+                  `${productName} is sucessfully added in ${
+                    (await AsyncStorage.getItem('name')).split(' ')[0]
+                  }'s cart`,
+                );
+              }
               responseStatus = true;
             } else if (type === 'wishlistDelete') {
               await AsyncStorage.setItem(
@@ -315,6 +322,34 @@ const Global = {
         } else {
           Global.toasterMessage(
             `${productName} is already added in your temporary cart`,
+          );
+        }
+      } else if (type === 'cartDelete') {
+        cartList = JSON.parse(await AsyncStorage.getItem('cartList'));
+        if (cartList !== null && cartList.indexOf(data) > -1) {
+          if (cartList && cartList.length === 1) {
+            await AsyncStorage.removeItem('cartList');
+          } else {
+            let tempcartList = [];
+            cartList.forEach(e => {
+              if (e !== data) {
+                tempcartList.push(e);
+              }
+            });
+            await AsyncStorage.setItem(
+              'cartList',
+              JSON.stringify(tempcartList),
+            );
+          }
+          Global.toasterMessage(
+            `${productName} is deleted from your temporary cart`,
+          );
+          responseStatus = true;
+        } else if (cartList === null) {
+          Global.toasterMessage('Your cart is empty');
+        } else {
+          Global.toasterMessage(
+            `${productName} is already deleted from your temporary cart`,
           );
         }
       }

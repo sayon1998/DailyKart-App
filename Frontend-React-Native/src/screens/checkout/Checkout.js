@@ -69,7 +69,13 @@ export default class Checkout extends Component {
       address: this.props.route.params.address,
       checkout: this.props.route.params.checkout,
       deliverycharge: this.props.route.params.deliverycharge,
-      totalPrice: this.props.route.params.totalPrice,
+      totalPrice:
+        parseFloat(this.props.route.params.totalPrice) +
+        parseFloat(
+          this.props.route.params.deliverycharge
+            ? this.props.route.params.deliverycharge
+            : 0,
+        ),
       totalOriginalPrice: this.props.route.params.totalOriginalPrice,
     });
   }
@@ -493,20 +499,25 @@ export default class Checkout extends Component {
                 {this.state.totalOriginalPrice}
               </Text>
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginLeft: 10,
-                marginRight: 10,
-              }}>
-              <Text style={{fontSize: 20}}>Deduction Price: </Text>
-              <Text style={{fontSize: 18, color: 'green', fontWeight: 'bold'}}>
-                {'- ₹'}
-                {parseFloat(this.state.totalOriginalPrice) -
-                  parseFloat(this.state.totalPrice)}
-              </Text>
-            </View>
+            {parseFloat(this.state.totalOriginalPrice) -
+              parseFloat(this.state.totalPrice) >
+            0 ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 10,
+                  marginRight: 10,
+                }}>
+                <Text style={{fontSize: 20}}>Deduction Price: </Text>
+                <Text
+                  style={{fontSize: 18, color: 'green', fontWeight: 'bold'}}>
+                  {'- ₹'}
+                  {parseFloat(this.state.totalOriginalPrice) -
+                    parseFloat(this.state.totalPrice)}
+                </Text>
+              </View>
+            ) : null}
             <View
               style={{
                 flexDirection: 'row',
@@ -534,24 +545,43 @@ export default class Checkout extends Component {
                 {this.state.totalPrice}
               </Text>
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginLeft: 10,
-                marginRight: 10,
-                marginBottom: 5,
-              }}>
-              <Text style={{fontSize: 20}}>Saving Percentage:</Text>
-              <Text style={{fontSize: 18, fontWeight: 'bold', color: 'green'}}>
-                {parseFloat(
-                  ((parseFloat(this.state.totalOriginalPrice) -
-                    parseFloat(this.state.totalPrice)) /
-                    parseFloat(this.state.totalOriginalPrice)) *
-                    100,
-                ).toFixed(2) + '%'}
+            {parseFloat(
+              ((parseFloat(this.state.totalOriginalPrice) -
+                parseFloat(this.state.totalPrice)) /
+                parseFloat(this.state.totalOriginalPrice)) *
+                100,
+            ).toFixed(2) > 0 ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 10,
+                  marginRight: 10,
+                  marginBottom: 5,
+                }}>
+                <Text style={{fontSize: 20}}>Saving Percentage:</Text>
+                <Text
+                  style={{fontSize: 18, fontWeight: 'bold', color: 'green'}}>
+                  {parseFloat(
+                    ((parseFloat(this.state.totalOriginalPrice) -
+                      parseFloat(this.state.totalPrice)) /
+                      parseFloat(this.state.totalOriginalPrice)) *
+                      100,
+                  ).toFixed(2) + '%'}
+                </Text>
+              </View>
+            ) : (
+              <Text
+                style={{
+                  color: 'red',
+                  alignSelf: 'center',
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  marginBottom: 10,
+                }}>
+                Oops, you have'nt saving anything yet.
               </Text>
-            </View>
+            )}
           </CardView>
           <CardView
             style={styles.cardContainer}

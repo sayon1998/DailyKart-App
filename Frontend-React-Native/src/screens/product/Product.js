@@ -119,7 +119,7 @@ export default class Product extends Component {
             dist: res.dist,
             state: res.state,
             address:
-              res.area +
+              (res.area ? res.area + ', ' : '') +
               ', City- ' +
               res.city[0] +
               ', Dist- ' +
@@ -176,12 +176,22 @@ export default class Product extends Component {
       .then(async res => {
         if (res.data && res.data.status) {
           if (res.data.data) {
+            res.data.data.qtyArray = [];
+            res.data.data.qty = 1;
+            for (
+              let i = res.data.data.minqty;
+              i <= res.data.data.highestquentity;
+              i++
+            ) {
+              res.data.data.qtyArray.push({label: `${i}`, value: i});
+            }
+            res.data.data.qty = res.data.data.minqty;
             this.setState({
               isLoading: false,
               productDetail: res.data.data,
               entries: res.data.data.imagelist,
             });
-            await Global.checCartList(this.state.productDetail._id).then(
+            await Global.checkCartList(this.state.productDetail._id).then(
               resData => {
                 if (resData) {
                   this.setState({cartFlag: true});
@@ -224,8 +234,10 @@ export default class Product extends Component {
               dist: res.data.data.dist,
               state: res.data.data.state,
               address:
-                res.data.data.area +
-                ', City- ' +
+                (res.data.data && res.data.data.area
+                  ? res.data.data.area + ', '
+                  : '') +
+                'City- ' +
                 res.data.data.city +
                 ', Dist- ' +
                 res.data.data.dist +
@@ -291,6 +303,20 @@ export default class Product extends Component {
   locationRender = () => {
     return (
       <BottomSheetHandler
+        navigate={this.props.navigation.navigate}
+        addressData={{
+          pin: this.state.pin,
+          addressName: this.state.addressName,
+          ph: this.state.ph,
+          address: this.state.address,
+          addressId: this.state.addressId,
+          city: this.state.city,
+          state: this.state.state,
+          dist: this.state.dist,
+        }}
+        deliveryColor={this.state.deliveryColor}
+        deliveryMsg={this.state.deliveryMsg}
+        productDetail={this.state.productDetail}
         type={this.state.sheetType}
         toggle={this.state.locationContainerOpen}
         handler={this.handler}
@@ -580,9 +606,11 @@ export default class Product extends Component {
                       </Text>{' '}
                       {this.state.addressName}
                     </Text>
-                    <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
-                      Ph: {'+91-' + this.state.ph}
-                    </Text>
+                    {this.state.ph ? (
+                      <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
+                        Ph: {'+91-' + this.state.ph}
+                      </Text>
+                    ) : null}
                     <Text
                       style={{
                         alignSelf: 'flex-start',
@@ -673,8 +701,11 @@ export default class Product extends Component {
                   }}>
                   <TouchableOpacity
                     style={styles.bottomContainerLeftbutton}
-                    disabled={this.state.productDetail.quantity === 0}
                     onPress={() => {
+                      if (this.state.productDetail.quantity === 0) {
+                        Global.toasterMessage('Item is Out of Stock', 'long');
+                        return false;
+                      }
                       this.gotToCart();
                     }}>
                     {!this.state.cartLoading ? (
@@ -686,9 +717,12 @@ export default class Product extends Component {
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
-                    disabled={this.state.productDetail.quantity === 0}
                     style={styles.bottomContainerRightbutton}
                     onPress={() => {
+                      if (this.state.productDetail.quantity === 0) {
+                        Global.toasterMessage('Item is Out of Stock', 'long');
+                        return false;
+                      }
                       this.orderProduct();
                     }}>
                     <Text style={styles.bottomContainerButtonText}>Order</Text>

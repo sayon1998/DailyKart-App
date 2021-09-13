@@ -137,8 +137,8 @@ export default class Cart extends Component {
           dist: res.dist,
           state: res.state,
           address:
-            res.area +
-            ', City- ' +
+            (res.area ? res.area + ', ' : '') +
+            'City- ' +
             res.city[0] +
             ', Dist- ' +
             res.dist +
@@ -168,16 +168,17 @@ export default class Cart extends Component {
               cityArray: [res.data.data.city],
               dist: res.data.data.dist,
               state: res.data.data.state,
-              address:
-                res.data.data.area +
-                ', City- ' +
-                res.data.data.city +
-                ', Dist- ' +
-                res.data.data.dist +
-                ', State- ' +
-                res.data.data.state +
-                ', Pin- ' +
-                res.data.data.pin,
+              address: res.data.data.area
+                ? res.data.data.area + ', '
+                : '' +
+                  'City- ' +
+                  res.data.data.city +
+                  ', Dist- ' +
+                  res.data.data.dist +
+                  ', State- ' +
+                  res.data.data.state +
+                  ', Pin- ' +
+                  res.data.data.pin,
               pin: String(res.data.data.pin),
             });
           }
@@ -210,7 +211,7 @@ export default class Cart extends Component {
               response.data.data.cart &&
               response.data.data.cart.length > 0
             ) {
-              cartList = response.data.data.cart;
+              cartList = response.data.data.cart.reverse();
               await AsyncStorage.removeItem('cartList');
               await AsyncStorage.setItem('cartList', JSON.stringify(cartList));
             } else {
@@ -243,12 +244,22 @@ export default class Cart extends Component {
               let totalPrice = 0,
                 deliveryCharge = 0;
               response.data.data.forEach(e => {
-                e.isChecked = true;
-                e.qty = parseInt(e.minqty);
-                totalPrice += parseInt(e.price) * parseInt(e.minqty);
-                if (e.deliverycharge) {
-                  deliveryCharge += parseInt(e.deliverycharge);
+                if (e.quantity > 0) {
+                  e.isChecked = true;
+                  totalPrice += parseInt(e.price) * parseInt(e.minqty);
+                  if (e.deliverycharge) {
+                    deliveryCharge += parseInt(e.deliverycharge);
+                  }
+                  if (e.minqty && e.highestquentity) {
+                    e.qtyArray = [];
+                    for (let i = e.minqty; i <= e.highestquentity; i++) {
+                      e.qtyArray.push({label: String(i), value: i});
+                    }
+                  }
+                } else {
+                  e.isChecked = false;
                 }
+                e.qty = parseInt(e.minqty);
                 if (e.minqty && e.highestquentity) {
                   e.qtyArray = [];
                   for (let i = e.minqty; i <= e.highestquentity; i++) {
@@ -292,11 +303,11 @@ export default class Cart extends Component {
       let tempCart = [],
         flag = false;
       this.state.cartLists.forEach(e => {
-        if (e._id === id) {
+        if (e._id === id && e.quantity > 0) {
           e.isChecked = value;
         }
         tempCart.push(e);
-        if (value !== e.isChecked && e._id !== id) {
+        if (value !== e.isChecked && e._id !== id && e.quantity > 0) {
           flag = true;
         }
       });
@@ -308,7 +319,11 @@ export default class Cart extends Component {
     } else {
       let tempCart = [];
       this.state.cartLists.forEach(e => {
-        e.isChecked = value;
+        if (e.quantity > 0) {
+          e.isChecked = value;
+        } else {
+          e.isChecked = false;
+        }
         tempCart.push(e);
       });
       this.setState({cartLists: tempCart, selectAll: value});
@@ -622,7 +637,7 @@ export default class Cart extends Component {
                     color={Color.warn}
                     onPress={() => this.toggleDialog()}
                   />
-                  <View style={{marginLeft: hp(1)}}></View>
+                  <View style={{marginLeft: hp(1)}} />
                   <Button
                     title="Confirm"
                     color={Color.primary}
@@ -790,7 +805,7 @@ export default class Cart extends Component {
                   tintColors={{
                     true: Color.primary,
                   }}
-                  disabled={this.state.isCheckoutLoading}
+                  disabled={this.state.isCheckoutLoading || item.quantity === 0}
                   value={item.isChecked}
                   onValueChange={value => {
                     this.onClickCheckbox(value, item._id);
@@ -809,154 +824,172 @@ export default class Cart extends Component {
                   <Icon name="close" size={30} />
                 </TouchableOpacity>
               </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginLeft: 5,
-                  marginRight: 10,
-                  marginBottom: 10,
+              <TouchableOpacity
+                onPress={() => {
+                  this.props.navigation.navigate('Product', {
+                    productId: item._id,
+                  });
                 }}>
-                <View style={{flexDirection: 'column'}}>
-                  <Text style={{fontSize: 20}}>
-                    {item.name && item.name.length > 25
-                      ? item.name.slice(0, 25) + '...'
-                      : item.name}
-                  </Text>
-                  <Text style={{fontSize: 16, color: 'gray'}}>
-                    {item.company && item.company.length > 25
-                      ? item.company.slice(0, 25) + '...'
-                      : item.company}
-                  </Text>
-                  {item.totalrating ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    marginLeft: 5,
+                    marginRight: 10,
+                    marginBottom: 10,
+                  }}>
+                  <View style={{flexDirection: 'column'}}>
+                    <Text style={{fontSize: 20}}>
+                      {item.name && item.name.length > 25
+                        ? item.name.slice(0, 25) + '...'
+                        : item.name}
+                    </Text>
+                    <Text style={{fontSize: 16, color: 'gray'}}>
+                      {item.company && item.company.length > 25
+                        ? item.company.slice(0, 25) + '...'
+                        : item.company}
+                    </Text>
+                    {item.totalrating ? (
+                      <View style={{flexDirection: 'row'}}>
+                        <Icon color="green" name="star" size={15} />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            marginLeft: 2,
+                            fontWeight: 'bold',
+                            color: 'green',
+                          }}>
+                          {item.rating}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            marginLeft: 2,
+                            fontWeight: 'bold',
+                            color: 'green',
+                          }}>
+                          ({item.totalrating})
+                        </Text>
+                      </View>
+                    ) : null}
                     <View style={{flexDirection: 'row'}}>
-                      <Icon color="green" name="star" size={15} />
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          marginLeft: 2,
-                          fontWeight: 'bold',
-                          color: 'green',
-                        }}>
-                        {item.rating}
+                      <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                        {'₹'}
+                        {item.price}{' '}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 16,
-                          marginLeft: 2,
-                          fontWeight: 'bold',
-                          color: 'green',
+                          fontSize: 18,
+                          color: 'gray',
+                          textDecorationLine: 'line-through',
                         }}>
-                        ({item.totalrating})
+                        {'₹'}
+                        {item.originalprice}
                       </Text>
+                      {item.offerpercentage !== '0' ? (
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            color: 'green',
+                            fontWeight: 'bold',
+                          }}>
+                          {' '}
+                          {item.offerpercentage + '%'}
+                        </Text>
+                      ) : null}
                     </View>
-                  ) : null}
-                  <View style={{flexDirection: 'row'}}>
-                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                      {'₹'}
-                      {item.price}{' '}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        color: 'gray',
-                        textDecorationLine: 'line-through',
-                      }}>
-                      {'₹'}
-                      {item.originalprice}
-                    </Text>
-                    {item.offerpercentage !== '0' ? (
+                    {item.deliverycharge ? (
+                      <Text style={{fontSize: 16}}>
+                        <Text style={{color: 'red', fontWeight: 'bold'}}>
+                          {'₹'}
+                          {item.deliverycharge}
+                        </Text>
+                        {' shipping charge required'}
+                      </Text>
+                    ) : (
+                      <Text style={{fontSize: 16, color: 'green'}}>
+                        Free shipping{' '}
+                        <Text style={{fontWeight: 'bold', color: 'black'}}>
+                          (Conditionally)
+                        </Text>
+                      </Text>
+                    )}
+                    {item.quantity <= 10 && item.quantity > 0 ? (
                       <Text
                         style={{
                           fontSize: 16,
-                          color: 'green',
+                          color: Color.warn,
                           fontWeight: 'bold',
                         }}>
-                        {' '}
-                        {item.offerpercentage + '%'}
+                        Only {item.quantity} item left.
+                      </Text>
+                    ) : item.quantity === 0 ? (
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: 'red',
+                          fontWeight: 'bold',
+                        }}>
+                        Item is Out of stock
                       </Text>
                     ) : null}
                   </View>
-                  {item.deliverycharge ? (
-                    <Text style={{fontSize: 16}}>
-                      <Text style={{color: 'red', fontWeight: 'bold'}}>
-                        {'₹'}
-                        {item.deliverycharge}
-                      </Text>
-                      {' shipping charge required'}
-                    </Text>
-                  ) : (
-                    <Text style={{fontSize: 16, color: 'green'}}>
-                      Free shipping{' '}
-                      <Text style={{fontWeight: 'bold', color: 'black'}}>
-                        (Conditionally)
-                      </Text>
-                    </Text>
-                  )}
-                  {item.quantity <= 10 ? (
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: Color.warn,
-                        fontWeight: 'bold',
-                      }}>
-                      Only {item.quantity} item left.
-                    </Text>
-                  ) : null}
+                  <View
+                    style={{
+                      width: 105,
+                      height: 105,
+                      borderWidth: 1,
+                      justifyContent: 'center',
+                    }}>
+                    <Image
+                      style={{width: 100, height: 100, alignSelf: 'center'}}
+                      source={{uri: item.img}}
+                    />
+                  </View>
                 </View>
                 <View
                   style={{
-                    width: 105,
-                    height: 105,
-                    borderWidth: 1,
-                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    marginLeft: 5,
+                    marginRight: 10,
+                    marginBottom: 20,
                   }}>
-                  <Image
-                    style={{width: 100, height: 100, alignSelf: 'center'}}
-                    source={{uri: item.img}}
-                  />
-                </View>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginLeft: 5,
-                  marginRight: 10,
-                  marginBottom: 20,
-                }}>
-                {item.errMsg ? (
-                  <Text
-                    style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
-                    {item.errMsg}
-                  </Text>
-                ) : (
-                  <View />
-                )}
-                <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                  <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
-                    Qty:
-                  </Text>
-                  <View style={{borderWidth: 0.5, width: 70, marginLeft: 1}}>
-                    <Picker
-                      selectedValue={item.qty}
-                      style={{height: 20, width: 85}}
-                      onValueChange={(itemValue, itemIndex) => {
-                        this.quantityUpdate(itemValue, item._id);
-                      }}>
-                      {item.qtyArray.map((myValue, myIndex) => {
-                        return (
-                          <Picker.Item
-                            key={myIndex}
-                            label={myValue.label}
-                            value={myValue.value}
-                          />
-                        );
-                      })}
-                    </Picker>
+                  {item.errMsg ? (
+                    <Text
+                      style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
+                      {item.errMsg}
+                    </Text>
+                  ) : (
+                    <View />
+                  )}
+                  <View
+                    style={{flexDirection: 'row', justifyContent: 'center'}}>
+                    <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
+                      Qty:
+                    </Text>
+                    <View style={{borderWidth: 0.5, width: 70, marginLeft: 1}}>
+                      <Picker
+                        selectedValue={item.qty}
+                        style={{height: 20, width: 85}}
+                        enabled={item.quantity > 0}
+                        onValueChange={(itemValue, itemIndex) => {
+                          this.quantityUpdate(itemValue, item._id);
+                        }}>
+                        {item.qtyArray.map((myValue, myIndex) => {
+                          return (
+                            <Picker.Item
+                              key={myIndex}
+                              label={myValue.label}
+                              value={myValue.value}
+                            />
+                          );
+                        })}
+                      </Picker>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           </CardView>
         )}
@@ -1051,7 +1084,7 @@ export default class Cart extends Component {
                       landmark: this.state.landmark,
                       addressType: this.state.addressType,
                     },
-                    deliveryCharge: this.state.totalDeliveryCharge,
+                    deliverycharge: this.state.totalDeliveryCharge,
                     totalPrice: this.state.totalPrice,
                     totalOriginalPrice: totalOriginalPrice,
                   });
@@ -1104,11 +1137,13 @@ export default class Cart extends Component {
                     <Text style={{fontSize: 18, fontWeight: 'bold'}}>
                       Deliver to
                     </Text>{' '}
-                    {this.state.addressName}
+                    {this.state.addressName ? this.state.addressName : null}
                   </Text>
-                  <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
-                    Ph: {'+91-' + this.state.ph}
-                  </Text>
+                  {this.state.ph ? (
+                    <Text style={{alignSelf: 'flex-start', marginLeft: 5}}>
+                      Ph: {'+91-' + this.state.ph}
+                    </Text>
+                  ) : null}
                   <Text
                     style={{
                       alignSelf: 'flex-start',
