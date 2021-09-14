@@ -78,29 +78,64 @@ const DrawerContainer = props => {
   });
   // Drawer List
   for (let i = 0; i < sideMenuList.length; i++) {
-    sideMenu.push(
-      <DrawerItem
-        key={i}
-        focused={true}
-        icon={({color, size}) => (
-          <Icon name={sideMenuList[i].iconName} color={'#fff'} size={25} />
-        )}
-        labelStyle={{color: '#fff', fontSize: 16}}
-        label={sideMenuList[i].label}
-        onPress={async () => {
-          if (isLoggedIn) {
-            props.navigation.navigate(sideMenuList[i].route);
-            props.navigation.closeDrawer();
-          } else if (!isLoggedIn && sideMenuList[i].label === 'My Wishlist') {
-            props.navigation.navigate(sideMenuList[i].route);
-            props.navigation.closeDrawer();
-          } else {
-            props.navigation.dispatch(StackActions.replace('Auth'));
-            props.navigation.closeDrawer();
-          }
-        }}
-      />,
-    );
+    if (isLoggedIn) {
+      sideMenu.push(
+        <DrawerItem
+          key={i}
+          focused={true}
+          icon={({color, size}) => (
+            <Icon name={sideMenuList[i].iconName} color={'#fff'} size={25} />
+          )}
+          labelStyle={{color: '#fff', fontSize: 16}}
+          label={sideMenuList[i].label}
+          onPress={async () => {
+            if (isLoggedIn) {
+              props.navigation.navigate(sideMenuList[i].route);
+              props.navigation.closeDrawer();
+            } else if (!isLoggedIn && sideMenuList[i].label === 'My Wishlist') {
+              props.navigation.navigate(sideMenuList[i].route);
+              props.navigation.closeDrawer();
+            } else {
+              props.navigation.dispatch(StackActions.replace('Auth'));
+              props.navigation.closeDrawer();
+            }
+          }}
+        />,
+      );
+    } else {
+      if (
+        sideMenuList[i].id === 1 ||
+        sideMenuList[i].id === 4 ||
+        sideMenuList[i].id === 5
+      ) {
+        sideMenu.push(
+          <DrawerItem
+            key={i}
+            focused={true}
+            icon={({color, size}) => (
+              <Icon name={sideMenuList[i].iconName} color={'#fff'} size={25} />
+            )}
+            labelStyle={{color: '#fff', fontSize: 16}}
+            label={sideMenuList[i].label}
+            onPress={async () => {
+              if (isLoggedIn) {
+                props.navigation.navigate(sideMenuList[i].route);
+                props.navigation.closeDrawer();
+              } else if (
+                !isLoggedIn &&
+                sideMenuList[i].label === 'My Wishlist'
+              ) {
+                props.navigation.navigate(sideMenuList[i].route);
+                props.navigation.closeDrawer();
+              } else {
+                props.navigation.dispatch(StackActions.replace('Auth'));
+                props.navigation.closeDrawer();
+              }
+            }}
+          />,
+        );
+      }
+    }
   }
   return (
     <View style={{flex: 1, backgroundColor: Color.primary}}>

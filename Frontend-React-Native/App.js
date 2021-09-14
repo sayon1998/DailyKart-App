@@ -43,6 +43,7 @@ import Reward from './src/screens/Rewards/Reward';
 import Checkout from './src/screens/checkout/Checkout';
 import OrderPlaced from './src/screens/order/OrderPlaced';
 import Product from './src/screens/product/Product';
+import Address from './src/screens/address/Address';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -223,6 +224,25 @@ const homeDrawer = props => {
         }}
         name="Product"
         component={Product}
+      />
+      <Drawer.Screen
+        options={{
+          headerTitleStyle: {alignSelf: 'flex-start'},
+          title: 'Address',
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="Address"
+        component={Address}
       />
     </Drawer.Navigator>
   );
