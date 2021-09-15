@@ -188,7 +188,10 @@ export default class Product extends Component {
             res.data.data.qty = res.data.data.minqty;
             this.setState({
               isLoading: false,
-              productDetail: res.data.data,
+              productDetail: await Global.checkWishList(
+                res.data.data,
+                'single',
+              ),
               entries: res.data.data.imagelist,
             });
             await Global.checkCartList(this.state.productDetail._id).then(
@@ -393,7 +396,11 @@ export default class Product extends Component {
                 {this.state.productDetail.name}
               </Text>
               {this.state.productDetail.totalrating ? (
-                <View style={{flexDirection: 'row'}}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
                   <Icon color="green" name="star" size={15} />
                   <Text
                     style={{
@@ -415,45 +422,106 @@ export default class Product extends Component {
                   </Text>
                 </View>
               ) : null}
-              <View style={{flexDirection: 'row'}}>
-                <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                  {'₹'}
-                  {this.state.productDetail.price}{' '}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: 'gray',
-                    textDecorationLine: 'line-through',
-                  }}>
-                  {'₹'}
-                  {this.state.productDetail.originalprice}
-                </Text>
-                {this.state.productDetail.offerpercentage !== '0' ? (
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color: 'green',
-                      fontWeight: 'bold',
-                    }}>
-                    {' '}
-                    {this.state.productDetail.offerpercentage + '%'}
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <View style={{flexDirection: 'row'}}>
+                  <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                    {'₹'}
+                    {this.state.productDetail.price}{' '}
                   </Text>
-                ) : null}
-                {this.state.productDetail.deliverycharge ? (
                   <Text
                     style={{
                       fontSize: 16,
-                      color: 'red',
+                      color: 'gray',
+                      textDecorationLine: 'line-through',
                     }}>
-                    {' '}
-                    {'+ ₹' + this.state.productDetail.deliverycharge}
-                    <Text style={{fontSize: 16, color: 'black'}}>
-                      {' '}
-                      is delivery charge
-                    </Text>
+                    {'₹'}
+                    {this.state.productDetail.originalprice}
                   </Text>
-                ) : null}
+                  {this.state.productDetail.offerpercentage !== '0' ? (
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        color: 'green',
+                        fontWeight: 'bold',
+                      }}>
+                      {' '}
+                      {this.state.productDetail.offerpercentage + '%'}
+                    </Text>
+                  ) : null}
+                  {this.state.productDetail.deliverycharge ? (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: 'red',
+                      }}>
+                      {' '}
+                      {'+ ₹' + this.state.productDetail.deliverycharge}
+                      <Text style={{fontSize: 16, color: 'black'}}>
+                        {' '}
+                        is delivery charge
+                      </Text>
+                    </Text>
+                  ) : null}
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    position: 'absolute',
+                    alignSelf: 'flex-end',
+                    left: wp(75),
+                    bottom: 10,
+                  }}>
+                  <TouchableOpacity
+                    style={styles.wishList}
+                    onPress={async () => {
+                      if (this.state.productDetail.icon.includes('-')) {
+                        await Global.onClickCartWishList(
+                          'wishlistAdd',
+                          this.state.productDetail._id,
+                          this.state.productDetail.name,
+                        ).then(async value => {
+                          console.log(value);
+                          if (value) {
+                            this.setState({
+                              productDetail: await Global.checkWishList(
+                                this.state.productDetail,
+                                'single',
+                              ),
+                            });
+                          }
+                        });
+                      } else {
+                        await Global.onClickCartWishList(
+                          'wishlistDelete',
+                          this.state.productDetail._id,
+                          this.state.productDetail.name,
+                        ).then(async value => {
+                          if (value) {
+                            this.setState({
+                              productDetail: await Global.checkWishList(
+                                this.state.productDetail,
+                                'single',
+                              ),
+                            });
+                          }
+                        });
+                      }
+                    }}>
+                    <Icon
+                      name={this.state.productDetail.icon}
+                      color={
+                        this.state.productDetail.icon.includes('-')
+                          ? 'black'
+                          : 'red'
+                      }
+                      size={25}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.wishList, {marginLeft: 5}]}>
+                    <Icon name="share" size={25} />
+                  </TouchableOpacity>
+                </View>
               </View>
               {this.state.productDetail.quantity <= 10 &&
               this.state.productDetail.quantity > 0 ? (
@@ -803,5 +871,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
+  },
+  wishList: {
+    width: 40,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
   },
 });

@@ -10,7 +10,7 @@ const address = new BehaviorSubject();
 export {subscriber, address};
 const Global = {
   apiURL: 'http://192.168.0.152:3000/api/',
-  // apiURL: 'http://192.168.64.185:3000/api/',
+  // apiURL: 'http://192.168.131.185:3000/api/',
   isLoggedIn: async () => {
     let user_id = (await AsyncStorage.getItem('_id')) ? true : false;
 
@@ -45,10 +45,10 @@ const Global = {
       type === 'long' ? ToastAndroid.LONG : ToastAndroid.SHORT,
     );
   },
-  checkWishList: async items => {
+  checkWishList: async (items, type = '') => {
     let wishListArr = [];
     wishListArr = await AsyncStorage.getItem('wishList');
-    if (items && items.length > 0) {
+    if (items && items.length > 0 && type !== 'single') {
       items.forEach(x => {
         if (
           wishListArr &&
@@ -60,6 +60,15 @@ const Global = {
           x.icon = 'heart-o';
         }
       });
+    } else if (type === 'single') {
+      JSON.parse(wishListArr).forEach(e => {
+        if (e === items._id) {
+          items.icon = 'heart';
+        } else {
+          items.icon = 'heart-o';
+        }
+      });
+      return items;
     }
     return items;
   },

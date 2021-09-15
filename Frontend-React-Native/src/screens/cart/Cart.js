@@ -435,6 +435,7 @@ export default class Cart extends Component {
                       placeholder="Enter Phone Number"
                       placeholderTextColor="grey"
                       keyboardType="number-pad"
+                      maxLength={10}
                       onChangeText={input => {
                         this.setState({ph: input});
                       }}
@@ -443,6 +444,8 @@ export default class Cart extends Component {
                   <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <Text>Pin: </Text>
                     <TextInput
+                      keyboardType="number-pad"
+                      maxLength={6}
                       style={[styles.input, {width: wp(15)}]}
                       value={this.state.pin}
                       editable={false}

@@ -143,7 +143,7 @@ router.get("/get-all-address/:userId", async (req, res) => {
     if (addressData === null) {
       resType.status = true;
       resType.message = "No Address is Available";
-      return res.status(404).send(resType);
+      return res.status(200).send(resType);
     }
     resType.data = addressData.address;
     resType.status = true;
