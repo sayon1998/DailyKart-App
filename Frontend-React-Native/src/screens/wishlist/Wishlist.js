@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   Modal,
   Button,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -713,6 +714,7 @@ export default class Wishlist extends Component {
   _renderProducts = () => {
     return (
       <FlatList
+        style={{alignSelf: 'center'}}
         data={this.state.wishLists}
         numColumns={2}
         keyExtractor={item => item._id}
@@ -720,122 +722,133 @@ export default class Wishlist extends Component {
         refreshing={this.state.refresh}
         onRefresh={this.refreshHandler}
         renderItem={({item, index}) => (
-          <CardView
-            key={index}
-            style={styles.cardContainer}
-            cardElevation={5}
-            cardMaxElevation={2}
-            cornerRadius={10}>
-            <Image style={styles.imgContainer} source={{uri: item.img}} />
-            <TouchableOpacity style={styles.CheckBox}>
-              <CheckBox
-                tintColors={{
-                  true: Color.primary,
-                }}
-                value={item.isChecked}
-                onValueChange={value => {
-                  this.onClickCheckbox(value, item._id);
-                }}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.wishList}
-              onPress={async () => {
-                if (await Global.isLoggedIn()) {
-                  this.toggleDialog(
-                    'delete',
-                    `Are ${
-                      (await AsyncStorage.getItem('name')).split(' ')[0]
-                    } want to delete this product ?`,
-                    item,
-                  );
-                } else {
-                  this.toggleDialog(
-                    'delete',
-                    'Are you want to delete this product ?',
-                    item,
-                  );
-                }
-              }}>
-              <Icon name="close" size={25} color={Color.warn} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.moveToCart}
-              onPress={async () => {
-                if (await Global.isLoggedIn()) {
-                  this.toggleDialog(
-                    'move',
-                    `Are ${
-                      (await AsyncStorage.getItem('name')).split(' ')[0]
-                    } want to move this to cart ?`,
-                    item,
-                  );
-                } else {
-                  this.toggleDialog(
-                    'move',
-                    'Are you want to move this to cart ?',
-                    item,
-                  );
-                }
-              }}>
-              <Icon name="cart" size={25} color={Color.primary} />
-            </TouchableOpacity>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.props.navigation.navigate('Product', {
+                productId: item._id,
+              });
+            }}>
+            <CardView
+              key={index}
+              style={styles.cardContainer}
+              cardElevation={5}
+              cardMaxElevation={2}
+              cornerRadius={10}>
+              <Image style={styles.imgContainer} source={{uri: item.img}} />
+              <TouchableOpacity style={styles.CheckBox}>
+                <CheckBox
+                  tintColors={{
+                    true: Color.primary,
+                  }}
+                  value={item.isChecked}
+                  onValueChange={value => {
+                    this.onClickCheckbox(value, item._id);
+                  }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.wishList}
+                onPress={async () => {
+                  if (await Global.isLoggedIn()) {
+                    this.toggleDialog(
+                      'delete',
+                      `Are ${
+                        (await AsyncStorage.getItem('name')).split(' ')[0]
+                      } want to delete this product ?`,
+                      item,
+                    );
+                  } else {
+                    this.toggleDialog(
+                      'delete',
+                      'Are you want to delete this product ?',
+                      item,
+                    );
+                  }
+                }}>
+                <Icon name="close" size={25} color={Color.warn} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.moveToCart}
+                onPress={async () => {
+                  if (await Global.isLoggedIn()) {
+                    this.toggleDialog(
+                      'move',
+                      `Are ${
+                        (await AsyncStorage.getItem('name')).split(' ')[0]
+                      } want to move this to cart ?`,
+                      item,
+                    );
+                  } else {
+                    this.toggleDialog(
+                      'move',
+                      'Are you want to move this to cart ?',
+                      item,
+                    );
+                  }
+                }}>
+                <Icon name="cart" size={25} color={Color.primary} />
+              </TouchableOpacity>
 
-            <View style={{height: height / 3}}>
-              <View style={{flexDirection: 'column', margin: hp(0.5)}}>
-                <Text style={{fontSize: 17}}>{item.name}</Text>
-                {item.totalrating ? (
-                  <View style={{flexDirection: 'row'}}>
-                    <Icon color="green" name="star" size={15} />
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
-                      }}>
-                      {item.rating}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        marginLeft: 2,
-                        fontWeight: 'bold',
-                        color: 'green',
-                      }}>
-                      ({item.totalrating})
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={{flexDirection: 'row'}}>
-                  <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                    {'₹'}
-                    {item.price}{' '}
+              <View style={{height: height / 3}}>
+                <View style={{flexDirection: 'column', margin: hp(0.5)}}>
+                  <Text style={{fontSize: 17}}>
+                    {item.name && item.name.length > 18
+                      ? item.name.slice(0, 18) + '...'
+                      : item.name}
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: 'gray',
-                      textDecorationLine: 'line-through',
-                    }}>
-                    {'₹'}
-                    {item.originalprice}
-                  </Text>
-                  {item.offerpercentage !== '0' ? (
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        color: 'green',
-                        fontWeight: 'bold',
-                      }}>
-                      {' '}
-                      {item.offerpercentage + '%'}
-                    </Text>
+                  {item.totalrating ? (
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Icon color="green" name="star" size={15} />
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        {item.rating}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        ({item.totalrating})
+                      </Text>
+                    </View>
                   ) : null}
+                  <View style={{flexDirection: 'row'}}>
+                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                      {'₹'}
+                      {item.price}{' '}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: 'gray',
+                        textDecorationLine: 'line-through',
+                      }}>
+                      {'₹'}
+                      {item.originalprice}
+                    </Text>
+                    {item.offerpercentage !== '0' ? (
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          color: 'green',
+                          fontWeight: 'bold',
+                        }}>
+                        {' '}
+                        {item.offerpercentage + '%'}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
               </View>
-            </View>
-          </CardView>
+            </CardView>
+          </TouchableWithoutFeedback>
         )}
       />
     );
@@ -932,6 +945,7 @@ export default class Wishlist extends Component {
               flex: 1,
               flexDirection: this.state.isLoading ? 'row' : 'column',
               flexWrap: 'wrap',
+              justifyContent: 'center',
             }}
             isLoading={this.state.isLoading}
             animationDirection="diagonalDownRight"

@@ -216,7 +216,7 @@ export default class Home extends Component {
         numColumns={2}
         keyExtractor={item => item._id}
         scrollEnabled={true}
-        style={{marginBottom: hp(25)}}
+        style={{marginBottom: hp(25), alignSelf: 'center'}}
         renderItem={({item, index}) => (
           <CardView
             key={index}
@@ -277,12 +277,12 @@ export default class Home extends Component {
               <View style={{height: height / 3}}>
                 <View style={{flexDirection: 'column', margin: hp(0.5)}}>
                   <Text style={{fontSize: 17}}>
-                    {item.name && item.name.length > 20
-                      ? item.name.slice(0, 20) + '...'
+                    {item.name && item.name.length > 18
+                      ? item.name.slice(0, 18) + '...'
                       : item.name}
                   </Text>
                   {item.totalrating ? (
-                    <View style={{flexDirection: 'row'}}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
                       <Icon color="green" name="star" size={15} />
                       <Text
                         style={{
@@ -434,7 +434,9 @@ export default class Home extends Component {
 
             {this.state.isLoading ? (
               <SkeletonContent
-                containerStyle={{flexDirection: 'row'}}
+                containerStyle={{
+                  flexDirection: 'row',
+                }}
                 isLoading={this.state.isLoading}
                 animationDirection="diagonalDownRight"
                 layout={[
@@ -442,35 +444,35 @@ export default class Home extends Component {
                     key: '1',
                     width: 80,
                     height: 80,
-                    margin: hp(1),
+                    margin: hp(0.5),
                     borderRadius: 100,
                   },
                   {
                     key: '2',
                     width: 80,
                     height: 80,
-                    margin: hp(1),
+                    margin: hp(0.5),
                     borderRadius: 100,
                   },
                   {
                     key: '3',
                     width: 80,
                     height: 80,
-                    margin: hp(1),
+                    margin: hp(0.5),
                     borderRadius: 100,
                   },
                   {
                     key: '4',
                     width: 80,
                     height: 80,
-                    margin: hp(1),
+                    margin: hp(0.5),
                     borderRadius: 100,
                   },
                   {
                     key: '5',
                     width: 80,
                     height: 80,
-                    margin: hp(1),
+                    margin: hp(0.5),
                     borderRadius: 100,
                   },
                 ]}
@@ -495,6 +497,7 @@ export default class Home extends Component {
                 flex: 1,
                 flexDirection: 'row',
                 flexWrap: 'wrap',
+                justifyContent: 'center',
               }}
               isLoading={this.state.isLoading}
               animationDirection="diagonalDownRight"

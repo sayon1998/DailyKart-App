@@ -168,13 +168,13 @@ export default class BottomSheetHandler extends Component {
                       .catch(err => {
                         // console.warn(err.message);
                         Global.toasterMessage(err.message);
-                        this.setState({isGpsLoading: true});
+                        this.setState({isGpsLoading: false});
                       });
                   }
                 },
                 err => {
                   console.warn('ERROR_LOCATION_PROVIDER', err.message);
-                  this.setState({isGpsLoading: true});
+                  this.setState({isGpsLoading: false});
                 },
                 {enableHighAccuracy: false, timeout: 5000, maximumAge: 10000},
               );
@@ -182,12 +182,12 @@ export default class BottomSheetHandler extends Component {
           })
           .catch(err => {
             console.error(err.message);
-            this.setState({isGpsLoading: true});
+            this.setState({isGpsLoading: false});
           });
       }
     } catch (error) {
       console.warn('CATCH_ERROR', error.message);
-      this.setState({isGpsLoading: true});
+      this.setState({isGpsLoading: false});
     }
   }
   async onCLickRadio(index) {
@@ -357,6 +357,7 @@ export default class BottomSheetHandler extends Component {
             </View>
           </CardView>
         )}
+        ListFooterComponent={() => <View style={{marginTop: hp(20)}} />}
       />
     );
   }
@@ -900,9 +901,6 @@ export default class BottomSheetHandler extends Component {
                     }}>
                     You have no save addresses
                   </Text>
-                  <View style={{alignSelf: 'center'}}>
-                    <Button title="Add Address" color={Color.primary} />
-                  </View>
                 </View>
               )}
             </View>

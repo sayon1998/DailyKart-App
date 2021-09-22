@@ -44,6 +44,7 @@ import Checkout from './src/screens/checkout/Checkout';
 import OrderPlaced from './src/screens/order/OrderPlaced';
 import Product from './src/screens/product/Product';
 import Address from './src/screens/address/Address';
+import OrderDetails from './src/screens/order/OrderDetails';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -69,6 +70,7 @@ const MainStack = () => {
       <main.Screen name="Auth" component={Auth} />
       <main.Screen name="register" component={Register} />
       <main.Screen name="Cart" component={cartDrawer} />
+      <main.Screen name="Orders" component={orderDrawer} />
     </main.Navigator>
   );
 };
@@ -125,23 +127,6 @@ const homeDrawer = props => {
         }}
         name="Profile"
         component={Profile}
-      />
-      <Drawer.Screen
-        options={{
-          headerLeft: () => (
-            <Icon
-              style={{marginLeft: hp(1)}}
-              onPress={() => {
-                props.navigation.goBack();
-              }}
-              name="arrow-back"
-              color="white"
-              size={25}
-            />
-          ),
-        }}
-        name="Orders"
-        component={Orders}
       />
       <Drawer.Screen
         options={{
@@ -288,6 +273,54 @@ const cartDrawer = props => {
         }}
         name="Checkout"
         component={Checkout}
+      />
+    </Drawer.Navigator>
+  );
+};
+
+const orderDrawer = props => {
+  return (
+    <Drawer.Navigator
+      initialRouteName="orderDrawer"
+      screenOptions={screenOptionStyle}
+      drawerContent={props => <DrawerContainer {...props} />}>
+      <Drawer.Screen
+        options={{
+          title: 'My Orders',
+          headerLeft: () => (
+            <Icon
+              style={{
+                marginLeft: hp(1),
+              }}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="orderDrawer"
+        component={Orders}
+      />
+      <Drawer.Screen
+        options={{
+          title: 'Order Details',
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="OrderDetails"
+        component={OrderDetails}
       />
     </Drawer.Navigator>
   );

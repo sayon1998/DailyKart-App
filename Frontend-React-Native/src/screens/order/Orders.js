@@ -11,6 +11,9 @@ import {
   ImageBackground,
   StatusBar,
   Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -18,34 +21,359 @@ import {
 } from 'react-native-responsive-screen';
 import {StackActions} from '@react-navigation/native';
 import Global from '../../services/global';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Color from '../../services/color';
+import CardView from 'react-native-cardview';
+import {format, formatDistance, formatRelative, subDays} from 'date-fns';
+import StarRating from 'react-native-star-rating';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 export default class Orders extends Component {
   constructor() {
     super();
     this.state = {
-      phone: '',
-      isEditable: false,
+      isLoading: false,
+      orderDetails: [],
     };
+  }
+  componentDidMount() {
+    // ######### Comment for Production #########
+    this.getOrderDetails();
+    //  ########## End Comment ##########
+    // this.unsubscribe = this.props.navigation.addListener('focus', () => {
+    //   console.log('Order Listener');
+    //   this.setState({
+    //     orderDetails: [],
+    //     isLoading: false,
+    //   });
+    //   this.getOrderDetails();
+    // });
+  }
+  componentWillUnmount() {
+    // this.unsubscribe();
+  }
+  async getOrderDetails() {
+    this.setState({isLoading: true});
+    await axios
+      .get(
+        Global.apiURL +
+          'order/get-order-details/' +
+          (await AsyncStorage.getItem('_id')),
+      )
+      .then(res => {
+        if (res.data && res.data.status) {
+          if (res.data.data && res.data.data.length > 0) {
+            this.setState({
+              orderDetails: res.data.data.reverse(),
+              isLoading: false,
+            });
+          } else {
+            this.setState({isLoading: false});
+          }
+        } else {
+          this.setState({isLoading: false});
+        }
+      })
+      .catch(err => {
+        this.setState({isLoading: false});
+        console.log(
+          err && err.response && err.response.data
+            ? err.response.data.message
+            : err.message,
+        );
+      });
+  }
+  async onStarRatingPress(rating, orderId) {
+    let tempArray = [],
+      prevRate = 0,
+      params = {
+        userId: await AsyncStorage.getItem('_id'),
+        productId: '',
+        rate: '',
+      };
+    this.state.orderDetails.forEach(e => {
+      if (e.orderId === orderId) {
+        prevRate = e.orderDetail[0].userRating;
+        e.orderDetail[0].userRating = rating;
+        params.productId = e.orderDetail[0]._id;
+      }
+      tempArray.push(e);
+    });
+    if (Number(prevRate) !== rating) {
+      params.rate = String(rating);
+      this.setState({orderDetails: tempArray});
+      await axios
+        .post(Global.apiURL + 'product/rate-product', params)
+        .then(res => {
+          if (res.data && res.data.status) {
+            Global.toasterMessage(res.data.message);
+          }
+        })
+        .catch(err => {
+          console.log(
+            err && err.response && err.response.data
+              ? err.response.data.message
+              : err.message,
+          );
+        });
+    }
+  }
+  _renderOrder() {
+    return (
+      <FlatList
+        data={this.state.orderDetails}
+        keyExtractor={item => item.orderId}
+        scrollEnabled={true}
+        renderItem={({item, index}) => (
+          <TouchableWithoutFeedback
+            onPress={() => {
+              this.props.navigation.navigate('OrderDetails', {
+                orderDetails: item,
+              });
+            }}>
+            <CardView
+              key={index}
+              style={styles.cardContainer}
+              cardElevation={5}
+              cardMaxElevation={2}>
+              <View
+                style={{flexDirection: 'row', justifyContent: 'flex-start'}}>
+                {item.orderDetail && item.orderDetail.length > 1 ? (
+                  <View
+                    style={{
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
+                    <View
+                      style={{
+                        height: 100,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}>
+                      <View
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 100,
+                          borderWidth: 0.5,
+                          alignItems: 'center',
+                          marginLeft: 5,
+                          marginRight: 5,
+                          justifyContent: 'center',
+                        }}>
+                        <Image
+                          style={{width: 55, height: 55, borderRadius: 100}}
+                          source={{uri: item.orderDetail[0].img}}
+                        />
+                      </View>
+                      <View
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 100,
+                          borderWidth: 0.5,
+                          alignItems: 'center',
+                          marginLeft: 5,
+                          marginRight: 5,
+                          justifyContent: 'center',
+                        }}>
+                        <Image
+                          style={{width: 55, height: 55, borderRadius: 100}}
+                          source={{uri: item.orderDetail[1].img}}
+                        />
+                      </View>
+                    </View>
+                    {item.orderDetail.length > 2 ? (
+                      <Text
+                        style={{
+                          color: Color.primary,
+                          fontSize: 14,
+                          position: 'relative',
+                          bottom: 15,
+                          fontWeight: 'bold',
+                        }}>
+                        +{item.orderDetail.length - 2} more
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      height: 100,
+                      justifyContent: 'center',
+                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        width: 60,
+                        height: 60,
+                        borderRadius: 100,
+                        borderWidth: 0.5,
+                        alignItems: 'center',
+                        marginLeft: 5,
+                        marginRight: 5,
+                        justifyContent: 'center',
+                      }}>
+                      <Image
+                        style={{width: 55, height: 55, borderRadius: 100}}
+                        source={{uri: item.orderDetail[0].img}}
+                      />
+                    </View>
+                  </View>
+                )}
+                <View
+                  style={{
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                  }}>
+                  {new Date(item.orderDetail[0].deliveryTime) >= new Date() ? (
+                    <Text
+                      style={{
+                        color: 'green',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                      }}>
+                      Arriving on{' '}
+                      {formatDistance(
+                        new Date(),
+                        new Date(item.orderDetail[0].deliveryTime),
+                      ) &&
+                      formatDistance(
+                        new Date(),
+                        new Date(item.orderDetail[0].deliveryTime),
+                      ).includes('hours')
+                        ? 'today'
+                        : formatDistance(
+                            new Date(),
+                            new Date(item.orderDetail[0].deliveryTime),
+                          ) &&
+                          formatDistance(
+                            new Date(),
+                            new Date(item.orderDetail[0].deliveryTime),
+                          ).includes('1 day')
+                        ? 'tommorow'
+                        : formatDistance(
+                            new Date(),
+                            new Date(item.orderDetail[0].deliveryTime),
+                          )}
+                    </Text>
+                  ) : (
+                    <Text
+                      style={{fontSize: 18, fontWeight: 'bold', color: 'gray'}}>
+                      Delivered on{' '}
+                      {formatRelative(
+                        subDays(
+                          new Date(),
+                          Math.ceil(
+                            Math.abs(
+                              new Date(item.orderDetail[0].deliveryTime) -
+                                new Date(),
+                            ) /
+                              (1000 * 60 * 60 * 24),
+                          ),
+                        ),
+                        new Date(),
+                      ) &&
+                      formatRelative(
+                        subDays(
+                          new Date(),
+                          Math.ceil(
+                            Math.abs(
+                              new Date(item.orderDetail[0].deliveryTime) -
+                                new Date(),
+                            ) /
+                              (1000 * 60 * 60 * 24),
+                          ),
+                        ),
+                        new Date(),
+                      ).includes('yesterday')
+                        ? 'yesterday'
+                        : format(
+                            new Date(item.orderDetail[0].deliveryTime),
+                            'dd MMM yyyy',
+                          )}
+                    </Text>
+                  )}
+                  <Text style={{fontSize: 16}}>
+                    {item.orderDetail[0].name &&
+                    item.orderDetail[0].name.length > 25
+                      ? item.orderDetail[0].name.slice(0, 25) + '...'
+                      : item.orderDetail[0].name}
+                  </Text>
+                  {item.orderDetail && item.orderDetail.length > 1 ? null : (
+                    <StarRating
+                      disabled={false}
+                      maxStars={5}
+                      fullStarColor={'green'}
+                      animation={'tada'}
+                      starSize={30}
+                      rating={Number(item.orderDetail[0].userRating)}
+                      selectedStar={rating =>
+                        this.onStarRatingPress(rating, item.orderId)
+                      }
+                    />
+                  )}
+                </View>
+                {item.orderDetail.length > 1 ? (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      width: wp(25),
+                    }}>
+                    <EvilIcons
+                      style={{alignSelf: 'center'}}
+                      name="chevron-right"
+                      size={40}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      alignSelf: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      width: wp(30),
+                    }}>
+                    <EvilIcons
+                      style={{alignSelf: 'center'}}
+                      name="chevron-right"
+                      size={40}
+                    />
+                  </View>
+                )}
+              </View>
+            </CardView>
+          </TouchableWithoutFeedback>
+        )}
+      />
+    );
   }
   render() {
     return (
-      <View style={styles.mainContainer}>
-        <Text>My Orders</Text>
+      <View style={[styles.mainContainer, {justifyContent: 'center'}]}>
+        {this.state.isLoading ? (
+          <ActivityIndicator size="large" color={Color.primary} />
+        ) : (
+          this._renderOrder()
+        )}
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  imgContainer: {
-    height: '100%',
-    width: '100%',
-  },
   mainContainer: {
     height: '100%',
     width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255,.8)',
+  },
+  cardContainer: {
+    backgroundColor: 'white',
+    margin: hp(1),
   },
 });

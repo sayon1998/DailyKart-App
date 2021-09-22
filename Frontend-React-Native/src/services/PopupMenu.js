@@ -28,6 +28,7 @@ export default class PopupMenu extends Component {
     }
   };
   render() {
+    const {item} = this.props;
     return (
       <View>
         <TouchableOpacity
