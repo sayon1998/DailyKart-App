@@ -353,11 +353,13 @@ export default class Checkout extends Component {
     }
   }
   async onPlaceOrder(params) {
+    console.log(JSON.stringify(params));
     this.setState({isLoading: true});
     await axios
-      .post(Global.apiURL + 'order/save-orders', params)
+      .post(Global.apiURL + 'order/save-order-v2', params)
       .then(res => {
         // console.log(JSON.stringify(res.data));
+
         if (res.data && res.data.status) {
           if (
             res.data.data &&

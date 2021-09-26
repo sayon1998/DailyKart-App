@@ -12,6 +12,7 @@ import {
   StatusBar,
   Text,
   FlatList,
+  ScrollView,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -22,6 +23,7 @@ import Global from '../../services/global';
 import CardView from 'react-native-cardview';
 import {format} from 'date-fns';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Entypo from 'react-native-vector-icons/Entypo';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Accordion from 'react-native-collapsible/Accordion';
 import * as Animatable from 'react-native-animatable';
@@ -40,11 +42,24 @@ export default class OrderDetails extends Component {
     this.state = {
       orderDetails: [],
       activeSections: [],
+      isOrderPlaced: true,
+      isOrderPacked: false,
+      isOrderDispatched: false,
+      isOrderOutForDelivery: false,
+      isOrderDelivered: false,
     };
   }
   getOrderDetails() {
     // console.log(JSON.stringify(this.props.route.params.orderDetails));
-    this.setState({orderDetails: this.props.route.params.orderDetails});
+    this.setState({
+      orderDetails: this.props.route.params.orderDetails,
+      isOrderPlaced: this.props.route.params.orderDetails.isOrderPlaced,
+      isOrderPacked: this.props.route.params.orderDetails.isOrderPacked,
+      isOrderDispatched: this.props.route.params.orderDetails.isOrderDispatched,
+      isOrderOutForDelivery:
+        this.props.route.params.orderDetails.isOrderOutForDelivery,
+      isOrderDelivered: this.props.route.params.orderDetails.isOrderDelivered,
+    });
   }
   componentDidMount() {
     // ######### Comment for Production #########
@@ -55,6 +70,11 @@ export default class OrderDetails extends Component {
       this.setState({
         orderDetails: [],
         isLoading: false,
+        isOrderPlaced: true,
+        isOrderPacked: false,
+        isOrderDispatched: false,
+        isOrderOutForDelivery: false,
+        isOrderDelivered: false,
       });
       this.getOrderDetails();
     });
@@ -287,7 +307,7 @@ export default class OrderDetails extends Component {
             justifyContent: 'space-between',
             borderBottomWidth: 0.5,
           }}>
-          <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+          <Text style={{fontSize: 20, fontWeight: 'bold'}}>
             {section.title}
           </Text>
           <EvilIcons
@@ -298,8 +318,7 @@ export default class OrderDetails extends Component {
       </Animatable.View>
     );
   }
-
-  _renderContent(section, i, isActive, sections) {
+  _renderContent = (section, i, isActive, sections) => {
     return (
       <Animatable.View
         duration={300}
@@ -309,55 +328,231 @@ export default class OrderDetails extends Component {
             ? 'rgba(255,255,255,1)'
             : 'rgba(245,252,255,1)',
         }}>
-        <Animatable.Text
-          duration={300}
-          easing="ease-out"
-          animation={isActive ? 'zoomIn' : false}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <View style={{transform: [{rotate: '-90deg'}]}}>
-              <Slider
-                style={{
-                  position: 'relative',
-                  width: wp(50),
-                  height: 40,
-                }}
-                minimumValue={0}
-                value={50}
-                vertical={true}
-                maximumValue={100}
-                minimumTrackTintColor="#00FF00"
-                maximumTrackTintColor="#000000"
+        <View
+          style={{
+            flexDirection: 'column',
+            justifyContent: 'center',
+            margin: 10,
+          }}>
+          <View style={styles.orderDetails}>
+            <Animatable.View
+              duration={5000}
+              animation={isActive && this.state.isOrderPlaced ? 'tada' : false}>
+              <Entypo
+                name="controller-record"
+                color={isActive && this.state.isOrderPlaced ? 'green' : 'gray'}
+                size={25}
               />
-            </View>
-            <View
-              style={{
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                backgroundColor: 'red',
-                width: wp(95),
-              }}>
-              <View style={styles.orderDetails}>
-                <Text>Order Placed</Text>
-                <Text>Hello</Text>
-              </View>
-              <View style={styles.orderDetails}>
-                <Text>Order Packed</Text>
-              </View>
-              <View style={styles.orderDetails}>
-                <Text>Dispatched</Text>
-              </View>
-              <View style={styles.orderDetails}>
-                <Text>Out for Delivery</Text>
-              </View>
-              <View style={styles.orderDetails}>
-                <Text>Order Delivered</Text>
-              </View>
-            </View>
+            </Animatable.View>
+
+            <Animatable.Text
+              duration={500}
+              easing="ease-out"
+              style={styles.deliverText}
+              animation={isActive ? 'zoomIn' : false}>
+              Order Placed{' '}
+            </Animatable.Text>
+            <Animatable.Text
+              duration={600}
+              easing="linear"
+              style={{fontSize: 12}}
+              animation={isActive ? 'pulse' : false}>
+              {'at ' +
+                format(
+                  new Date(
+                    this.props.route.params.orderDetails.orderDetail[0].orderTime,
+                  ),
+                  'dd MMM yyyy hh:mma',
+                )}
+            </Animatable.Text>
           </View>
-        </Animatable.Text>
+          <View style={styles.orderDetails}>
+            <Animatable.View
+              duration={5000}
+              animation={
+                isActive && this.state.isOrderPlaced && this.state.isOrderPacked
+                  ? 'tada'
+                  : false
+              }>
+              <Entypo
+                name="controller-record"
+                color={
+                  isActive &&
+                  this.state.isOrderPlaced &&
+                  this.state.isOrderPacked
+                    ? 'green'
+                    : 'gray'
+                }
+                size={25}
+              />
+            </Animatable.View>
+            <Animatable.Text
+              duration={500}
+              easing="ease-out"
+              style={styles.deliverText}
+              animation={
+                isActive && this.state.isOrderPlaced && this.state.isOrderPacked
+                  ? 'zoomIn'
+                  : false
+              }>
+              Order Packed{' '}
+            </Animatable.Text>
+            <Animatable.Text
+              duration={600}
+              easing="linear"
+              style={{fontSize: 12}}
+              animation={isActive ? 'pulse' : false}>
+              17th sep 2021 8:00Pm
+            </Animatable.Text>
+          </View>
+          <View style={styles.orderDetails}>
+            <Animatable.View
+              duration={5000}
+              animation={
+                isActive &&
+                this.state.isOrderPlaced &&
+                this.state.isOrderPacked &&
+                this.state.isOrderDispatched
+                  ? 'tada'
+                  : false
+              }>
+              <Entypo
+                name="controller-record"
+                color={
+                  isActive &&
+                  this.state.isOrderPlaced &&
+                  this.state.isOrderPacked &&
+                  this.state.isOrderDispatched
+                    ? 'green'
+                    : 'gray'
+                }
+                size={25}
+              />
+            </Animatable.View>
+            <Animatable.Text
+              duration={500}
+              easing="ease-out"
+              style={styles.deliverText}
+              animation={
+                isActive &&
+                this.state.isOrderPlaced &&
+                this.state.isOrderPacked &&
+                this.state.isOrderDispatched
+                  ? 'zoomIn'
+                  : false
+              }>
+              Dispatched{' '}
+            </Animatable.Text>
+            <Animatable.Text
+              duration={600}
+              easing="linear"
+              style={{fontSize: 12}}
+              animation={isActive ? 'pulse' : false}>
+              17th sep 2021 8:00Pm
+            </Animatable.Text>
+          </View>
+          <View style={styles.orderDetails}>
+            <Animatable.View
+              duration={5000}
+              animation={
+                isActive &&
+                this.state.isOrderPlaced &&
+                this.state.isOrderPacked &&
+                this.state.isOrderDispatched &&
+                this.state.isOrderOutForDelivery
+                  ? 'tada'
+                  : false
+              }>
+              <Entypo
+                name="controller-record"
+                color={
+                  isActive &&
+                  this.state.isOrderPlaced &&
+                  this.state.isOrderPacked &&
+                  this.state.isOrderDispatched &&
+                  this.state.isOrderOutForDelivery
+                    ? 'green'
+                    : 'gray'
+                }
+                size={25}
+              />
+            </Animatable.View>
+            <Animatable.Text
+              duration={500}
+              easing="ease-out"
+              style={styles.deliverText}
+              animation={
+                isActive &&
+                this.state.isOrderPlaced &&
+                this.state.isOrderPacked &&
+                this.state.isOrderDispatched &&
+                this.state.isOrderOutForDelivery
+                  ? 'zoomIn'
+                  : false
+              }>
+              Out for Delivery{' '}
+            </Animatable.Text>
+            <Animatable.Text
+              duration={600}
+              easing="linear"
+              style={{fontSize: 12}}
+              animation={isActive ? 'pulse' : false}>
+              17th sep 2021 8:00Pm
+            </Animatable.Text>
+          </View>
+          <View style={styles.orderDetails}>
+            <Animatable.View
+              duration={5000}
+              animation={
+                isActive &&
+                this.state.isOrderPlaced &&
+                this.state.isOrderPacked &&
+                this.state.isOrderDispatched &&
+                this.state.isOrderOutForDelivery &&
+                this.state.isOrderDelivered
+                  ? 'tada'
+                  : false
+              }>
+              <Entypo
+                name="controller-record"
+                color={
+                  isActive &&
+                  this.state.isOrderPlaced &&
+                  this.state.isOrderPacked &&
+                  this.state.isOrderDispatched &&
+                  this.state.isOrderOutForDelivery &&
+                  this.state.isOrderDelivered
+                    ? 'green'
+                    : 'gray'
+                }
+                size={25}
+              />
+            </Animatable.View>
+            <Animatable.Text
+              duration={500}
+              style={styles.deliverText}
+              easing="ease-out"
+              animation={isActive ? 'zoomIn' : false}>
+              Order Delivered{' '}
+            </Animatable.Text>
+            <Animatable.Text
+              duration={600}
+              easing="linear"
+              style={{fontSize: 12}}
+              animation={isActive ? 'pulse' : false}>
+              {'on or before ' +
+                format(
+                  new Date(
+                    this.props.route.params.orderDetails.orderDetail[0].deliveryTime,
+                  ),
+                  'dd MMM yyyy hh:mma',
+                )}
+            </Animatable.Text>
+          </View>
+        </View>
       </Animatable.View>
     );
-  }
+  };
 
   _updateSections = activeSections => {
     this.setState({activeSections});
@@ -365,154 +560,158 @@ export default class OrderDetails extends Component {
   render() {
     return (
       <View style={styles.mainContainer}>
-        <CardView cardElevation={5} style={styles.card}>
-          <View style={styles.firstRow}>
-            <Text style={styles.title}>Order Id: </Text>
-            <Text style={styles.value}>{this.state.orderDetails.orderId}</Text>
-          </View>
-          <View style={styles.restRow}>
-            <Text style={styles.title}>Total Amt: </Text>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                alignSelf: 'center',
-              }}>
-              {'₹'}
-              {this.state.orderDetails.totalorderPrice}{' '}
-            </Text>
-            <Text
-              style={{
-                fontSize: 16,
-                color: 'gray',
-                alignSelf: 'center',
-                textDecorationLine: 'line-through',
-              }}>
-              {'₹'}
-              {this.state.orderDetails.totaloriginalPrice}
-            </Text>
-            {this.state.orderDetails.totalofferPercentage !== '0.00%' ? (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <CardView cardElevation={5} style={styles.card}>
+            <View style={styles.firstRow}>
+              <Text style={styles.title}>Order Id: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails.orderId}
+              </Text>
+            </View>
+            <View style={styles.restRow}>
+              <Text style={styles.title}>Total Amt: </Text>
               <Text
                 style={{
-                  fontSize: 15,
-                  color: 'green',
+                  fontSize: 18,
                   fontWeight: 'bold',
                   alignSelf: 'center',
                 }}>
-                {' '}
-                {this.state.orderDetails.totalofferPercentage}
+                {'₹'}
+                {this.state.orderDetails.totalorderPrice}{' '}
               </Text>
-            ) : null}
-          </View>
-          <View style={[styles.restRow, {marginBottom: 5}]}>
-            <Text style={styles.title}>Order Date: </Text>
-            <Text style={styles.value}>
-              {format(
-                new Date(
-                  this.props.route.params.orderDetails.orderDetail[0].orderTime,
-                ),
-                'EEEE, do MMM yyyy p',
-              )}
-            </Text>
-          </View>
-        </CardView>
-        {this._renderOrder()}
-        <CardView cardElevation={5} style={styles.card}>
-          <View style={styles.firstRow}>
-            <Text style={styles.title}>Address Details: </Text>
-          </View>
-          <View style={styles.restRow}>
-            <Text style={styles.title}>Name: </Text>
-            <Text style={styles.value}>
-              {this.state.orderDetails &&
-              this.state.orderDetails.addressDetail &&
-              this.state.orderDetails.addressDetail.name
-                ? this.state.orderDetails.addressDetail.name
-                : ''}
-            </Text>
-          </View>
-          <View style={styles.restRow}>
-            <Text style={styles.title}>Ph: </Text>
-            <Text style={styles.value}>
-              {this.state.orderDetails &&
-              this.state.orderDetails.addressDetail &&
-              this.state.orderDetails.addressDetail.ph
-                ? '+91-' + this.state.orderDetails.addressDetail.ph
-                : ''}
-            </Text>
-          </View>
-          <View style={styles.restRow}>
-            <Text style={styles.title}>State: </Text>
-            <Text style={styles.value}>
-              {this.state.orderDetails &&
-              this.state.orderDetails.addressDetail &&
-              this.state.orderDetails.addressDetail.state
-                ? this.state.orderDetails.addressDetail.state
-                : ''}
-            </Text>
-          </View>
-          <View style={styles.restRow}>
-            <Text style={styles.title}>City: </Text>
-            <Text style={styles.value}>
-              {this.state.orderDetails &&
-              this.state.orderDetails.addressDetail &&
-              this.state.orderDetails.addressDetail.city
-                ? this.state.orderDetails.addressDetail.city
-                : ''}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.restRow,
-              {
-                marginBottom:
-                  this.state.orderDetails &&
-                  this.state.orderDetails.addressDetail &&
-                  this.state.orderDetails.addressDetail.area
-                    ? 0
-                    : 5,
-              },
-            ]}>
-            <Text style={styles.title}>Pin: </Text>
-            <Text style={styles.value}>
-              {this.state.orderDetails &&
-              this.state.orderDetails.addressDetail &&
-              this.state.orderDetails.addressDetail.pin
-                ? this.state.orderDetails.addressDetail.pin
-                : ''}
-            </Text>
-          </View>
-          {this.state.orderDetails &&
-          this.state.orderDetails.addressDetail &&
-          this.state.orderDetails.addressDetail.area ? (
-            <View style={styles.restRow}>
-              <Text style={styles.title}>Area/Locality: </Text>
-              <Text style={styles.value}>
-                {this.state.orderDetails.addressDetail.area}
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: 'gray',
+                  alignSelf: 'center',
+                  textDecorationLine: 'line-through',
+                }}>
+                {'₹'}
+                {this.state.orderDetails.totaloriginalPrice}
               </Text>
+              {this.state.orderDetails.totalofferPercentage !== '0.00%' ? (
+                <Text
+                  style={{
+                    fontSize: 15,
+                    color: 'green',
+                    fontWeight: 'bold',
+                    alignSelf: 'center',
+                  }}>
+                  {' '}
+                  {this.state.orderDetails.totalofferPercentage}
+                </Text>
+              ) : null}
             </View>
-          ) : null}
-          {this.state.orderDetails &&
-          this.state.orderDetails.addressDetail &&
-          this.state.orderDetails.addressDetail.landmark ? (
             <View style={[styles.restRow, {marginBottom: 5}]}>
-              <Text style={styles.title}>Landmark: </Text>
+              <Text style={styles.title}>Order Date: </Text>
               <Text style={styles.value}>
-                {this.state.orderDetails.addressDetail.landmark}
+                {format(
+                  new Date(
+                    this.props.route.params.orderDetails.orderDetail[0].orderTime,
+                  ),
+                  'EEEE, do MMM yyyy p',
+                )}
               </Text>
             </View>
-          ) : null}
-        </CardView>
-        <CardView cardElevation={5} style={styles.card}>
-          <Accordion
-            sections={SECTIONS}
-            activeSections={this.state.activeSections}
-            renderSectionTitle={this._renderSectionTitle}
-            renderHeader={this._renderHeader}
-            renderContent={this._renderContent}
-            onChange={this._updateSections}
-          />
-        </CardView>
+          </CardView>
+          {this._renderOrder()}
+          <CardView cardElevation={5} style={styles.card}>
+            <View style={styles.firstRow}>
+              <Text style={styles.title}>Address Details: </Text>
+            </View>
+            <View style={styles.restRow}>
+              <Text style={styles.title}>Name: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails &&
+                this.state.orderDetails.addressDetail &&
+                this.state.orderDetails.addressDetail.name
+                  ? this.state.orderDetails.addressDetail.name
+                  : ''}
+              </Text>
+            </View>
+            <View style={styles.restRow}>
+              <Text style={styles.title}>Ph: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails &&
+                this.state.orderDetails.addressDetail &&
+                this.state.orderDetails.addressDetail.ph
+                  ? '+91-' + this.state.orderDetails.addressDetail.ph
+                  : ''}
+              </Text>
+            </View>
+            <View style={styles.restRow}>
+              <Text style={styles.title}>State: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails &&
+                this.state.orderDetails.addressDetail &&
+                this.state.orderDetails.addressDetail.state
+                  ? this.state.orderDetails.addressDetail.state
+                  : ''}
+              </Text>
+            </View>
+            <View style={styles.restRow}>
+              <Text style={styles.title}>City: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails &&
+                this.state.orderDetails.addressDetail &&
+                this.state.orderDetails.addressDetail.city
+                  ? this.state.orderDetails.addressDetail.city
+                  : ''}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.restRow,
+                {
+                  marginBottom:
+                    this.state.orderDetails &&
+                    this.state.orderDetails.addressDetail &&
+                    this.state.orderDetails.addressDetail.area
+                      ? 0
+                      : 5,
+                },
+              ]}>
+              <Text style={styles.title}>Pin: </Text>
+              <Text style={styles.value}>
+                {this.state.orderDetails &&
+                this.state.orderDetails.addressDetail &&
+                this.state.orderDetails.addressDetail.pin
+                  ? this.state.orderDetails.addressDetail.pin
+                  : ''}
+              </Text>
+            </View>
+            {this.state.orderDetails &&
+            this.state.orderDetails.addressDetail &&
+            this.state.orderDetails.addressDetail.area ? (
+              <View style={styles.restRow}>
+                <Text style={styles.title}>Area/Locality: </Text>
+                <Text style={styles.value}>
+                  {this.state.orderDetails.addressDetail.area}
+                </Text>
+              </View>
+            ) : null}
+            {this.state.orderDetails &&
+            this.state.orderDetails.addressDetail &&
+            this.state.orderDetails.addressDetail.landmark ? (
+              <View style={[styles.restRow, {marginBottom: 5}]}>
+                <Text style={styles.title}>Landmark: </Text>
+                <Text style={styles.value}>
+                  {this.state.orderDetails.addressDetail.landmark}
+                </Text>
+              </View>
+            ) : null}
+          </CardView>
+          <CardView cardElevation={5} style={styles.card}>
+            <Accordion
+              sections={SECTIONS}
+              activeSections={this.state.activeSections}
+              renderSectionTitle={this._renderSectionTitle}
+              renderHeader={this._renderHeader}
+              renderContent={this._renderContent}
+              onChange={this._updateSections}
+            />
+          </CardView>
+        </ScrollView>
       </View>
     );
   }
@@ -551,8 +750,15 @@ const styles = StyleSheet.create({
     margin: hp(1),
   },
   orderDetails: {
-    flexDirection: 'column',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
+  verticleLine: {
+    height: 50,
+    marginLeft: 10,
+    width: 1,
+    backgroundColor: '#909090',
+  },
+  deliverText: {fontSize: 16, alignSelf: 'center'},
 });

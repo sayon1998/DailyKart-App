@@ -323,7 +323,7 @@ export default class Orders extends Component {
                       alignSelf: 'center',
                       flexDirection: 'row',
                       justifyContent: 'flex-end',
-                      width: wp(25),
+                      width: wp(18),
                     }}>
                     <EvilIcons
                       style={{alignSelf: 'center'}}
