@@ -59,6 +59,10 @@ const productSchema = new mongoose.Schema({
   returnpolicy: {
     type: String, // What is the return policy
   },
+  companyid: {
+    type: String,
+    required: true, // Company name or shop name
+  },
   company: {
     type: String,
     required: true, // Company name or shop name

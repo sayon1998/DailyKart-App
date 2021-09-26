@@ -101,12 +101,6 @@ router.post("/save-orders", async (req, res) => {
             price: req.body.productDetails[index].price,
             originalprice: req.body.productDetails[index].originalprice,
             offerpercentage: req.body.productDetails[index].offerpercentage,
-            orderTime: today.toLocaleString("en-US", {
-              timeZone: "Asia/Kolkata",
-            }),
-            deliveryTime: tomorrow.toLocaleString("en-US", {
-              timeZone: "Asia/Kolkata",
-            }),
           });
         } else {
           flag = true;
@@ -201,10 +195,16 @@ router.post("/save-orders", async (req, res) => {
                     (orderArray.isOrderDispatched = false),
                     (orderArray.isOrderOutForDelivery = false),
                     (orderArray.isOrderDelivered = false),
-                    (resType.data = await orderDetail.create({
-                      userId: req.body.userId,
-                      orderDetails: [orderArray],
+                    (orderArray.orderTime = today.toLocaleString("en-US", {
+                      timeZone: "Asia/Kolkata",
                     }));
+                  orderArray.deliveryTime = tomorrow.toLocaleString("en-US", {
+                    timeZone: "Asia/Kolkata",
+                  });
+                  resType.data = await orderDetail.create({
+                    userId: req.body.userId,
+                    orderDetails: [orderArray],
+                  });
                   resType.status = true;
                   resType.message = "Order placed successfully";
                   return res.status(200).send(resType);
@@ -285,7 +285,13 @@ router.post("/save-orders", async (req, res) => {
                     (orderArray.isOrderDispatched = false),
                     (orderArray.isOrderOutForDelivery = false),
                     (orderArray.isOrderDelivered = false),
-                    orderParam.orderDetails.push(orderArray);
+                    (orderArray.orderTime = today.toLocaleString("en-US", {
+                      timeZone: "Asia/Kolkata",
+                    }));
+                  orderArray.deliveryTime = tomorrow.toLocaleString("en-US", {
+                    timeZone: "Asia/Kolkata",
+                  });
+                  orderParam.orderDetails.push(orderArray);
                   await address.save();
                   resType.data = await orderParam.save();
                   resType.status = true;
@@ -305,6 +311,295 @@ router.post("/save-orders", async (req, res) => {
         );
       }
     });
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Order Placed v.2
+router.post("/save-order-v2", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  let flag = false,
+    orderArray = [],
+    product;
+  try {
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.deliveryaddress) {
+      resType.message = "Delivery address is Required";
+      return res.status(404).send(resType);
+    }
+    if (req.body.totalOfferPrice === null || req.body.totalOfferPrice === "") {
+      resType.message = "Total offer price is Required";
+      return res.status(404).send(resType);
+    }
+    if (
+      req.body.totalOfferPercentage === null ||
+      req.body.totalOfferPercentage === ""
+    ) {
+      resType.message = "Total offer percentage is Required";
+      return res.status(404).send(resType);
+    }
+    if (
+      req.body.totalOriginalPrice === null ||
+      req.body.totalOriginalPrice === ""
+    ) {
+      resType.message = "Total original price is Required";
+      return res.status(404).send(resType);
+    }
+    if (req.body.productDetails && req.body.productDetails.length === 0) {
+      resType.message = "Product details is Required";
+      return res.status(404).send(resType);
+    }
+    const userAvailable = await userDetails.findById(req.body.userId);
+    if (userAvailable === null) {
+      resType.message = "User is not available";
+      return res.status(404).send(resType);
+    }
+    //   Product is Available or not
+    for (const index in req.body.productDetails) {
+      product = await productDetail.findById(
+        req.body.productDetails[index]._id
+      );
+      if (product === null) {
+        flag = true;
+        resType.message =
+          req.body.productDetails[index].name +
+          " is not present in our Database";
+        break;
+      }
+      if (
+        product.quantity > 0 &&
+        product.quantity >= req.body.productDetails[index].qty
+      ) {
+        product.quantity =
+          product.quantity - req.body.productDetails[index].qty;
+        await product.save();
+        if (
+          product.companyid === req.body.productDetails[index].companyid &&
+          orderArray &&
+          orderArray.length > 0 &&
+          orderArray.findIndex(
+            (x) =>
+              x.orderDetail.findIndex(
+                (y) => y.companyid === req.body.productDetails[index].companyid
+              ) > -1
+          ) > -1
+        ) {
+          let Index = orderArray.findIndex(
+            (x) =>
+              x.orderDetail.findIndex(
+                (y) => y.companyid === req.body.productDetails[index].companyid
+              ) > -1
+          );
+          orderArray[Index].orderDetail.push({
+            _id: req.body.productDetails[index]._id,
+            name: req.body.productDetails[index].name,
+            img: req.body.productDetails[index].img,
+            imagelist: req.body.productDetails[index].imagelist,
+            rating: req.body.productDetails[index].rating,
+            returnpolicy: req.body.productDetails[index].returnpolicy,
+            totalrating: req.body.productDetails[index].totalrating,
+            type: req.body.productDetails[index].type,
+            unit: req.body.productDetails[index].unit,
+            orderqty: req.body.productDetails[index].qty,
+            deliverycharge: req.body.productDetails[index].deliverycharge,
+            price: req.body.productDetails[index].price,
+            originalprice: req.body.productDetails[index].originalprice,
+            offerpercentage: req.body.productDetails[index].offerpercentage,
+            company: req.body.productDetails[index].company,
+            companyid: req.body.productDetails[index].companyid,
+          });
+        } else {
+          orderArray.push({
+            orderId: 0,
+            addressDetail: {},
+            totalorderPrice: 0,
+            totalDeliveryCharge: 0,
+            totaloriginalPrice: 0,
+            totalofferPercentage: "",
+            orderTime: today.toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            }),
+            deliveryTime: tomorrow.toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            }),
+            orderDetail: [
+              {
+                _id: req.body.productDetails[index]._id,
+                name: req.body.productDetails[index].name,
+                img: req.body.productDetails[index].img,
+                imagelist: req.body.productDetails[index].imagelist,
+                rating: req.body.productDetails[index].rating,
+                returnpolicy: req.body.productDetails[index].returnpolicy,
+                totalrating: req.body.productDetails[index].totalrating,
+                type: req.body.productDetails[index].type,
+                unit: req.body.productDetails[index].unit,
+                orderqty: req.body.productDetails[index].qty,
+                deliverycharge: req.body.productDetails[index].deliverycharge,
+                price: req.body.productDetails[index].price,
+                originalprice: req.body.productDetails[index].originalprice,
+                offerpercentage: req.body.productDetails[index].offerpercentage,
+                company: req.body.productDetails[index].company,
+                companyid: req.body.productDetails[index].companyid,
+              },
+            ],
+          });
+        }
+      } else {
+        flag = true;
+        resType.message =
+          req.body.productDetails[index].name + " is out of stock recently";
+        break;
+      }
+    }
+    if (flag) {
+      return res.status(200).send(resType);
+    } else {
+      const address = await addressDetails.findOne({ userId: req.body.userId });
+      if (address === null) {
+        resType.message = "User have no address save in our Database.";
+        return res.status(404).send(resType);
+      }
+      if (
+        address.address &&
+        address.address.findIndex(
+          (x) =>
+            String(x.addressId) === String(req.body.deliveryaddress.addressId)
+        ) > -1
+      ) {
+        let addressIndex = address.address.findIndex(
+          (x) =>
+            String(x.addressId) === String(req.body.deliveryaddress.addressId)
+        );
+        orderArray.forEach((e) => {
+          e.addressDetail = address.address[addressIndex];
+        });
+        // let tempAddress = address.address[addressIndex];
+        // address.address.splice(
+        //   address.address.findIndex(
+        //     (x) => x.addressId === req.body.deliveryaddress.addressId
+        //   ),
+        //   1
+        // );
+        // address.address.splice(0, 0, tempAddress);
+        // let tempAdd = [];
+        // address.address.forEach((e) => {
+        //   if (e.addressId === req.body.deliveryaddress.addressId) {
+        //     e.isRecentlyUsed = true;
+        //   } else {
+        //     e.isRecentlyUsed = false;
+        //   }
+        //   tempAdd.push(e);
+        // });
+        // address.address = tempAdd;
+      } else {
+        resType.message = "This address is not save in our Database.";
+        return res.status(404).send(resType);
+      }
+      const cartDetails = await cartDetail.findOne({
+        userId: req.body.userId,
+      });
+      if (cartDetails !== null && cartDetails.cart) {
+        for (const index in req.body.productDetails) {
+          if (
+            cartDetails.cart.findIndex(
+              (x) => x === req.body.productDetails[index]._id
+            ) > -1
+          ) {
+            cartDetails.cart.splice(
+              cartDetails.cart.findIndex(
+                (x) => x === req.body.productDetails[index]._id
+              ),
+              1
+            );
+          }
+        }
+      }
+      const orderData = await orderDetail.findOne({ userId: req.body.userId });
+      if (orderData === null) {
+        orderArray.forEach((e, index) => {
+          e.orderId =
+            "ODD" +
+            new Date().getMilliseconds() +
+            new Date().getSeconds() +
+            new Date().getDay() +
+            new Date().getMonth() +
+            new Date().getFullYear() +
+            String(index);
+          e.orderDetail.forEach((x) => {
+            e.totalorderPrice += Number(x.price);
+            e.totaloriginalPrice += Number(x.originalprice);
+            e.totalDeliveryCharge += Number(
+              x.deliverycharge ? x.deliverycharge : 0
+            );
+          });
+          e.totalofferPercentage =
+            String(
+              parseFloat(
+                ((e.totaloriginalPrice - e.totalorderPrice) /
+                  e.totalorderPrice) *
+                  100
+              ).toFixed(2)
+            ) + "%";
+        });
+        resType.data = await orderDetail.create({
+          orderDetails: orderArray,
+          userId: req.body.userId,
+        });
+      } else {
+        let tempArr = [];
+        orderArray.forEach((e, index) => {
+          e.orderId =
+            "ODD" +
+            new Date().getMilliseconds() +
+            new Date().getSeconds() +
+            new Date().getDay() +
+            new Date().getMonth() +
+            new Date().getFullYear() +
+            String(orderData.orderDetails.length + index);
+          e.orderDetail.forEach((x) => {
+            e.totalorderPrice += Number(x.price);
+            e.totaloriginalPrice += Number(x.originalprice);
+            e.totalDeliveryCharge += Number(
+              x.deliverycharge ? x.deliverycharge : 0
+            );
+          });
+          e.totalofferPercentage =
+            String(
+              parseFloat(
+                ((e.totaloriginalPrice - e.totalorderPrice) /
+                  e.totalorderPrice) *
+                  100
+              ).toFixed(2)
+            ) + "%";
+          tempArr.push(e);
+        });
+        orderData.orderDetails.forEach((e) => {
+          tempArr.push(e);
+        });
+        orderData.orderDetails = tempArr;
+        resType.data = await orderData.save();
+      }
+
+      // await address.save();
+      await cartDetails.save();
+
+      resType.message = "Order Placed Successfully";
+      resType.status = true;
+      return res.status(200).send(resType);
+    }
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);
