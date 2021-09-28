@@ -220,6 +220,8 @@ export default class Cart extends Component {
                 refresh: false,
                 noProduct: true,
               });
+              await AsyncStorage.removeItem('cartList');
+              await AsyncStorage.setItem('cartList', JSON.stringify([]));
             }
           }
         })
@@ -827,116 +829,116 @@ export default class Cart extends Component {
                   <Icon name="close" size={30} />
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => {
-                  this.props.navigation.navigate('Product', {
-                    productId: item._id,
-                  });
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 5,
+                  marginRight: 10,
+                  marginBottom: 10,
                 }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginLeft: 5,
-                    marginRight: 10,
-                    marginBottom: 10,
-                  }}>
-                  <View style={{flexDirection: 'column'}}>
-                    <Text style={{fontSize: 20}}>
-                      {item.name && item.name.length > 25
-                        ? item.name.slice(0, 25) + '...'
-                        : item.name}
-                    </Text>
-                    <Text style={{fontSize: 16, color: 'gray'}}>
-                      {item.company && item.company.length > 25
-                        ? item.company.slice(0, 25) + '...'
-                        : item.company}
-                    </Text>
-                    {item.totalrating ? (
-                      <View style={{flexDirection: 'row'}}>
-                        <Icon color="green" name="star" size={15} />
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            marginLeft: 2,
-                            fontWeight: 'bold',
-                            color: 'green',
-                          }}>
-                          {item.rating}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            marginLeft: 2,
-                            fontWeight: 'bold',
-                            color: 'green',
-                          }}>
-                          ({item.totalrating})
-                        </Text>
-                      </View>
-                    ) : null}
+                <View style={{flexDirection: 'column'}}>
+                  <Text style={{fontSize: 20}}>
+                    {item.name && item.name.length > 25
+                      ? item.name.slice(0, 25) + '...'
+                      : item.name}
+                  </Text>
+                  <Text style={{fontSize: 16, color: 'gray'}}>
+                    {item.company && item.company.length > 25
+                      ? item.company.slice(0, 25) + '...'
+                      : item.company}
+                  </Text>
+                  {item.totalrating ? (
                     <View style={{flexDirection: 'row'}}>
-                      <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                        {'₹'}
-                        {item.price}{' '}
+                      <Icon color="green" name="star" size={15} />
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
+                        }}>
+                        {item.rating}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 18,
-                          color: 'gray',
-                          textDecorationLine: 'line-through',
+                          fontSize: 16,
+                          marginLeft: 2,
+                          fontWeight: 'bold',
+                          color: 'green',
                         }}>
-                        {'₹'}
-                        {item.originalprice}
+                        ({item.totalrating})
                       </Text>
-                      {item.offerpercentage !== '0' ? (
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            color: 'green',
-                            fontWeight: 'bold',
-                          }}>
-                          {' '}
-                          {item.offerpercentage + '%'}
-                        </Text>
-                      ) : null}
                     </View>
-                    {item.deliverycharge ? (
-                      <Text style={{fontSize: 16}}>
-                        <Text style={{color: 'red', fontWeight: 'bold'}}>
-                          {'₹'}
-                          {item.deliverycharge}
-                        </Text>
-                        {' shipping charge required'}
-                      </Text>
-                    ) : (
-                      <Text style={{fontSize: 16, color: 'green'}}>
-                        Free shipping{' '}
-                        <Text style={{fontWeight: 'bold', color: 'black'}}>
-                          (Conditionally)
-                        </Text>
-                      </Text>
-                    )}
-                    {item.quantity <= 10 && item.quantity > 0 ? (
+                  ) : null}
+                  <View style={{flexDirection: 'row'}}>
+                    <Text style={{fontSize: 20, fontWeight: 'bold'}}>
+                      {'₹'}
+                      {item.price}{' '}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        color: 'gray',
+                        textDecorationLine: 'line-through',
+                      }}>
+                      {'₹'}
+                      {item.originalprice}
+                    </Text>
+                    {item.offerpercentage !== '0' ? (
                       <Text
                         style={{
                           fontSize: 16,
-                          color: Color.warn,
+                          color: 'green',
                           fontWeight: 'bold',
                         }}>
-                        Only {item.quantity} item left.
-                      </Text>
-                    ) : item.quantity === 0 ? (
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          color: 'red',
-                          fontWeight: 'bold',
-                        }}>
-                        Item is Out of stock
+                        {' '}
+                        {item.offerpercentage + '%'}
                       </Text>
                     ) : null}
                   </View>
+                  {item.deliverycharge ? (
+                    <Text style={{fontSize: 16}}>
+                      <Text style={{color: 'red', fontWeight: 'bold'}}>
+                        {'₹'}
+                        {item.deliverycharge}
+                      </Text>
+                      {' shipping charge required'}
+                    </Text>
+                  ) : (
+                    <Text style={{fontSize: 16, color: 'green'}}>
+                      Free shipping{' '}
+                      <Text style={{fontWeight: 'bold', color: 'black'}}>
+                        (Conditionally)
+                      </Text>
+                    </Text>
+                  )}
+                  {item.quantity <= 10 && item.quantity > 0 ? (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: Color.warn,
+                        fontWeight: 'bold',
+                      }}>
+                      Only {item.quantity} item left.
+                    </Text>
+                  ) : item.quantity === 0 ? (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: 'red',
+                        fontWeight: 'bold',
+                      }}>
+                      Item is Out of stock
+                    </Text>
+                  ) : null}
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    this.props.navigation.navigate('Product', {
+                      productId: item._id,
+                    });
+                  }}>
                   <View
                     style={{
                       width: 105,
@@ -949,50 +951,49 @@ export default class Cart extends Component {
                       source={{uri: item.img}}
                     />
                   </View>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginLeft: 5,
-                    marginRight: 10,
-                    marginBottom: 20,
-                  }}>
-                  {item.errMsg ? (
-                    <Text
-                      style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
-                      {item.errMsg}
-                    </Text>
-                  ) : (
-                    <View />
-                  )}
-                  <View
-                    style={{flexDirection: 'row', justifyContent: 'center'}}>
-                    <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
-                      Qty:
-                    </Text>
-                    <View style={{borderWidth: 0.5, width: 70, marginLeft: 1}}>
-                      <Picker
-                        selectedValue={item.qty}
-                        style={{height: 20, width: 85}}
-                        enabled={item.quantity > 0}
-                        onValueChange={(itemValue, itemIndex) => {
-                          this.quantityUpdate(itemValue, item._id);
-                        }}>
-                        {item.qtyArray.map((myValue, myIndex) => {
-                          return (
-                            <Picker.Item
-                              key={myIndex}
-                              label={myValue.label}
-                              value={myValue.value}
-                            />
-                          );
-                        })}
-                      </Picker>
-                    </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginLeft: 5,
+                  marginRight: 10,
+                  marginBottom: 20,
+                }}>
+                {item.errMsg ? (
+                  <Text
+                    style={{fontSize: 16, fontWeight: 'bold', color: 'red'}}>
+                    {item.errMsg}
+                  </Text>
+                ) : (
+                  <View />
+                )}
+                <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+                  <Text style={{alignSelf: 'center', fontWeight: 'bold'}}>
+                    Qty:
+                  </Text>
+                  <View style={{borderWidth: 0.5, width: 70, marginLeft: 1}}>
+                    <Picker
+                      selectedValue={item.qty}
+                      style={{height: 20, width: 85}}
+                      enabled={item.quantity > 0}
+                      onValueChange={(itemValue, itemIndex) => {
+                        this.quantityUpdate(itemValue, item._id);
+                      }}>
+                      {item.qtyArray.map((myValue, myIndex) => {
+                        return (
+                          <Picker.Item
+                            key={myIndex}
+                            label={myValue.label}
+                            value={myValue.value}
+                          />
+                        );
+                      })}
+                    </Picker>
                   </View>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </CardView>
         )}

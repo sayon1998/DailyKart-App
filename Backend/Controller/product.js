@@ -6,6 +6,58 @@ const userDetail = require("../Models/user-details");
 const imageUpload = require("../Service/image-upload");
 const ratingDetail = require("../Models/rating-details");
 
+// Search Product by name,type (as a category),desc and also Sort by any field
+router.post("/search", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.prevIndex) {
+      resType.message = "Previous Index is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.limit) {
+      resType.message = "Limit is Required";
+      return res.status(404).send(resType);
+    }
+    productDetail
+      .find({
+        $or: [
+          {
+            name: new RegExp(req.body.searchKey ? req.body.searchKey : "", "i"),
+            type: new RegExp(req.body.category ? req.body.category : "", "i"),
+            description: new RegExp(req.body.desc ? req.body.desc : "", "i"),
+          },
+        ],
+      })
+      .skip(parseInt(req.body.prevIndex))
+      .limit(parseInt(req.body.limit))
+      .sort(req.body.sortType ? req.body.sortType : "")
+      .exec(async (err, params) => {
+        if (err) {
+          resType.message = err.message;
+          return res.status(400).send(resType);
+        }
+        if (params === null) {
+          resType.message = "No product is matching against your search";
+          return res.status(404).send(resType);
+        }
+        resType.data = {
+          prevIndex: req.body.limit,
+          limit: req.body.limit,
+          Data: params,
+        };
+        resType.status = true;
+        resType.message = "Successful";
+        return res.status(200).send(resType);
+      });
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
 // Get All Products
 router.post("/products", async (req, res) => {
   const resType = {
@@ -58,7 +110,6 @@ router.post("/products", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
-
 // Get Product Details by Id
 router.get("/productbyid/:_id", async (req, res) => {
   const resType = {
@@ -91,7 +142,6 @@ router.get("/productbyid/:_id", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
-
 // Get Product Details by Multiple Id
 router.post("/productbymultipleid", async (req, res) => {
   const resType = {
@@ -119,7 +169,6 @@ router.post("/productbymultipleid", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
-
 // Save Product Details
 router.post("/save-product", async (req, res) => {
   const resType = {
@@ -270,7 +319,6 @@ router.post("/save-product", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
-
 // Product Image Update
 router.post("/update-product-image", async (req, res) => {
   const resType = {
@@ -378,7 +426,6 @@ router.post("/update-product-image", async (req, res) => {
     return res.status(400).send(resType);
   }
 });
-
 // Add Cart & Wishlist Product (after login or onclick)
 router.post("/save-cart-wishlist", async (req, res) => {
   const resType = {

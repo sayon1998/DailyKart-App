@@ -35,20 +35,27 @@ export default class Orders extends Component {
     this.state = {
       isLoading: false,
       orderDetails: [],
+      noOrder: false,
     };
   }
   componentDidMount() {
     // ######### Comment for Production #########
     this.getOrderDetails();
     //  ########## End Comment ##########
-    // this.unsubscribe = this.props.navigation.addListener('focus', () => {
-    //   console.log('Order Listener');
-    //   this.setState({
-    //     orderDetails: [],
-    //     isLoading: false,
-    //   });
-    //   this.getOrderDetails();
-    // });
+    this.unsubscribe = this.props.navigation.addListener('focus', () => {
+      console.log('Order Listener');
+      // this.setState({
+      //   orderDetails: [],
+      //   isLoading: false,
+      // });
+      if (
+        this.props.route &&
+        this.props.route.params &&
+        this.props.route.params.refresh
+      ) {
+        this.getOrderDetails();
+      }
+    });
   }
   componentWillUnmount() {
     // this.unsubscribe();
@@ -64,12 +71,13 @@ export default class Orders extends Component {
       .then(res => {
         if (res.data && res.data.status) {
           if (res.data.data && res.data.data.length > 0) {
+            // console.log(JSON.stringify(res.data.data));
             this.setState({
-              orderDetails: res.data.data.reverse(),
+              orderDetails: res.data.data,
               isLoading: false,
             });
           } else {
-            this.setState({isLoading: false});
+            this.setState({isLoading: false, noOrder: true});
           }
         } else {
           this.setState({isLoading: false});
@@ -229,87 +237,106 @@ export default class Orders extends Component {
                     flexDirection: 'column',
                     justifyContent: 'center',
                   }}>
-                  {new Date(item.orderDetail[0].deliveryTime) >= new Date() ? (
+                  {item.totalorderPrice === 0 ? (
                     <Text
-                      style={{
-                        color: 'green',
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                      }}>
-                      Arriving on{' '}
-                      {formatDistance(
-                        new Date(),
-                        new Date(item.orderDetail[0].deliveryTime),
-                      ) &&
-                      formatDistance(
-                        new Date(),
-                        new Date(item.orderDetail[0].deliveryTime),
-                      ).includes('hours')
-                        ? 'today'
-                        : formatDistance(
-                            new Date(),
-                            new Date(item.orderDetail[0].deliveryTime),
-                          ) &&
-                          formatDistance(
-                            new Date(),
-                            new Date(item.orderDetail[0].deliveryTime),
-                          ).includes('1 day')
-                        ? 'tommorow'
-                        : formatDistance(
-                            new Date(),
-                            new Date(item.orderDetail[0].deliveryTime),
-                          )}
+                      style={{fontSize: 18, color: 'red', fontWeight: 'bold'}}>
+                      Order Cancelled
+                    </Text>
+                  ) : new Date(item.deliveryTime) >= new Date() ? (
+                    item.orderDetail && item.orderDetail.length > 1 ? (
+                      <Text
+                        style={{
+                          color: 'green',
+                          fontSize: 16,
+                          fontWeight: 'bold',
+                        }}>
+                        Arriving on{' '}
+                        {formatRelative(
+                          new Date(item.deliveryTime),
+                          new Date(),
+                          {
+                            lastWeek: '[letzten] dddd [um] LT',
+                            yesterday: '[gestern um] LT',
+                            today: '[heute um] LT',
+                            tomorrow: '[morgen um] LT',
+                            nextWeek: 'dddd [um] LT',
+                          },
+                        )}
+                      </Text>
+                    ) : (
+                      <Text
+                        style={{
+                          color: 'green',
+                          fontSize: 18,
+                          fontWeight: 'bold',
+                        }}>
+                        Arriving on{' '}
+                        {formatRelative(
+                          new Date(item.deliveryTime),
+                          new Date(),
+                          {
+                            lastWeek: '[letzten] dddd [um] LT',
+                            yesterday: '[gestern um] LT',
+                            today: '[heute um] LT',
+                            tomorrow: '[morgen um] LT',
+                            nextWeek: 'dddd [um] LT',
+                          },
+                        )}
+                      </Text>
+                    )
+                  ) : item.orderDetail && item.orderDetail.length > 1 ? (
+                    <Text
+                      style={{fontSize: 16, fontWeight: 'bold', color: 'gray'}}>
+                      Delivered on{' '}
+                      {formatRelative(new Date(item.deliveryTime), new Date(), {
+                        lastWeek: '[letzten] dddd [um] LT',
+                        yesterday: '[gestern um] LT',
+                        today: '[heute um] LT',
+                        tomorrow: '[morgen um] LT',
+                        nextWeek: 'dddd [um] LT',
+                      })}
                     </Text>
                   ) : (
                     <Text
                       style={{fontSize: 18, fontWeight: 'bold', color: 'gray'}}>
                       Delivered on{' '}
-                      {formatRelative(
-                        subDays(
-                          new Date(),
-                          Math.ceil(
-                            Math.abs(
-                              new Date(item.orderDetail[0].deliveryTime) -
-                                new Date(),
-                            ) /
-                              (1000 * 60 * 60 * 24),
-                          ),
-                        ),
-                        new Date(),
-                      ) &&
-                      formatRelative(
-                        subDays(
-                          new Date(),
-                          Math.ceil(
-                            Math.abs(
-                              new Date(item.orderDetail[0].deliveryTime) -
-                                new Date(),
-                            ) /
-                              (1000 * 60 * 60 * 24),
-                          ),
-                        ),
-                        new Date(),
-                      ).includes('yesterday')
-                        ? 'yesterday'
-                        : format(
-                            new Date(item.orderDetail[0].deliveryTime),
-                            'dd MMM yyyy',
-                          )}
+                      {formatRelative(new Date(item.deliveryTime), new Date(), {
+                        lastWeek: '[letzten] dddd [um] LT',
+                        yesterday: '[gestern um] LT',
+                        today: '[heute um] LT',
+                        tomorrow: '[morgen um] LT',
+                        nextWeek: 'dddd [um] LT',
+                      })}
                     </Text>
                   )}
-                  <Text style={{fontSize: 16}}>
-                    {item.orderDetail[0].name &&
-                    item.orderDetail[0].name.length > 25
-                      ? item.orderDetail[0].name.slice(0, 25) + '...'
-                      : item.orderDetail[0].name}
-                  </Text>
+                  {item.orderDetail && item.orderDetail.length > 1 ? (
+                    <Text style={{fontSize: 16}}>
+                      {item.orderDetail[0].name &&
+                      item.orderDetail[0].name.length +
+                        item.orderDetail[1].name.length >
+                        25
+                        ? item.orderDetail[0].name.slice(0, 15) +
+                          ',' +
+                          item.orderDetail[1].name.slice(0, 10) +
+                          '...'
+                        : item.orderDetail[0].name}
+                    </Text>
+                  ) : (
+                    <Text style={{fontSize: 16}}>
+                      {item.orderDetail[0].name &&
+                      item.orderDetail[0].name.length > 25
+                        ? item.orderDetail[0].name.slice(0, 25) + '...'
+                        : item.orderDetail[0].name}
+                    </Text>
+                  )}
+
                   {item.orderDetail && item.orderDetail.length > 1 ? null : (
                     <StarRating
                       disabled={false}
                       maxStars={5}
                       fullStarColor={'green'}
                       animation={'tada'}
-                      starSize={30}
+                      starSize={35}
                       rating={Number(item.orderDetail[0].userRating)}
                       selectedStar={rating =>
                         this.onStarRatingPress(rating, item.orderId)
@@ -317,13 +344,13 @@ export default class Orders extends Component {
                     />
                   )}
                 </View>
-                {item.orderDetail.length > 1 ? (
+                {/* {item.orderDetail.length > 1 ? (
                   <View
                     style={{
                       alignSelf: 'center',
                       flexDirection: 'row',
                       justifyContent: 'flex-end',
-                      width: wp(18),
+                      width: wp(10),
                     }}>
                     <EvilIcons
                       style={{alignSelf: 'center'}}
@@ -337,7 +364,7 @@ export default class Orders extends Component {
                       alignSelf: 'center',
                       flexDirection: 'row',
                       justifyContent: 'flex-end',
-                      width: wp(30),
+                      width: wp(15),
                     }}>
                     <EvilIcons
                       style={{alignSelf: 'center'}}
@@ -345,7 +372,7 @@ export default class Orders extends Component {
                       size={40}
                     />
                   </View>
-                )}
+                )} */}
               </View>
             </CardView>
           </TouchableWithoutFeedback>
@@ -358,6 +385,17 @@ export default class Orders extends Component {
       <View style={[styles.mainContainer, {justifyContent: 'center'}]}>
         {this.state.isLoading ? (
           <ActivityIndicator size="large" color={Color.primary} />
+        ) : this.state.noOrder ? (
+          <View style={{flexDirection: 'column', justifyContent: 'center'}}>
+            <Image source={require('../../assets/images/no-order-found.jpg')} />
+            <Text
+              style={{fontSize: 25, fontWeight: 'bold', textAlign: 'center'}}>
+              Oops, you have no order yet.
+            </Text>
+            <Text style={{fontSize: 18, textAlign: 'center', color: 'gray'}}>
+              You can see your order details here, after confirmation.
+            </Text>
+          </View>
         ) : (
           this._renderOrder()
         )}

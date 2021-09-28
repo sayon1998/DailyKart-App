@@ -539,8 +539,9 @@ router.post("/save-order-v2", async (req, res) => {
             new Date().getFullYear() +
             String(index);
           e.orderDetail.forEach((x) => {
-            e.totalorderPrice += Number(x.price);
-            e.totaloriginalPrice += Number(x.originalprice);
+            e.totalorderPrice += Number(x.price) * Number(x.orderqty);
+            e.totaloriginalPrice +=
+              Number(x.originalprice) * Number(x.orderqty);
             e.totalDeliveryCharge += Number(
               x.deliverycharge ? x.deliverycharge : 0
             );
@@ -553,6 +554,12 @@ router.post("/save-order-v2", async (req, res) => {
                   100
               ).toFixed(2)
             ) + "%";
+          e.paymentMethod = req.body.paymentMethod;
+          e.isOrderPlaced = true;
+          e.isOrderPacked = false;
+          e.isOrderDispatched = false;
+          e.isOrderOutForDelivery = false;
+          e.isOrderDelivered = false;
         });
         resType.data = await orderDetail.create({
           orderDetails: orderArray,
@@ -570,8 +577,9 @@ router.post("/save-order-v2", async (req, res) => {
             new Date().getFullYear() +
             String(orderData.orderDetails.length + index);
           e.orderDetail.forEach((x) => {
-            e.totalorderPrice += Number(x.price);
-            e.totaloriginalPrice += Number(x.originalprice);
+            e.totalorderPrice += Number(x.price) * Number(x.orderqty);
+            e.totaloriginalPrice +=
+              Number(x.originalprice) * Number(x.orderqty);
             e.totalDeliveryCharge += Number(
               x.deliverycharge ? x.deliverycharge : 0
             );
@@ -584,6 +592,12 @@ router.post("/save-order-v2", async (req, res) => {
                   100
               ).toFixed(2)
             ) + "%";
+          e.paymentMethod = req.body.paymentMethod;
+          e.isOrderPlaced = true;
+          e.isOrderPacked = false;
+          e.isOrderDispatched = false;
+          e.isOrderOutForDelivery = false;
+          e.isOrderDelivered = false;
           tempArr.push(e);
         });
         orderData.orderDetails.forEach((e) => {
@@ -899,7 +913,7 @@ router.post("/update-order", async (req, res) => {
           !tempArray[index].isOrderPacked
         ) {
           tempArray[index].isOrderPacked = true;
-          tempArray[index].orderPackedDate = new Date().toLocaleString(
+          tempArray[index].orderPackedTime = new Date().toLocaleString(
             "en-US",
             {
               timeZone: "Asia/Kolkata",
@@ -914,12 +928,9 @@ router.post("/update-order", async (req, res) => {
           !tempArray[index].isOrderDispatched
         ) {
           tempArray[index].isOrderDispatched = true;
-          tempArray[index].orderDispatchedDate = new Date().toLocaleString(
-            "en-US",
-            {
-              timeZone: "Asia/Kolkata",
-            }
-          );
+          tempArray[index].dispatchedTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Kolkata",
+          });
           orderDetails.orderDetails.splice(index, 1, tempArray[index]);
           await orderDetails.save();
         } else if (
@@ -930,7 +941,7 @@ router.post("/update-order", async (req, res) => {
           !tempArray[index].isOrderOutForDelivery
         ) {
           tempArray[index].isOrderOutForDelivery = true;
-          tempArray[index].orderOutForDeliveryDate = new Date().toLocaleString(
+          tempArray[index].outForDeliveryTime = new Date().toLocaleString(
             "en-US",
             {
               timeZone: "Asia/Kolkata",
@@ -947,22 +958,83 @@ router.post("/update-order", async (req, res) => {
           !tempArray[index].isOrderDelivered
         ) {
           tempArray[index].isOrderDelivered = true;
-          tempArray[index].orderDeliveredDate = new Date().toLocaleString(
-            "en-US",
-            {
-              timeZone: "Asia/Kolkata",
-            }
-          );
+          tempArray[index].deliveryTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Kolkata",
+          });
           tempArray[index].orderDetail.forEach((x) => {
             if (x.returnpolicy) {
               if (x.returnpolicy.includes("hr")) {
                 let hr = parseInt(x.returnpolicy.split("hr")[0]);
                 var dt = new Date();
                 dt.setHours(dt.getHours() + hr);
+                x.isReturnable = true;
                 x.returnTime = dt.toLocaleString("en-US", {
                   timeZone: "Asia/Kolkata",
                 });
               }
+            } else {
+              x.isReturnable = false;
+            }
+          });
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (req.body.orderStatus === "return_proccess") {
+          tempArray[index].isOrderReturnablePlaced = true;
+          tempArray[index].orderReturnablePlacedTime =
+            new Date().toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            });
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "return_out_for_pick" &&
+          tempArray[index].isOrderReturnablePlaced
+        ) {
+          tempArray[index].isOrderReturnOutForPicked = true;
+          tempArray[index].orderReturnOutForPickedTime =
+            new Date().toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            });
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "return_picked" &&
+          tempArray[index].isOrderReturnablePlaced &&
+          tempArray[index].isOrderReturnOutForPicked
+        ) {
+          tempArray[index].isOrderReturnPicked = true;
+          tempArray[index].orderReturnPickedTime = new Date().toLocaleString(
+            "en-US",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
+          orderDetails.orderDetails.splice(index, 1, tempArray[index]);
+          await orderDetails.save();
+        } else if (
+          req.body.orderStatus === "return_delivered" &&
+          tempArray[index].isOrderReturnablePlaced &&
+          tempArray[index].isOrderReturnOutForPicked &&
+          tempArray[index].isOrderReturnPicked
+        ) {
+          tempArray[index].isOrderReturnableDelivered = true;
+          tempArray[index].orderReturnableDeliveredTime =
+            new Date().toLocaleString("en-US", {
+              timeZone: "Asia/Kolkata",
+            });
+          tempArray[index].orderDetail.forEach((x) => {
+            if (x.returnpolicy) {
+              if (x.returnpolicy.includes("hr")) {
+                let hr = parseInt(x.returnpolicy.split("hr")[0]);
+                var dt = new Date();
+                dt.setHours(dt.getHours() + hr);
+                x.isReturnable = true;
+                x.returnTime = dt.toLocaleString("en-US", {
+                  timeZone: "Asia/Kolkata",
+                });
+              }
+            } else {
+              x.isReturnable = false;
             }
           });
           orderDetails.orderDetails.splice(index, 1, tempArray[index]);
@@ -1042,10 +1114,10 @@ router.post("/cancel-order", async (req, res) => {
                 await product.save();
               }
               tempArray[index].totaloriginalPrice -=
-                parseInt(tempArray[index].orderDetail[j].price) *
+                Number(tempArray[index].orderDetail[j].originalprice) *
                 tempArray[index].orderDetail[j].orderqty;
               tempArray[index].totalorderPrice -=
-                parseInt(tempArray[index].orderDetail[j].originalprice) *
+                Number(tempArray[index].orderDetail[j].price) *
                 tempArray[index].orderDetail[j].orderqty;
               tempArray[index].totalofferPercentage =
                 (
@@ -1054,18 +1126,18 @@ router.post("/cancel-order", async (req, res) => {
                     tempArray[index].totaloriginalPrice) *
                     100
                 ).toFixed(2) + "% off";
-              const deliveryChargeDetail = await deliveryCharge.find({});
-              if (
-                parseFloat(tempArray[index].totaloriginalPrice) <
-                parseFloat(deliveryChargeDetail.minDeliveryAmt)
-              ) {
-                tempArray[index].totaloriginalPrice += parseInt(
-                  deliveryChargeDetail.chargeAmt
-                );
-                tempArray[index].deliveryCharge += parseInt(
-                  deliveryChargeDetail.chargeAmt
-                );
-              }
+              // const deliveryChargeDetail = await deliveryCharge.find({});
+              // if (
+              //   Number(tempArray[index].totaloriginalPrice) <
+              //   Number(deliveryChargeDetail.minDeliveryAmt)
+              // ) {
+              //   tempArray[index].totaloriginalPrice += Number(
+              //     deliveryChargeDetail.chargeAmt
+              //   );
+              //   tempArray[index].deliveryCharge += Number(
+              //     deliveryChargeDetail.chargeAmt
+              //   );
+              // }
             } else {
               resType.message = "Ordered can not be cancelled";
               return res.status(400).send(resType);
@@ -1083,6 +1155,78 @@ router.post("/cancel-order", async (req, res) => {
     resType.status = true;
     resType.data = await orderDetails.save();
     resType.message = "Successfuly Canceled";
+    return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+
+// Return All or Particular Order
+router.post("/return-order", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (req.body.productId && req.body.productId.length === 0) {
+      resType.message = "Product Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.orderId) {
+      resType.message = "Order Id is Required";
+      return res.status(404).send(resType);
+    }
+    const userDetail = await userDetails.findById(req.body.userId);
+    if (userDetail === null) {
+      resType.message = "User is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    const orderDetails = await orderDetail.findOne({ userId: req.body.userId });
+    let tempArray = orderDetails.orderDetails;
+    let flag = false;
+    for (const index in tempArray) {
+      if (tempArray[index].orderId === req.body.orderId) {
+        for (const j in tempArray[index].orderDetail) {
+          if (
+            req.body.productId.findIndex(
+              (x) => x === tempArray[index].orderDetail[j]._id
+            ) > -1
+          ) {
+            if (tempArray[index].isOrderDelivered) {
+              flag = true;
+              tempArray[index].orderDetail[j].isOrderReturnablePlaced = true;
+              tempArray[index].orderDetail[j].isOrderReturnOutForPicked = false;
+              tempArray[index].orderDetail[j].isOrderReturnPicked = false;
+              tempArray[index].orderDetail[
+                j
+              ].isOrderReturnableDelivered = false;
+              tempArray[index].orderDetail[j].orderReturnablePlacedTime =
+                new Date().toLocaleString("en-US", {
+                  timeZone: "Asia/Kolkata",
+                });
+            } else {
+              resType.message = "Order can not be Return untill Delivered";
+              return res.status(400).send(resType);
+            }
+          }
+        }
+      }
+    }
+    if (!flag) {
+      resType.message = "Ordered Id is not Found";
+      return res.status(400).send(resType);
+    }
+    orderDetails.orderDetails = [];
+    orderDetails.orderDetails = tempArray;
+    resType.status = true;
+    resType.data = await orderDetails.save();
+    resType.message = "Successfuly Return Processed";
     return res.status(200).send(resType);
   } catch (err) {
     resType.message = err.message;

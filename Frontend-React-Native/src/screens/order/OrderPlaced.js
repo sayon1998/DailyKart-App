@@ -79,7 +79,11 @@ export default class OrderPlaced extends Component {
               {this.state.orderDetails.deliveryTime}
             </Text>
           </Text>
-          <TouchableOpacity style={styles.button} onPress={() => {}}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              this.props.navigation.navigate('Orders');
+            }}>
             <Text style={styles.buttonText}>View order details</Text>
           </TouchableOpacity>
           <TouchableOpacity

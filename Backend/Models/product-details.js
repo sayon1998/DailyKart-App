@@ -34,15 +34,15 @@ const productSchema = new mongoose.Schema({
     required: true, // Highest Quantity user should be order
   },
   price: {
-    type: String,
+    type: Number,
     required: true, // Current Price or Offer Price
   },
   originalprice: {
-    type: String,
+    type: Number,
     required: true, // Actual Price
   },
   offerpercentage: {
-    type: String,
+    type: Number,
     required: true, // Offer as a percentage
   },
   img: {
@@ -78,11 +78,11 @@ const productSchema = new mongoose.Schema({
     required: true, // Wishlist icon
   },
   deliverycharge: {
-    type: String, // Delivery Charge
+    type: Number, // Delivery Charge
   },
   paymentmode: {
     type: String,
-    required: true, // Payment Mode online or ofiline
+    required: true, // Payment Mode online or offline
   },
   date: {
     type: Date,
