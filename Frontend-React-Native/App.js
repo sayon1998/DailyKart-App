@@ -45,6 +45,8 @@ import OrderPlaced from './src/screens/order/OrderPlaced';
 import Product from './src/screens/product/Product';
 import Address from './src/screens/address/Address';
 import OrderDetails from './src/screens/order/OrderDetails';
+import Search from './src/screens/search/Search';
+import SearchDetails from './src/screens/search/Search-details';
 
 const main = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -71,6 +73,8 @@ const MainStack = () => {
       <main.Screen name="register" component={Register} />
       <main.Screen name="Cart" component={cartDrawer} />
       <main.Screen name="Orders" component={orderDrawer} />
+      <main.Screen name="Search" component={searchDrawer} />
+      <main.Screen name="Product" component={productDrawer} />
     </main.Navigator>
   );
 };
@@ -91,7 +95,10 @@ const homeDrawer = props => {
                 marginRight: 15,
                 flexDirection: 'row',
               }}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  props.navigation.navigate('Search');
+                }}>
                 <Icon
                   style={{marginRight: 15}}
                   color="white"
@@ -172,6 +179,34 @@ const homeDrawer = props => {
       <Drawer.Screen
         options={{
           headerTitleStyle: {alignSelf: 'flex-start'},
+          title: 'Address',
+          headerLeft: () => (
+            <Icon
+              style={{marginLeft: hp(1)}}
+              onPress={() => {
+                props.navigation.goBack();
+              }}
+              name="arrow-back"
+              color="white"
+              size={25}
+            />
+          ),
+        }}
+        name="Address"
+        component={Address}
+      />
+    </Drawer.Navigator>
+  );
+};
+const productDrawer = props => {
+  return (
+    <Drawer.Navigator
+      initialRouteName="productDrawer"
+      screenOptions={screenOptionStyle}
+      drawerContent={props => <DrawerContainer {...props} />}>
+      <Drawer.Screen
+        options={{
+          headerTitleStyle: {alignSelf: 'flex-start'},
           title: '',
           headerLeft: () => (
             <Icon
@@ -207,16 +242,27 @@ const homeDrawer = props => {
             </View>
           ),
         }}
-        name="Product"
+        name="productDrawer"
         component={Product}
       />
+    </Drawer.Navigator>
+  );
+};
+const searchDrawer = props => {
+  return (
+    <Drawer.Navigator
+      initialRouteName="searchDrawer"
+      screenOptions={screenOptionStyle}
+      drawerContent={props => <DrawerContainer {...props} />}>
       <Drawer.Screen
         options={{
-          headerTitleStyle: {alignSelf: 'flex-start'},
-          title: 'Address',
+          title: '',
+          headerShown: false,
           headerLeft: () => (
             <Icon
-              style={{marginLeft: hp(1)}}
+              style={{
+                marginLeft: hp(1),
+              }}
               onPress={() => {
                 props.navigation.goBack();
               }}
@@ -226,13 +272,20 @@ const homeDrawer = props => {
             />
           ),
         }}
-        name="Address"
-        component={Address}
+        name="searchDrawer"
+        component={Search}
+      />
+      <Drawer.Screen
+        options={{
+          title: '',
+          headerShown: false,
+        }}
+        name="SearchDetails"
+        component={SearchDetails}
       />
     </Drawer.Navigator>
   );
 };
-
 const cartDrawer = props => {
   return (
     <Drawer.Navigator

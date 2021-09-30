@@ -166,7 +166,10 @@ export default class OrderDetails extends Component {
                   <TouchableOpacity
                     onPress={() => {
                       this.props.navigation.navigate('Product', {
-                        productId: item._id,
+                        screen: 'productDrawer',
+                        params: {
+                          productId: item._id,
+                        },
                       });
                     }}>
                     <View

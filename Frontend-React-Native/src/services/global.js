@@ -4,7 +4,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {ToastAndroid} from 'react-native';
-import {BehaviorSubject} from 'rxjs';
+import {async, BehaviorSubject} from 'rxjs';
 const subscriber = new BehaviorSubject('');
 const address = new BehaviorSubject();
 export {subscriber, address};
@@ -549,6 +549,20 @@ const Global = {
         });
     }
     return responseStatus;
+  },
+  lastView: async (type = '', param) => {
+    await axios
+      .post(Global.apiURL + 'product/recently-search-product', {
+        type: type,
+        searchParam: param,
+        userId: await AsyncStorage.getItem('_id'),
+      })
+      .then(res => {
+        // console.log(res.data);
+      })
+      .catch(err => {
+        console.log(err.response.data.message);
+      });
   },
 };
 export default Global;

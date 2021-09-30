@@ -22,6 +22,7 @@ router.get("/user-by-id/:_id", async (req, res) => {
       orderLength: 0,
       recentlyUsedAddress: {},
       lastOrderDetails: {},
+      recentlySearchDetails: [],
     },
     message: "",
   };
@@ -41,6 +42,7 @@ router.get("/user-by-id/:_id", async (req, res) => {
       resType.data.gender = user.gender;
       resType.data.email = user.email;
       resType.data.ph = user.ph;
+      resType.data.recentlySearchDetails = user.recentlySearchDetails;
       const cartWishlist = await cartWishlistDetails.findOne({
         userId: user._id,
       });

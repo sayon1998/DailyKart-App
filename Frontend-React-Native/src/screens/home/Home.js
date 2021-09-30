@@ -42,10 +42,14 @@ export default class Home extends Component {
       refresh: false,
       isInfiniteScroll: false,
       isLoading: true,
+      isCaroselLoading: false,
+      isCategoryLoading: false,
+      islastSearchLoading: false,
       startIndex: 0,
       limit: 6,
       totalLimit: 0,
       responseLimit: 0,
+      totalLastSearchLimit: 0,
       entries: [
         {
           title: 'Item 1',
@@ -69,6 +73,7 @@ export default class Home extends Component {
         },
       ],
       items: [],
+      lastSearchItems: [],
       categoryList: [
         {
           _id: '1',
@@ -105,10 +110,12 @@ export default class Home extends Component {
   }
   componentDidMount() {
     this.makeProductRequest();
+    // this.getLatestShowProducts();
     this.unsubscribe = this.props.navigation.addListener('focus', async () => {
       this.setState({
         items: await Global.checkWishList(this.state.items),
       });
+      this.getLatestShowProducts();
     });
   }
   componentWillUnmount() {
@@ -168,7 +175,39 @@ export default class Home extends Component {
         // Global.toasterMessage(err.response.data.message);
       });
   };
-
+  async getLatestShowProducts() {
+    this.setState({
+      islastSearchLoading: true,
+    });
+    await axios
+      .post(Global.apiURL + 'product/recently-search-product-by-useid', {
+        userId: await AsyncStorage.getItem('_id'),
+        prevIndex: '0',
+        limit: '6',
+      })
+      .then(res => {
+        // console.log(JSON.stringify(res.data));
+        if (res.data && res.data.status) {
+          if (
+            res.data.data &&
+            res.data.data.product &&
+            res.data.data.product.length > 0
+          ) {
+            this.setState({
+              islastSearchLoading: false,
+              lastSearchItems: res.data.data.product,
+              totalLastSearchLimit: res.data.data.totalLimit,
+            });
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err.message);
+        this.setState({
+          islastSearchLoading: false,
+        });
+      });
+  }
   _renderBannerItem = ({item, index}) => {
     return (
       <View style={styles.slide}>
@@ -216,7 +255,7 @@ export default class Home extends Component {
         numColumns={2}
         keyExtractor={item => item._id}
         scrollEnabled={true}
-        style={{marginBottom: hp(25), alignSelf: 'center'}}
+        style={{marginBottom: hp(26), alignSelf: 'center'}}
         renderItem={({item, index}) => (
           <CardView
             key={index}
@@ -227,7 +266,10 @@ export default class Home extends Component {
             <TouchableOpacity
               onPress={() => {
                 this.props.navigation.navigate('Product', {
-                  productId: item._id,
+                  screen: 'productDrawer',
+                  params: {
+                    productId: item._id,
+                  },
                 });
               }}>
               <Image style={styles.imgContainer} source={{uri: item.img}} />
@@ -271,7 +313,10 @@ export default class Home extends Component {
             <TouchableOpacity
               onPress={() => {
                 this.props.navigation.navigate('Product', {
-                  productId: item._id,
+                  screen: 'productDrawer',
+                  params: {
+                    productId: item._id,
+                  },
                 });
               }}>
               <View style={{height: height / 3}}>
@@ -377,6 +422,47 @@ export default class Home extends Component {
       />
     );
   };
+  _renderLastSearch() {
+    return (
+      <FlatList
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        legacyImplementation={false}
+        style={styles.categoryContainer}
+        data={this.state.lastSearchItems}
+        keyExtractor={item => item._id}
+        scrollEnabled={true}
+        renderItem={({item, index}) => (
+          <CardView
+            key={index}
+            style={[styles.categoryContent]}
+            cardElevation={5}
+            cardMaxElevation={2}
+            cornerRadius={10}>
+            <TouchableOpacity
+              onPress={() => {
+                this.props.navigation.navigate('Product', {
+                  screen: 'productDrawer',
+                  params: {
+                    productId: item._id,
+                  },
+                });
+              }}>
+              <Image
+                style={{
+                  width: 80,
+                  height: 80,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                }}
+                source={{uri: item.img}}
+              />
+            </TouchableOpacity>
+          </CardView>
+        )}
+      />
+    );
+  }
   render() {
     return (
       <View style={styles.mainContainer}>
@@ -399,7 +485,7 @@ export default class Home extends Component {
           </View>
         ) : (
           <View>
-            {!this.state.isLoading ? (
+            {!this.state.isCaroselLoading ? (
               <View style={{height: height / 5}}>
                 <Carousel
                   ref={c => {
@@ -418,7 +504,7 @@ export default class Home extends Component {
             ) : (
               <SkeletonContent
                 containerStyle={{}}
-                isLoading={this.state.isLoading}
+                isLoading={this.state.isCaroselLoading}
                 animationDirection="diagonalDownRight"
                 layout={[
                   {
@@ -432,12 +518,12 @@ export default class Home extends Component {
               />
             )}
 
-            {this.state.isLoading ? (
+            {this.state.isCategoryLoading ? (
               <SkeletonContent
                 containerStyle={{
                   flexDirection: 'row',
                 }}
-                isLoading={this.state.isLoading}
+                isLoading={this.state.isCategoryLoading}
                 animationDirection="diagonalDownRight"
                 layout={[
                   {
@@ -480,6 +566,49 @@ export default class Home extends Component {
             ) : (
               this._renderCategory()
             )}
+            {this.state.lastSearchItems &&
+            this.state.lastSearchItems.length > 0 ? (
+              <View
+                style={{
+                  borderBottomWidth: 0.5,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                    alignSelf: 'flex-start',
+                    marginLeft: hp(1),
+                    marginBottom: hp(1),
+                  }}>
+                  Recently Viewed
+                </Text>
+                {this.state.lastSearchItems &&
+                this.state.lastSearchItems.length > 0 &&
+                this.state.totalLastSearchLimit > 6 ? (
+                  <TouchableOpacity
+                    style={{
+                      alignSelf: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 'bold',
+                        color: Color.primary,
+                        textDecorationLine: 'underline',
+                        marginRight: hp(1),
+                        marginBottom: hp(1),
+                      }}>
+                      View All
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
+            {this.state.lastSearchItems && this.state.lastSearchItems.length > 0
+              ? this._renderLastSearch()
+              : null}
             <View style={{borderBottomWidth: 0.5}}>
               <Text
                 style={{

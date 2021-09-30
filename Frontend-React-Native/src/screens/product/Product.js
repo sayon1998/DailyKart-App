@@ -167,6 +167,7 @@ export default class Product extends Component {
       });
   }
   async getProductDetails() {
+    Global.lastView('product-details', this.props.route.params.productId);
     await axios
       .get(
         Global.apiURL +

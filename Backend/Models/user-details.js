@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema({
     maxlength: 10,
     minlength: 10,
   },
+  recentlySearchDetails: { type: Array },
+  recentlySeeProductDetails: { type: Array },
   date: {
     type: Date,
     default: Date.now,

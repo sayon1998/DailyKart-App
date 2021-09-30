@@ -725,7 +725,10 @@ export default class Wishlist extends Component {
           <TouchableWithoutFeedback
             onPress={() => {
               this.props.navigation.navigate('Product', {
-                productId: item._id,
+                screen: 'productDrawer',
+                params: {
+                  productId: item._id,
+                },
               });
             }}>
             <CardView

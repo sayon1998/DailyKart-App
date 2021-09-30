@@ -27,6 +27,10 @@ router.post("/search", async (req, res) => {
         $or: [
           {
             name: new RegExp(req.body.searchKey ? req.body.searchKey : "", "i"),
+            company: new RegExp(
+              req.body.searchKey ? req.body.searchKey : "",
+              "i"
+            ),
             type: new RegExp(req.body.category ? req.body.category : "", "i"),
             description: new RegExp(req.body.desc ? req.body.desc : "", "i"),
           },
@@ -45,7 +49,7 @@ router.post("/search", async (req, res) => {
           return res.status(404).send(resType);
         }
         resType.data = {
-          prevIndex: req.body.limit,
+          prevIndex: params === null ? "0" : req.body.limit,
           limit: req.body.limit,
           Data: params,
         };
@@ -164,6 +168,159 @@ router.post("/productbymultipleid", async (req, res) => {
       resType.message = "Successful";
       return res.status(200).send(resType);
     }
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+// Recently Search Product
+router.post("/recently-search-product", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {},
+    message: "",
+  };
+  try {
+    if (!req.body.type) {
+      resType.message = "Type is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.searchParam) {
+      resType.message = "Search Param is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    const userData = await userDetail.findById(req.body.userId);
+    if (userData === null) {
+      resType.message = "User is not present in our Database";
+      return res.status(404).send(resType);
+    }
+    if (req.body.type === "search") {
+      if (
+        userData.recentlySearchDetails &&
+        userData.recentlySearchDetails.length > 0
+      ) {
+        if (
+          userData.recentlySearchDetails.findIndex(
+            (x) => x === req.body.searchParam
+          ) > -1
+        ) {
+          let index = userData.recentlySearchDetails.findIndex(
+            (x) => x === req.body.searchParam
+          );
+          userData.recentlySearchDetails.splice(index, 1);
+          userData.recentlySearchDetails.splice(0, 0, req.body.searchParam);
+          resType.data = await userData.save();
+        } else {
+          userData.recentlySearchDetails.splice(0, 0, req.body.searchParam);
+          resType.data = await userData.save();
+        }
+      } else {
+        userData.recentlySearchDetails.push(req.body.searchParam);
+        resType.data = await userData.save();
+      }
+    } else if (req.body.type === "product-details") {
+      if (
+        userData.recentlySeeProductDetails &&
+        userData.recentlySeeProductDetails.length > 0
+      ) {
+        if (
+          userData.recentlySeeProductDetails.findIndex(
+            (x) => x === req.body.searchParam
+          ) > -1
+        ) {
+          let index = userData.recentlySeeProductDetails.findIndex(
+            (x) => x === req.body.searchParam
+          );
+          userData.recentlySeeProductDetails.splice(index, 1);
+          userData.recentlySeeProductDetails.splice(0, 0, req.body.searchParam);
+          resType.data = await userData.save();
+        } else {
+          userData.recentlySeeProductDetails.splice(0, 0, req.body.searchParam);
+          resType.data = await userData.save();
+        }
+      } else {
+        userData.recentlySeeProductDetails.push(req.body.searchParam);
+        resType.data = await userData.save();
+      }
+    }
+    resType.message = "Successful";
+    resType.status = true;
+    return res.status(200).send(resType);
+  } catch (err) {
+    resType.message = err.message;
+    return res.status(400).send(resType);
+  }
+});
+// Get Recently Search Product and Details
+router.post("/recently-search-product-by-useid/", async (req, res) => {
+  const resType = {
+    status: false,
+    data: {
+      product: [],
+      prevIndex: 0,
+      limit: 0,
+      totalLimit: 0,
+    },
+    message: "",
+  };
+  let tempProductId = [];
+  try {
+    if (!req.body.userId) {
+      resType.message = "User Id is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.prevIndex) {
+      resType.message = "Prev Index is Required";
+      return res.status(404).send(resType);
+    }
+    if (!req.body.limit) {
+      resType.message = "Limit is Required";
+      return res.status(404).send(resType);
+    }
+    const userData = await userDetail.findById(req.body.userId);
+    if (userData === null) {
+      resType.message = "User is not Present in Our Database";
+      return res.status(404).send(resType);
+    }
+    if (
+      userData.recentlySeeProductDetails &&
+      userData.recentlySeeProductDetails.length === 0
+    ) {
+      resType.message = "User have no recently search product";
+      return res.status(200).send(resType);
+    }
+
+    if (req.body.limit < userData.recentlySeeProductDetails.length) {
+      for (
+        let i = Number(req.body.prevIndex);
+        i < Number(req.body.limit);
+        i++
+      ) {
+        if (userData.recentlySeeProductDetails[i]) {
+          tempProductId.push(userData.recentlySeeProductDetails[i]);
+        } else {
+          break;
+        }
+      }
+    } else {
+      tempProductId = userData.recentlySeeProductDetails;
+    }
+    for (let i = 0; i < tempProductId.length; i++) {
+      const product = await productDetail.findById(tempProductId[i]);
+      if (product !== null) {
+        resType.data.product.push(product);
+      }
+    }
+    resType.data.prevIndex = userData.recentlySeeProductDetails.length;
+    resType.data.limit = req.body.limit;
+    resType.data.totalLimit = userData.recentlySeeProductDetails.length;
+    resType.message = "Successful";
+    resType.status = true;
+    return res.status(200).send(resType);
   } catch (err) {
     resType.message = err.message;
     return res.status(400).send(resType);
