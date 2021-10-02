@@ -1,8 +1,4 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable react/jsx-no-duplicate-props */
-/* eslint-disable react/react-in-jsx-scope */
-/* eslint-disable prettier/prettier */
+
 import axios from 'axios';
 import React, {Component} from 'react';
 import {
@@ -29,7 +25,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PasswordInputText from 'react-native-hide-show-password-input';
 import auth from '@react-native-firebase/auth';
 import {StackActions} from '@react-navigation/native';
-// import Spinner from 'react-native-loading-spinner-overlay';
 
 export default class Auth extends Component {
   constructor() {
@@ -50,7 +45,6 @@ export default class Auth extends Component {
   }
   async onSubmit() {
     console.log(this.state.ph);
-    // this.props.navigation.navigate('register');
     if (this.state.ph && this.state.ph.length === 10) {
       this.setState({spinner: true});
       try {
@@ -171,9 +165,6 @@ export default class Auth extends Component {
                 if (that.state.isNewUser) {
                   await AsyncStorage.setItem('ph', that.state.ph);
                   that.props.navigation.navigate('register');
-                  // that.props.navigation.navigate('SignUp_page_first', {
-                  //   phone: that.state.ph,
-                  // });
                 } else {
                   await AsyncStorage.setItem('ph', that.state.ph);
                   Global.toasterMessage('Login Successful !', 'long');
